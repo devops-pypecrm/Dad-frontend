@@ -28,6 +28,7 @@ export default {
                 // in index.html) now renders in Poppins automatically.
                 sans: ["'Poppins'", "sans-serif"],
                 poppins: ["'Poppins'", "sans-serif"],
+                jakarta: ["'Plus Jakarta Sans'", "sans-serif"],
             },
             colors: {
                 border: "hsl(var(--border))",

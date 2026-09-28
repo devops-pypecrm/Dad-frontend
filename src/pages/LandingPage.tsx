@@ -44,7 +44,7 @@ const landingJsonLd = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 font-sans selection:bg-blue-100 dark:selection:bg-blue-900">
+    <div className="min-h-screen bg-white dark:bg-gray-950 font-jakarta selection:bg-blue-100 dark:selection:bg-blue-900">
       <SEO
         title="AI-Powered Lead Management & Sales Automation"
         description="Close more deals with AI-driven lead scoring, automated follow-ups, and a unified sales pipeline. Start your free 14-day trial today."

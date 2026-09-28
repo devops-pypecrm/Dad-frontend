@@ -3,9 +3,46 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getNotifications, markAsRead } from '@/services/notificationService';
 import { socketService } from '@/services/socketService';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bell, ShieldAlert, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Bell, ShieldAlert, AlertTriangle, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+
+const SEVERITY_STYLES: Record<string, {
+  Icon: typeof Bell;
+  iconWrap: string;
+  ping: string;
+  topBar: string;
+  button: string;
+}> = {
+  info: {
+    Icon: Bell,
+    iconWrap: 'bg-indigo-500/10 text-indigo-400',
+    ping: 'bg-indigo-400/20',
+    topBar: 'from-violet-600 via-indigo-500 to-purple-600',
+    button: 'from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-indigo-600/20 hover:shadow-indigo-600/40 border-indigo-500/30',
+  },
+  warning: {
+    Icon: AlertTriangle,
+    iconWrap: 'bg-amber-500/10 text-amber-400',
+    ping: 'bg-amber-400/20',
+    topBar: 'from-amber-500 via-orange-500 to-amber-600',
+    button: 'from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 shadow-amber-600/20 hover:shadow-amber-600/40 border-amber-500/30',
+  },
+  critical: {
+    Icon: ShieldAlert,
+    iconWrap: 'bg-red-500/10 text-red-400',
+    ping: 'bg-red-400/20',
+    topBar: 'from-red-600 via-rose-500 to-red-600',
+    button: 'from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 shadow-red-600/20 hover:shadow-red-600/40 border-red-500/30',
+  },
+  update: {
+    Icon: Sparkles,
+    iconWrap: 'bg-emerald-500/10 text-emerald-400',
+    ping: 'bg-emerald-400/20',
+    topBar: 'from-emerald-600 via-green-500 to-emerald-600',
+    button: 'from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 shadow-emerald-600/20 hover:shadow-emerald-600/40 border-emerald-500/30',
+  },
+};
 
 export function PersistentBroadcastModal() {
   const queryClient = useQueryClient();
@@ -80,6 +117,8 @@ export function PersistentBroadcastModal() {
   }
 
   const isLast = currentNotifIndex === notifications.length - 1;
+  const severity = SEVERITY_STYLES[currentNotif.severity] ? currentNotif.severity : 'info';
+  const style = SEVERITY_STYLES[severity];
 
   return (
     <AnimatePresence>
@@ -105,14 +144,14 @@ export function PersistentBroadcastModal() {
           )}
         >
           {/* Top glow border */}
-          <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-violet-600 via-indigo-500 to-purple-600" />
+          <div className={cn("absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r", style.topBar)} />
 
           {/* Modal Content */}
           <div className="p-6 sm:p-8 flex flex-col items-center text-center">
-            {/* Pulsing Animated Bell Icon */}
-            <div className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-500/10 text-indigo-400">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400/20 opacity-75" />
-              <Bell className="h-8 w-8 stroke-[1.5]" />
+            {/* Pulsing Animated Icon */}
+            <div className={cn("relative mb-5 flex h-16 w-16 items-center justify-center rounded-full", style.iconWrap)}>
+              <span className={cn("absolute inline-flex h-full w-full animate-ping rounded-full opacity-75", style.ping)} />
+              <style.Icon className="h-8 w-8 stroke-[1.5]" />
             </div>
 
             {/* Notification Badge / Index */}
@@ -138,10 +177,9 @@ export function PersistentBroadcastModal() {
                 onClick={handleMarkAsRead}
                 disabled={markAsReadMutation.isPending}
                 className={cn(
-                  "w-full h-12 text-sm font-semibold tracking-wide text-white rounded-xl shadow-lg transition-all duration-300",
-                  "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500",
-                  "shadow-indigo-600/20 hover:shadow-indigo-600/40",
-                  "border border-indigo-500/30 flex items-center justify-center gap-2"
+                  "w-full h-12 text-sm font-semibold tracking-wide text-white rounded-xl shadow-lg transition-all duration-300 bg-gradient-to-r",
+                  style.button,
+                  "border flex items-center justify-center gap-2"
                 )}
               >
                 {markAsReadMutation.isPending ? (

@@ -164,7 +164,7 @@ function HeroCell({ card, index }: { card: (typeof heroCards)[number]; index: nu
 
 export default function FeatureSection() {
   return (
-    <section id="features" className="py-24 bg-gray-50 dark:bg-gray-900/50 px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28">
+    <section id="features" className="py-24 bg-white dark:bg-gray-900/50 px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28">
       <div className="container mx-auto max-w-7xl">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-gray-200 bg-white text-xs font-medium text-gray-600">

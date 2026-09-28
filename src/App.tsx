@@ -128,6 +128,7 @@ const DocArticlePage = lazy(() => import('./pages/docs/[slug]'));
 const IssuesPage = lazy(() => import('./pages/issues'));
 const SuperAdminIssuesPage = lazy(() => import('./pages/super-admin/issues'));
 const SuperAdminEnquiriesPage = lazy(() => import('./pages/super-admin/enquiries'));
+const SuperAdminBroadcastsPage = lazy(() => import('./pages/super-admin/broadcasts'));
 const SuperAdminHelperLogsPage = lazy(() => import('./pages/super-admin/helper-logs'));
 
 const queryClient = new QueryClient({
@@ -407,6 +408,7 @@ function AppContent() {
        <Route path="/super-admin/restore" element={<SuperAdminRestorePage />} />
        <Route path="/super-admin/issues" element={<SuperAdminIssuesPage />} />
        <Route path="/super-admin/enquiries" element={<SuperAdminEnquiriesPage />} />
+       <Route path="/super-admin/broadcasts" element={<SuperAdminBroadcastsPage />} />
        <Route path="/super-admin/helper-logs" element={<SuperAdminHelperLogsPage />} />
        <Route path="/settings/lead-scoring" element={<LeadScoringSettingsPage />} />
        <Route path="/settings/assignment-rules" element={<AssignmentRulesPage />} />
