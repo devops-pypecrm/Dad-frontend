@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getNotifications, markAsRead } from '@/services/notificationService';
 import { socketService } from '@/services/socketService';
@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Bell, ShieldAlert, AlertTriangle, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { ChevronDown } from 'lucide-react';
 
 const SEVERITY_STYLES: Record<string, {
   Icon: typeof Bell;
@@ -47,6 +48,8 @@ const SEVERITY_STYLES: Record<string, {
 export function PersistentBroadcastModal() {
   const queryClient = useQueryClient();
   const [currentNotifIndex, setCurrentNotifIndex] = useState(0);
+  const [hasMoreBelow, setHasMoreBelow] = useState(false);
+  const messageRef = useRef<HTMLDivElement>(null);
 
   // Fetch unread popup notifications
   const { data, refetch } = useQuery({
@@ -112,6 +115,20 @@ export function PersistentBroadcastModal() {
     }
   };
 
+  // Detects whether the message body is actually scrollable, and whether
+  // there's more content below the current scroll position, so we can show
+  // a "scroll for more" hint - otherwise longer broadcasts silently hide
+  // content below the fold with no indication there's more to read.
+  const checkOverflow = () => {
+    const el = messageRef.current;
+    if (!el) return;
+    setHasMoreBelow(el.scrollHeight - el.scrollTop - el.clientHeight > 4);
+  };
+
+  useEffect(() => {
+    checkOverflow();
+  }, [currentNotif?.id]);
+
   if (notifications.length === 0 || !currentNotif) {
     return null;
   }
@@ -166,9 +183,22 @@ export function PersistentBroadcastModal() {
               {currentNotif.title}
             </h3>
 
-            {/* Message Body (Markdown-like wrapper) */}
-            <div className="text-sm sm:text-base text-slate-300 leading-relaxed max-h-60 overflow-y-auto mb-8 pr-2 w-full text-center scrollbar-thin">
-              {currentNotif.message}
+            {/* Message Body - relative wrapper so the "more below" fade/hint
+                can sit over the scroll area without shifting layout. */}
+            <div className="relative w-full mb-8">
+              <div
+                ref={messageRef}
+                onScroll={checkOverflow}
+                className="text-sm sm:text-base text-slate-300 leading-relaxed max-h-60 overflow-y-auto pr-2 w-full text-left whitespace-pre-line scrollbar-thin"
+              >
+                {currentNotif.message}
+              </div>
+              {hasMoreBelow && (
+                <div className="pointer-events-none absolute bottom-0 inset-x-0 flex flex-col items-center">
+                  <div className="h-8 w-full bg-gradient-to-t from-slate-900/95 to-transparent" />
+                  <ChevronDown className="h-4 w-4 text-slate-400 -mt-1 animate-bounce" />
+                </div>
+              )}
             </div>
 
             {/* Actions Panel */}
