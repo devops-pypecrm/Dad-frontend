@@ -499,7 +499,7 @@ export default function LeadsPage() {
       assignedTo: currentOwner === 'all' ? undefined : currentOwner,
       branchId: currentBranch === 'all' ? undefined : currentBranch,
       source: currentSource === 'all' ? undefined : currentSource,
-      campaignId: currentSource === 'meta_leadgen' && currentCampaign !== 'all' ? currentCampaign : undefined,
+      campaignId: currentCampaign !== 'all' ? currentCampaign : undefined,
       status: currentStatus === 'all' ? undefined : currentStatus,
       startDate: backendDateFilter.from || undefined,
       endDate: backendDateFilter.to || undefined
@@ -507,13 +507,15 @@ export default function LeadsPage() {
     placeholderData: keepPreviousData,
   });
 
+  // Not Meta-only anymore - covers any lead with a tagged campaign, including
+  // bulk-imported ones (e.g. "Albania", "Virginia" study-abroad batches), so
+  // this always fetches regardless of the Source filter.
   const { data: activeCampaigns = [] } = useQuery({
     queryKey: ['active-lead-campaigns'],
     queryFn: async () => {
       const { getActiveLeadCampaigns } = await import('@/services/adService');
       return getActiveLeadCampaigns();
     },
-    enabled: currentSource === 'meta_leadgen',
     staleTime: 5 * 60 * 1000,
   });
 
@@ -667,7 +669,7 @@ export default function LeadsPage() {
       });
     }
 
-    if (currentSource === 'meta_leadgen' && currentCampaign !== 'all') {
+    if (currentCampaign !== 'all') {
       const found = activeCampaigns.find((c) => c.id === currentCampaign);
       list.push({
         key: 'campaign',
@@ -1127,8 +1129,9 @@ export default function LeadsPage() {
               </div>
             )}
 
-            {/* Campaign Filter - only meaningful once Source is scoped to Meta Ads */}
-            {!isTaskView && !isChartView && currentSource === 'meta_leadgen' && (
+            {/* Campaign Filter - covers any lead tagged with a campaign, Meta
+                Ads or bulk-imported, so it's shown regardless of Source. */}
+            {!isTaskView && !isChartView && activeCampaigns.length > 0 && (
               <div className={FILTER_CARD_CLASS}>
                 <Megaphone className={FILTER_ICON_CLASS} />
                 <div className="min-w-0 flex-1">

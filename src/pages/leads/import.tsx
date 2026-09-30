@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import { api } from "@/services/api"
 import { useNavigate } from "react-router-dom"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { isAdmin } from "@/lib/utils"
 
@@ -17,6 +18,7 @@ export default function BulkImportLeadsPage() {
   const [isImporting, setIsImporting] = useState(false)
   const [branches, setBranches] = useState<{ id: string, name: string }[]>([])
   const [selectedBranch, setSelectedBranch] = useState<string>("none")
+  const [campaignName, setCampaignName] = useState<string>("")
   const [applyAssignmentRules, setApplyAssignmentRules] = useState(false)
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
   const [availableUsers, setAvailableUsers] = useState<any[]>([])
@@ -150,14 +152,21 @@ export default function BulkImportLeadsPage() {
       "City": "address.city",
       "State": "address.state",
       "Country": "address.country",
-      "country": "address.country"
+      "country": "address.country",
+      "Campaign": "campaignName",
+      "campaign": "campaignName",
+      "Campaign Name": "campaignName",
+      "campaignName": "campaignName"
     }
-    
+
     formData.append("mapping", JSON.stringify(mapping))
     formData.append("defaultStatus", "new")
-    
+
     if (selectedBranch && selectedBranch !== "none") {
       formData.append("branchId", selectedBranch)
+    }
+    if (campaignName.trim()) {
+      formData.append("campaignName", campaignName.trim())
     }
     if (applyAssignmentRules) {
       formData.append("applyAssignmentRules", "true")
@@ -186,8 +195,8 @@ export default function BulkImportLeadsPage() {
   }
 
   const downloadTemplate = () => {
-    const headers = ["First Name", "Last Name", "Email", "Phone", "Company", "Job Title", "Lead Source", "Status", "City", "State", "Country"]
-    const csvContent = headers.join(",") + "\n" + "John,Doe,john@example.com,+1234567890,Acme Corp,Manager,Website,new,New York,NY,USA"
+    const headers = ["First Name", "Last Name", "Email", "Phone", "Company", "Job Title", "Lead Source", "Status", "City", "State", "Country", "Campaign"]
+    const csvContent = headers.join(",") + "\n" + "John,Doe,john@example.com,+1234567890,Acme Corp,Manager,Website,new,New York,NY,USA,Albania"
     const blob = new Blob([csvContent], { type: "text/csv" })
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement("a")
@@ -312,6 +321,19 @@ export default function BulkImportLeadsPage() {
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground">Leads will be assigned to this branch</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="target-campaign">Target Campaign (Optional)</Label>
+                      <Input
+                        id="target-campaign"
+                        placeholder="e.g. Albania, Virginia, B2B Skill Batch"
+                        value={campaignName}
+                        onChange={(e) => setCampaignName(e.target.value)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Tags every lead in this file with this campaign, unless the file already has its own Campaign column
+                      </p>
                     </div>
 
                     <div className="space-y-2">

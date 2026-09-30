@@ -105,6 +105,8 @@ export interface CreateLeadData {
     countryCode?: string;
     branchId?: string;
     enquiryAbout?: string;
+    campaignName?: string;
+    campaign?: string;
 }
 
 export type UpdateLeadData = Partial<CreateLeadData>;

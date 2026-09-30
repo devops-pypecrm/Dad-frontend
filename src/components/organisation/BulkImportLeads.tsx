@@ -168,6 +168,7 @@ export function BulkImportLeads() {
               else if (normalizedKey === 'job title' || normalizedKey === 'jobtitle') mappedKey = 'jobTitle'
               else if (normalizedKey === 'lead score' || normalizedKey === 'leadscore') mappedKey = 'leadScore'
               else if (normalizedKey === 'owner email' || normalizedKey === 'owneremail') mappedKey = 'ownerEmail'
+              else if (normalizedKey === 'campaign' || normalizedKey === 'campaign name' || normalizedKey === 'campaignname') mappedKey = 'campaignName'
 
               obj[mappedKey] = value
             }
@@ -232,8 +233,8 @@ export function BulkImportLeads() {
   }
 
   const handleDownloadTemplate = () => {
-    const headers = "firstName,lastName,email,phone,company,jobTitle,source,leadScore,stage,ownerEmail"
-    const sample = "John,Doe,john@example.com,1234567890,Acme Corp,Manager,import,10,new,admin@example.com"
+    const headers = "firstName,lastName,email,phone,company,jobTitle,source,leadScore,stage,ownerEmail,campaign"
+    const sample = "John,Doe,john@example.com,1234567890,Acme Corp,Manager,import,10,new,admin@example.com,Albania"
     const csvContent = "data:text/csv;charset=utf-8," + headers + "\n" + sample
     const encodedUri = encodeURI(csvContent)
     const link = document.createElement("a")
