@@ -130,6 +130,7 @@ const SuperAdminIssuesPage = lazy(() => import('./pages/super-admin/issues'));
 const SuperAdminEnquiriesPage = lazy(() => import('./pages/super-admin/enquiries'));
 const SuperAdminBroadcastsPage = lazy(() => import('./pages/super-admin/broadcasts'));
 const SuperAdminHelperLogsPage = lazy(() => import('./pages/super-admin/helper-logs'));
+const AiIntegrationPage = lazy(() => import('./pages/super-admin/ai-integration'));
 
 const queryClient = new QueryClient({
  defaultOptions: {
@@ -410,6 +411,7 @@ function AppContent() {
        <Route path="/super-admin/enquiries" element={<SuperAdminEnquiriesPage />} />
        <Route path="/super-admin/broadcasts" element={<SuperAdminBroadcastsPage />} />
        <Route path="/super-admin/helper-logs" element={<SuperAdminHelperLogsPage />} />
+       <Route path="/super-admin/ai-integration" element={<AiIntegrationPage />} />
        <Route path="/settings/lead-scoring" element={<LeadScoringSettingsPage />} />
        <Route path="/settings/assignment-rules" element={<AssignmentRulesPage />} />
        <Route path="/settings/integrations" element={<IntegrationsSettingsPage />} />

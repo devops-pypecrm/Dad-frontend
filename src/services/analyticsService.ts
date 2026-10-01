@@ -319,3 +319,24 @@ export const getLeadHealth = async (filters?: { branchId?: string; startDate?: s
         return { unattendedLeads: 0, noActivityLeads: 0 };
     }
 };
+
+export interface TrendInsightResult {
+    insight: string;
+    source: 'ai' | 'computed';
+}
+
+// `summary` is whatever numbers the calling page already fetched (e.g. call
+// activity points, lead source counts) - the backend either sends it to the
+// configured AI provider (Super Admin > AI Integration) or, if none is set
+// up, returns a plain computed sentence from the same numbers.
+export const getTrendInsight = async (type: 'user-trend' | 'business-trend', summary: unknown): Promise<TrendInsightResult> => {
+    try {
+        const response = await api.get('/analytics/ai-insight', {
+            params: { type, summary: JSON.stringify(summary ?? {}) },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching trend insight:', error);
+        return { insight: '', source: 'computed' };
+    }
+};
