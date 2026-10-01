@@ -32,7 +32,10 @@ import {
   ChevronRight,
   User,
   Pencil,
-  Box
+  Box,
+  Layers,
+  Wallet,
+  X
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -63,6 +66,7 @@ import { cn } from "@/lib/utils"
 import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog"
 import * as XLSX from "xlsx"
 import { Download } from "lucide-react"
+import { FILTER_CARD_CLASS, FILTER_ICON_CLASS, FILTER_LABEL_CLASS, FILTER_TRIGGER_CLASS } from "@/pages/leads/filterStyles"
 
 // Tree Node interface for hierarchical display
 interface TargetTreeNode extends SalesTarget {
@@ -203,6 +207,18 @@ export default function SalesTargetsPage() {
   const [editingTarget, setEditingTarget] = useState<SalesTarget | null>(null)
   const [editValue, setEditValue] = useState("")
 
+  // Advanced filters for the lists below (applied client-side across My
+  // Targets and Team Hierarchy, since both already come down fully loaded).
+  const [periodFilter, setPeriodFilter] = useState<'all' | 'monthly' | 'quarterly' | 'yearly'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed' | 'missed'>('all')
+  const [productFilter, setProductFilter] = useState<string>('all')
+  const hasActiveFilters = periodFilter !== 'all' || statusFilter !== 'all' || productFilter !== 'all'
+  const clearFilters = () => {
+    setPeriodFilter('all')
+    setStatusFilter('all')
+    setProductFilter('all')
+  }
+
   const queryClient = useQueryClient()
 
   // Fetch Products for dropdown
@@ -236,14 +252,19 @@ export default function SalesTargetsPage() {
     queryFn: getSubordinates
   })
 
-  const myTargets = Array.isArray(myTargetsData?.targets) ? myTargetsData.targets : []
-  const teamTargets = Array.isArray(teamTargetsData?.targets) ? teamTargetsData.targets : []
+  const allMyTargets = Array.isArray(myTargetsData?.targets) ? myTargetsData.targets : []
+  const allTeamTargets = Array.isArray(teamTargetsData?.targets) ? teamTargetsData.targets : []
   const subordinates = Array.isArray(subordinatesData?.subordinates) ? subordinatesData.subordinates : []
 
-  const targetTree = useMemo(() => {
-    const targets = Array.isArray(teamTargetsData?.targets) ? teamTargetsData.targets : [];
-    return buildTargetTree(targets);
-  }, [teamTargetsData?.targets]);
+  const matchesFilters = (t: SalesTarget) =>
+    (periodFilter === 'all' || t.period === periodFilter) &&
+    (statusFilter === 'all' || t.status === statusFilter) &&
+    (productFilter === 'all' || t.productId === productFilter)
+
+  const myTargets = useMemo(() => allMyTargets.filter(matchesFilters), [allMyTargets, periodFilter, statusFilter, productFilter])
+  const teamTargets = useMemo(() => allTeamTargets.filter(matchesFilters), [allTeamTargets, periodFilter, statusFilter, productFilter])
+
+  const targetTree = useMemo(() => buildTargetTree(teamTargets), [teamTargets]);
 
   const [now] = useState<number>(() => Date.now()); // Fallback to current time, but useState initializer is only once per mount
 
@@ -402,126 +423,145 @@ export default function SalesTargetsPage() {
                       <Plus className="h-3.5 w-3.5" />Assign Target
                     </Button>
                   </DialogTrigger>
-                  <DialogContent aria-describedby="assign-target-desc" className="max-h-[90vh] overflow-y-auto">
+                  <DialogContent aria-describedby="assign-target-desc" className="max-h-[90vh] overflow-y-auto rounded-[16px] sm:rounded-[20px]">
                     <form onSubmit={handleSubmit}>
                       <DialogHeader>
-                        <DialogTitle>Assign Sales Target</DialogTitle>
-                        <DialogDescription id="assign-target-desc">
+                        <DialogTitle className="font-poppins text-lg flex items-center gap-2.5">
+                          <span className="h-9 w-9 rounded-[10px] bg-[hsl(var(--chart-5))]/10 flex items-center justify-center text-[hsl(var(--chart-5))] shrink-0">
+                            <Target className="h-4.5 w-4.5" />
+                          </span>
+                          Assign Sales Target
+                        </DialogTitle>
+                        <DialogDescription id="assign-target-desc" className="font-poppins">
                           Assign a sales target to a subordinate for a specific period.
                         </DialogDescription>
                       </DialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <div>
-                          <Label>Assign To</Label>
-                          <Select value={selectedSubordinate} onValueChange={setSelectedSubordinate}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select team member" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {subordinates.map((sub: Subordinate) => (
-                                <SelectItem key={sub.id} value={sub.id}>
-                                  {sub.firstName} {sub.lastName}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {subordinates.length === 0 && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              No direct reports found. You can only assign targets to your subordinates.
+                      <div className="space-y-5 py-4">
+                        <div className="space-y-3">
+                          <p className="text-[11px] font-poppins font-semibold uppercase tracking-wider text-muted-foreground/70">Who &amp; How</p>
+                          <div>
+                            <Label className="font-poppins">Assign To</Label>
+                            <Select value={selectedSubordinate} onValueChange={setSelectedSubordinate}>
+                              <SelectTrigger className="rounded-[10px]">
+                                <SelectValue placeholder="Select team member" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {subordinates.map((sub: Subordinate) => (
+                                  <SelectItem key={sub.id} value={sub.id}>
+                                    {sub.firstName} {sub.lastName}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {subordinates.length === 0 && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                No direct reports found. You can only assign targets to your subordinates.
+                              </p>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <Label className="font-poppins">Measure By</Label>
+                              <Select value={metric} onValueChange={(v) => setMetric(v as 'revenue' | 'units')}>
+                                <SelectTrigger className="rounded-[10px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="revenue">Revenue Amount</SelectItem>
+                                  <SelectItem value="units">Product Units (Qty)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label className="font-poppins">Period</Label>
+                              <Select value={period} onValueChange={(v) => setPeriod(v as typeof period)}>
+                                <SelectTrigger className="rounded-[10px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="monthly">Monthly</SelectItem>
+                                  <SelectItem value="quarterly">Quarterly</SelectItem>
+                                  <SelectItem value="yearly">Yearly</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          <div>
+                            <Label className="font-poppins">Target Scope</Label>
+                            <Select value={scope} onValueChange={(v) => setScope(v as 'INDIVIDUAL' | 'HIERARCHY')}>
+                              <SelectTrigger className="rounded-[10px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="HIERARCHY">Team Hierarchy (Rollup)</SelectItem>
+                                <SelectItem value="INDIVIDUAL">Individual Only</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <p className="text-[11px] text-muted-foreground mt-1">
+                              {scope === 'HIERARCHY'
+                                ? "Target includes sales from the user + their team."
+                                : "Target counts ONLY the user's personal sales."}
                             </p>
-                          )}
+                          </div>
                         </div>
-                        <div>
-                          <Label>Measure By</Label>
-                          <Select value={metric} onValueChange={(v) => setMetric(v as 'revenue' | 'units')}>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="revenue">Revenue Amount</SelectItem>
-                              <SelectItem value="units">Product Units (Qty)</SelectItem>
-                            </SelectContent>
-                          </Select>
+
+                        <div className="space-y-3 pt-1 border-t border-border">
+                          <p className="text-[11px] font-poppins font-semibold uppercase tracking-wider text-muted-foreground/70 pt-3">Advanced Filters (Optional)</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <Label className="font-poppins">Product</Label>
+                              <Select value={selectedProductId} onValueChange={setSelectedProductId}>
+                                <SelectTrigger className="rounded-[10px]">
+                                  <SelectValue placeholder="All Products" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="ALL">All Products (General Target)</SelectItem>
+                                  {products.map((product: { id: string; name: string }) => (
+                                    <SelectItem key={product.id} value={product.id}>
+                                      {product.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label className="font-poppins">Opportunity Type</Label>
+                              <Select value={opportunityType} onValueChange={(v) => setOpportunityType(v as 'NEW_BUSINESS' | 'UPSALE' | 'ALL')}>
+                                <SelectTrigger className="rounded-[10px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="ALL">All Types</SelectItem>
+                                  <SelectItem value="NEW_BUSINESS">New Business</SelectItem>
+                                  <SelectItem value="UPSALE">Upsale</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
                         </div>
 
                         <div>
-                          <Label>Target Scope</Label>
-                          <Select value={scope} onValueChange={(v) => setScope(v as 'INDIVIDUAL' | 'HIERARCHY')}>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="HIERARCHY">Team Hierarchy (Rollup)</SelectItem>
-                              <SelectItem value="INDIVIDUAL">Individual Only</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <p className="text-[11px] text-muted-foreground mt-1">
-                            {scope === 'HIERARCHY'
-                              ? "Target includes sales from the user + their team."
-                              : "Target counts ONLY the user's personal sales."}
-                          </p>
-                        </div>
-
-                        <div>
-                          <Label>Product (Optional)</Label>
-                          <Select value={selectedProductId} onValueChange={setSelectedProductId}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="All Products (General Target)" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="ALL">All Products (General Target)</SelectItem>
-                              {products.map((product: { id: string; name: string }) => (
-                                <SelectItem key={product.id} value={product.id}>
-                                  {product.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label>Opportunity Type (Optional)</Label>
-                          <Select value={opportunityType} onValueChange={(v) => setOpportunityType(v as 'NEW_BUSINESS' | 'UPSALE' | 'ALL')}>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="ALL">All Types</SelectItem>
-                              <SelectItem value="NEW_BUSINESS">New Business</SelectItem>
-                              <SelectItem value="UPSALE">Upsale</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label>{metric === 'revenue' ? 'Target Amount' : 'Target Units (Qty)'}</Label>
+                          <Label className="font-poppins">{metric === 'revenue' ? 'Target Amount' : 'Target Units (Qty)'}</Label>
                           <Input
                             type="number"
                             value={targetValue}
                             onChange={(e) => setTargetValue(e.target.value)}
                             placeholder={metric === 'revenue' ? "e.g. 100000" : "e.g. 50"}
+                            className="rounded-[10px]"
                             required
                           />
                         </div>
-                        <div>
-                          <Label>Period</Label>
-                          <Select value={period} onValueChange={(v) => setPeriod(v as typeof period)}>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="monthly">Monthly</SelectItem>
-                              <SelectItem value="quarterly">Quarterly</SelectItem>
-                              <SelectItem value="yearly">Yearly</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg text-sm text-blue-700 dark:text-blue-300">
+
+                        <div className="p-3 rounded-[10px] bg-[hsl(var(--chart-5))]/10 text-sm font-poppins text-[hsl(var(--chart-5))]">
                           <strong>Note:</strong> If the selected person has subordinates, the target will be automatically split equally among them.
                         </div>
                       </div>
                       <DialogFooter>
-                        <Button type="submit" disabled={assignMutation.isPending || !selectedSubordinate}>
+                        <Button
+                          type="submit"
+                          disabled={assignMutation.isPending || !selectedSubordinate}
+                          className="rounded-[10px] font-poppins font-semibold bg-[hsl(var(--chart-5))] text-white hover:bg-[hsl(var(--chart-5))]/90"
+                        >
                           {assignMutation.isPending ? "Assigning..." : "Assign Target"}
                         </Button>
                       </DialogFooter>
@@ -531,33 +571,43 @@ export default function SalesTargetsPage() {
 
                 {/* Edit Dialog */}
                 <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                  <DialogContent>
+                  <DialogContent className="rounded-[16px] sm:rounded-[20px]">
                     <form onSubmit={handleEditSubmit}>
                       <DialogHeader>
-                        <DialogTitle>Edit Sales Target</DialogTitle>
-                        <DialogDescription>
+                        <DialogTitle className="font-poppins text-lg flex items-center gap-2.5">
+                          <span className="h-9 w-9 rounded-[10px] bg-[hsl(var(--chart-5))]/10 flex items-center justify-center text-[hsl(var(--chart-5))] shrink-0">
+                            <Pencil className="h-4.5 w-4.5" />
+                          </span>
+                          Edit Sales Target
+                        </DialogTitle>
+                        <DialogDescription className="font-poppins">
                           Update the target value. Period and assignee cannot be changed here.
                         </DialogDescription>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
                         <div>
-                          <Label>Target Amount</Label>
+                          <Label className="font-poppins">Target Amount</Label>
                           <Input
                             type="number"
                             value={editValue}
                             onChange={(e) => setEditValue(e.target.value)}
                             placeholder="e.g. 100000"
+                            className="rounded-[10px]"
                             required
                           />
                         </div>
                         {editingTarget?.product && (
-                          <div className="text-sm text-muted-foreground">
+                          <div className="text-sm font-poppins text-muted-foreground">
                             Product: <span className="font-medium text-foreground">{editingTarget.product.name}</span>
                           </div>
                         )}
                       </div>
                       <DialogFooter>
-                        <Button type="submit" disabled={updateMutation.isPending}>
+                        <Button
+                          type="submit"
+                          disabled={updateMutation.isPending}
+                          className="rounded-[10px] font-poppins font-semibold bg-[hsl(var(--chart-5))] text-white hover:bg-[hsl(var(--chart-5))]/90"
+                        >
                           {updateMutation.isPending ? "Updating..." : "Update Target"}
                         </Button>
                       </DialogFooter>
@@ -613,10 +663,79 @@ export default function SalesTargetsPage() {
               </Button>
             </div>
 
+            {/* Advanced Filters */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className={FILTER_CARD_CLASS}>
+                <Layers className={FILTER_ICON_CLASS} />
+                <div>
+                  <span className={FILTER_LABEL_CLASS}>Period</span>
+                  <Select value={periodFilter} onValueChange={(v) => setPeriodFilter(v as typeof periodFilter)}>
+                    <SelectTrigger className={FILTER_TRIGGER_CLASS}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Periods</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="quarterly">Quarterly</SelectItem>
+                      <SelectItem value="yearly">Yearly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className={FILTER_CARD_CLASS}>
+                <Trophy className={FILTER_ICON_CLASS} />
+                <div>
+                  <span className={FILTER_LABEL_CLASS}>Status</span>
+                  <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
+                    <SelectTrigger className={FILTER_TRIGGER_CLASS}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="missed">Missed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className={FILTER_CARD_CLASS}>
+                <Wallet className={FILTER_ICON_CLASS} />
+                <div>
+                  <span className={FILTER_LABEL_CLASS}>Product</span>
+                  <Select value={productFilter} onValueChange={setProductFilter}>
+                    <SelectTrigger className={FILTER_TRIGGER_CLASS}>
+                      <SelectValue placeholder="All Products" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Products</SelectItem>
+                      {products.map((product: { id: string; name: string }) => (
+                        <SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="h-9 rounded-[10px] gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+
             {activeTab === 'my' && (
-                <Card>
+                <Card className="rounded-[10px] md:rounded-[20px]">
                   <CardHeader>
-                    <CardTitle>My Sales Targets</CardTitle>
+                    <CardTitle className="font-poppins text-lg font-medium">My Sales Targets</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {isLoadingMy ? (
@@ -685,9 +804,9 @@ export default function SalesTargetsPage() {
             )}
 
             {activeTab === 'team' && (
-                <Card>
+                <Card className="rounded-[10px] md:rounded-[20px]">
                   <CardHeader>
-                    <CardTitle>Team Target Hierarchy</CardTitle>
+                    <CardTitle className="font-poppins text-lg font-medium">Team Target Hierarchy</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {isLoadingTeam ? (
