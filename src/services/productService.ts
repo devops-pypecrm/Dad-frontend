@@ -18,6 +18,7 @@ export interface Product {
     validFrom?: string;
     validUntil?: string;
     imageUrl?: string;
+    branchId?: string | null;
     createdAt: string;
 }
 
@@ -32,6 +33,7 @@ export interface CreateProductData {
     isActive?: boolean;
     isCustom?: boolean;
     brochureUrl?: string; // Add this line
+    branchId?: string | null;
 }
 
 export interface ProductSearchParams {

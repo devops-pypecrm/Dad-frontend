@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import * as XLSX from "xlsx"
 import { getProducts, createProduct, deleteProduct, uploadBrochure, generateShareLink, updateProduct, type Product, type CreateProductData } from "@/services/productService"
 import { getLeads, type Lead } from "@/services/leadService"
+import { getBranches } from "@/services/settingsService"
 import { getAssetUrl } from "@/lib/utils"
 import { useCurrency } from "@/contexts/CurrencyContext"
 import { formatIST } from "@/lib/dateUtils"
@@ -46,6 +47,16 @@ export default function ProductsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null)
+  // Defaults to the admin's own branch so a newly added product is immediately
+  // visible to them (getProducts scopes by branchId, "all" = org-wide/null).
+  const [addBranchId, setAddBranchId] = useState<string>(user?.branchId || "all")
+  const [editBranchId, setEditBranchId] = useState<string>("all")
+
+  const { data: branches = [] } = useQuery<{ id: string; name: string }[]>({
+    queryKey: ['branches', 'list'],
+    queryFn: getBranches,
+    staleTime: 5 * 60 * 1000,
+  })
 
   // Share Dialog States
   const [isShareConfigOpen, setIsShareConfigOpen] = useState(false)
@@ -170,7 +181,8 @@ export default function ProductsPage() {
       description: formData.get('description') as string || undefined,
       isCustom: formData.get('isCustom') === 'on',
       isActive: formData.get('isActive') === 'on',
-      brochureUrl
+      brochureUrl,
+      branchId: addBranchId === "all" ? null : addBranchId
     })
   }
 
@@ -204,6 +216,7 @@ export default function ProductsPage() {
       description: formData.get('description') as string || undefined,
       isCustom: formData.get('isCustom') === 'on',
       isActive: formData.get('isActive') === 'on',
+      branchId: editBranchId === "all" ? null : editBranchId
     };
 
     // Only include brochureUrl if it exists
@@ -219,6 +232,7 @@ export default function ProductsPage() {
 
   const handleEditClick = (product: Product) => {
     setEditingProduct(product)
+    setEditBranchId(product.branchId || "all")
     setIsEditDialogOpen(true)
   }
 
@@ -344,7 +358,13 @@ export default function ProductsPage() {
             <span className="hidden sm:inline">Export</span>
           </Button>
           {orgAdmin && (
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog
+              open={isDialogOpen}
+              onOpenChange={(open) => {
+                setIsDialogOpen(open)
+                if (open) setAddBranchId(user?.branchId || "all")
+              }}
+            >
               <DialogTrigger asChild>
                 <Button className="h-9 rounded-[10px] gap-2 text-xs sm:text-sm font-semibold bg-[hsl(var(--chart-5))] text-white shadow-lg shadow-[hsl(var(--chart-5))]/20 hover:bg-[hsl(var(--chart-5))]/90">
                   <Plus className="h-3.5 w-3.5" />
@@ -365,6 +385,21 @@ export default function ProductsPage() {
                     </div>
                     <div><Label>Category</Label><Input name="category" /></div>
                     <div><Label>Description</Label><Input name="description" /></div>
+                    <div>
+                      <Label>Branch</Label>
+                      <Select value={addBranchId} onValueChange={setAddBranchId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Branch" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Branches</SelectItem>
+                          {branches.map((b) => (
+                            <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground mt-1">Who can see and sell this product. "All Branches" makes it visible org-wide.</p>
+                    </div>
                     <div className="flex items-center gap-2 pt-2">
                       <input type="checkbox" name="isCustom" id="isCustom-add" className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                       <Label htmlFor="isCustom-add" className="cursor-pointer">Custom Price (Price will be entered at time of sale)</Label>
@@ -401,6 +436,21 @@ export default function ProductsPage() {
                   </div>
                   <div><Label>Category</Label><Input name="category" defaultValue={editingProduct?.category} /></div>
                   <div><Label>Description</Label><Input name="description" defaultValue={editingProduct?.description} /></div>
+                  <div>
+                    <Label>Branch</Label>
+                    <Select value={editBranchId} onValueChange={setEditBranchId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Branch" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Branches</SelectItem>
+                        {branches.map((b) => (
+                          <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">Who can see and sell this product. "All Branches" makes it visible org-wide.</p>
+                  </div>
                   <div className="flex items-center gap-2 pt-2">
                     <input
                       type="checkbox"
