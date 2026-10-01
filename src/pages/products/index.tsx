@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import {
   Plus, Search, Package, Tag, Trash2, MoreHorizontal, Share2,
-  FileText, Copy, Check, Edit, Download, Filter, X
+  FileText, Copy, Check, Edit, Download, Filter, X, Building2
 } from "lucide-react"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
@@ -733,7 +733,13 @@ export default function ProductsPage() {
                     <Badge variant={product.isActive ? "default" : "secondary"}>{product.isActive ? "Active" : "Inactive"}</Badge>
                   </div>
                 </div>
-                {product.category && <Badge variant="outline" className="mt-2">{product.category}</Badge>}
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {product.category && <Badge variant="outline">{product.category}</Badge>}
+                  <Badge variant="outline" className="gap-1 bg-muted/50">
+                    <Building2 className="h-3 w-3" />
+                    {product.branch?.name || "All Branches"}
+                  </Badge>
+                </div>
               </CardContent>
             </Card>
           ))}
