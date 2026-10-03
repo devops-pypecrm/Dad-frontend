@@ -176,6 +176,14 @@ export function DataTable<TData, TValue>({
     getExpandedRowModel: getExpandedRowModel(),
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
+      // When onSearchChange is provided, the parent already sent this same
+      // search string to the backend and `data` is already that filtered/
+      // paginated result - re-filtering it here with a naive substring
+      // check would hide rows the backend matched through smarter logic it
+      // doesn't have (e.g. phone search normalizing a country code), so
+      // skip it entirely and just show what the server returned.
+      if (onSearchChange) return true
+
       // Custom global filter for hierarchical search
       const searchValue = String(filterValue).toLowerCase()
       const keysToSearch = searchKeys || (searchKey ? [searchKey] : [])
