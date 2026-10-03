@@ -4,7 +4,10 @@ import Logo from "../shared/Logo";
 
 export default function BlogHeader() {
   return (
-    <header className="sticky top-0 z-50 bg-white/90 dark:bg-gray-950/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800">
+    <header
+      className="sticky top-0 z-50 bg-white/90 dark:bg-gray-950/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800"
+      style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+    >
       <div className="container mx-auto px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28 h-16 flex items-center justify-between gap-6">
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-2 shrink-0">

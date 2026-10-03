@@ -16,7 +16,7 @@ export default function BlogPost() {
   const otherPosts = BLOG_POSTS.filter((p) => p.slug !== post.slug).slice(0, 2);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 font-sans">
+    <div className="min-h-screen bg-white dark:bg-gray-950" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       <SEO
         title={post.title}
         description={post.excerpt}

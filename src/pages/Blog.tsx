@@ -57,7 +57,7 @@ export default function Blog() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 font-sans">
+    <div className="min-h-screen bg-white dark:bg-gray-950" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       <SEO
         title="Blog"
         description="Practical guidance on sales process, lead response time, and running a modern sales team — from the team building Pype CRM."
