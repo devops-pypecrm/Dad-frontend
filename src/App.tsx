@@ -428,7 +428,12 @@ function AppContent() {
       <Route path="/data-deletion" element={<DataDeletion />} />
       <Route path="/shared-product/:slug" element={<SharedProductPage />} />
       <Route path="/daily-summary/:token" element={<DailySummaryView />} />
-      <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
+      {/* Deliberately NOT wrapped in PublicRoute - a logged-in user visiting
+          "/" directly (e.g. bookmarked it, or just typed the domain) should
+          still see the marketing site, not get bounced straight to
+          /dashboard. LandingNavbar reflects their logged-in state instead
+          (Dashboard button in place of Login/Enquire). */}
+      <Route path="/" element={<LandingPage />} />
      </Routes>
     </Suspense>
    </Router>

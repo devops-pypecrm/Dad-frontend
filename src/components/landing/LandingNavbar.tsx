@@ -1,13 +1,18 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, getUserInfo } from "@/lib/utils";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import Logo from "../shared/Logo";
 
 export default function LandingNavbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { scrollY } = useScroll();
+  // Read once per mount rather than via a state/effect pair - this only
+  // needs to reflect whatever was true when the landing page loaded (a
+  // login/logout elsewhere triggers a full navigation back here anyway).
+  const isLoggedIn = !!getUserInfo()?.token;
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setIsScrolled(latest > 50);
@@ -32,16 +37,27 @@ export default function LandingNavbar() {
           </Link>
 
           <div className="flex items-center gap-3 md:gap-6">
-            <Link to="/login">
-              <Button size="sm" className="border-none bg-gray-200! text-black! shadow-none px-4 md:h-10 md:px-5">
-                Login
-              </Button>
-            </Link>
-            <Link to="/enquire">
-              <Button size="sm" className="px-4 md:h-10 md:px-5">
-                Enquire
-              </Button>
-            </Link>
+            {isLoggedIn ? (
+              <Link to="/dashboard">
+                <Button size="sm" className="gap-2 px-4 md:h-10 md:px-5">
+                  <LayoutDashboard className="w-4 h-4" />
+                  Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button size="sm" className="border-none bg-gray-200! text-black! shadow-none px-4 md:h-10 md:px-5">
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/enquire">
+                  <Button size="sm" className="px-4 md:h-10 md:px-5">
+                    Enquire
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

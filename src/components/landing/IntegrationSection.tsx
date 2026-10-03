@@ -1,57 +1,73 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { GoogleAdsLogo, SlackLogo, ZapierLogo, TwilioLogo } from "@/components/icons/BrandLogos";
+import { SlackLogo, TwilioLogo } from "@/components/icons/BrandLogos";
 import { cn } from "@/lib/utils";
 
+// Simple Icons' CDN (cdn.simpleicons.org/<slug>) serves each brand's own
+// official colored mark directly from a slug - no color param needed, it
+// defaults to that brand's real hex. Switched to this from hotlinked
+// Wikimedia file URLs, which had gone dead (likely a moved/renamed file on
+// their end, not something we control) and were rendering as blank icons.
 const integrations = [
   {
     name: "Meta Ads",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Meta_Platforms_Inc._logo.svg/2560px-Meta_Platforms_Inc._logo.svg.png",
+    logo: "https://cdn.simpleicons.org/meta",
     description: "Capture leads directly from your Meta Ads campaigns and sync them into your pipeline in real time.",
   },
   {
     name: "WhatsApp",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/2044px-WhatsApp.svg.png",
+    logo: "https://cdn.simpleicons.org/whatsapp",
     description: "Chat with leads and customers, send updates, and manage conversations without leaving PYPE.",
   },
   {
     name: "Google Calendar",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Calendar_icon_%282020%29.svg/1024px-Google_Calendar_icon_%282020%29.svg.png",
+    logo: "https://cdn.simpleicons.org/googlecalendar",
     description: "Sync meetings and follow-ups automatically so your team never misses a scheduled call.",
   },
   {
     name: "Gmail",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Gmail_icon_%282020%29.svg/2560px-Gmail_icon_%282020%29.svg.png",
+    logo: "https://cdn.simpleicons.org/gmail",
     description: "Send and track emails from your own Gmail account directly inside the CRM.",
   },
   {
     name: "Stripe",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/2560px-Stripe_Logo%2C_revised_2016.svg.png",
+    logo: "https://cdn.simpleicons.org/stripe",
     description: "Accept payments and track invoices tied directly to your deals and customers.",
   },
 ];
 
 // Not live yet - shown to signal what's on the roadmap, matching the icon +
 // name + description shape of the live integrations above rather than a
-// separate list style, just tagged with a "Coming Soon" badge.
-const comingSoon = [
+// separate list style, just tagged with a "Coming Soon" badge. Also switched
+// to the CDN (from local monochrome/grayscale-filtered SVGs) so these show
+// in full brand color instead of flat gray.
+const comingSoon: {
+  name: string;
+  logo?: string;
+  Icon?: typeof SlackLogo;
+  description: string;
+}[] = [
   {
     name: "Google Ads",
-    Icon: GoogleAdsLogo,
+    logo: "https://cdn.simpleicons.org/googleads",
     description: "Capture leads from Google Ads campaigns straight into your pipeline, alongside Meta Ads.",
   },
   {
     name: "Slack",
+    // cdn.simpleicons.org 404s specifically for this slug - the local
+    // component already has Slack's real four-color mark hardcoded, so used
+    // directly instead of chasing an alternate CDN.
     Icon: SlackLogo,
     description: "Get real-time deal and lead alerts pushed straight into your team's Slack channels.",
   },
   {
     name: "Zapier",
-    Icon: ZapierLogo,
+    logo: "https://cdn.simpleicons.org/zapier",
     description: "Connect PYPE to thousands of other apps with no-code Zaps for leads, deals, and tasks.",
   },
   {
     name: "Twilio",
+    // Same 404 issue as Slack above.
     Icon: TwilioLogo,
     description: "Send SMS updates and reminders to leads and customers directly from the CRM.",
   },
@@ -110,9 +126,7 @@ export default function IntegrationSection() {
                 transition={{ delay: index * 0.08 }}
                 className="flex items-start gap-4 text-left"
               >
-                <div className="w-11 h-11 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm flex items-center justify-center shrink-0 p-2">
-                  <img src={app.logo} alt={app.name} className="max-w-full max-h-full object-contain" />
-                </div>
+                <img src={app.logo} alt={app.name} className="w-10 h-10 object-contain shrink-0" />
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{app.name}</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{app.description}</p>
@@ -131,9 +145,11 @@ export default function IntegrationSection() {
                 transition={{ delay: index * 0.08 }}
                 className="flex items-start gap-4 text-left opacity-70"
               >
-                <div className="w-11 h-11 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm flex items-center justify-center shrink-0 p-2 grayscale">
-                  <app.Icon className="w-full h-full" />
-                </div>
+                {app.Icon ? (
+                  <app.Icon className="w-10 h-10 shrink-0" />
+                ) : (
+                  <img src={app.logo} alt={app.name} className="w-10 h-10 object-contain shrink-0" />
+                )}
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-semibold text-gray-900 dark:text-white">{app.name}</h3>
