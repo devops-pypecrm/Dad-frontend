@@ -1,5 +1,5 @@
 import { Link, useParams, Navigate } from "react-router-dom";
-import LandingNavbar from "@/components/landing/LandingNavbar";
+import BlogHeader from "@/components/landing/BlogHeader";
 import Footer from "@/components/landing/Footer";
 import SEO from "@/components/shared/SEO";
 import { ArrowLeft, Calendar, Clock } from "lucide-react";
@@ -32,8 +32,8 @@ export default function BlogPost() {
           author: { "@type": "Organization", name: "Pype CRM" },
         }}
       />
-      <LandingNavbar />
-      <main className="pt-28 pb-20">
+      <BlogHeader />
+      <main className="pt-12 pb-20">
         <article className="container mx-auto px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28 max-w-3xl">
           <Link to="/blog" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary mb-8">
             <ArrowLeft className="h-4 w-4" /> Back to Blog
@@ -44,6 +44,10 @@ export default function BlogPost() {
             {post.title}
           </h1>
           <div className="flex items-center gap-4 text-sm text-gray-400 mb-10">
+            <span className="flex items-center gap-2 text-gray-600 dark:text-gray-300 font-medium">
+              <span className="h-6 w-6 rounded-full bg-gradient-to-br from-primary to-gray-500" />
+              {post.author}
+            </span>
             <span className="flex items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5" />
               {new Date(post.date).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}
