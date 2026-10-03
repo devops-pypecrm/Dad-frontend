@@ -40,9 +40,20 @@ export default function BlogPost() {
           </Link>
 
           <p className="text-sm font-semibold text-primary mb-3">{post.category}</p>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 dark:text-white mb-4 leading-tight">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 dark:text-white mb-6 leading-tight">
             {post.title}
           </h1>
+
+          <img
+            src={`https://picsum.photos/seed/${post.slug}/1200/600`}
+            alt=""
+            loading="lazy"
+            className="w-full h-56 sm:h-80 object-cover rounded-2xl mb-8"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
+          />
+
           <div className="flex items-center gap-4 text-sm text-gray-400 mb-10">
             <span className="flex items-center gap-2 text-gray-600 dark:text-gray-300 font-medium">
               <span className="h-6 w-6 rounded-full bg-gradient-to-br from-primary to-gray-500" />

@@ -10,8 +10,10 @@ import { ArrowRight, Calendar, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BLOG_POSTS } from "@/data/blogPosts";
 
-// No real images in the asset pipeline for blog thumbnails yet - each
-// category gets a distinct gradient placeholder instead of a broken <img>.
+// No product photography in the asset pipeline yet - each post gets a
+// real, stable stock image from Lorem Picsum (seeded by slug, so a given
+// post always shows the same image), with the old gradient as a fallback
+// if the image ever fails to load rather than a broken <img>.
 const CATEGORY_GRADIENTS: Record<string, string> = {
   "Sales Process": "from-indigo-500 to-blue-500",
   "Leads & Assignment": "from-amber-500 to-orange-500",
@@ -19,16 +21,18 @@ const CATEGORY_GRADIENTS: Record<string, string> = {
   Product: "from-rose-500 to-pink-500",
 };
 
-function Thumbnail({ category, className }: { category: string; className?: string }) {
+function Thumbnail({ slug, category, className }: { slug: string; category: string; className?: string }) {
   return (
-    <div
-      className={cn(
-        "bg-gradient-to-br flex items-center justify-center text-white/90 text-xs font-semibold tracking-wide",
-        CATEGORY_GRADIENTS[category] || "from-gray-500 to-gray-700",
-        className
-      )}
-    >
-      {category.toUpperCase()}
+    <div className={cn("relative overflow-hidden bg-gradient-to-br", CATEGORY_GRADIENTS[category] || "from-gray-500 to-gray-700", className)}>
+      <img
+        src={`https://picsum.photos/seed/${slug}/800/450`}
+        alt=""
+        loading="lazy"
+        className="absolute inset-0 h-full w-full object-cover"
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).style.display = "none";
+        }}
+      />
     </div>
   );
 }
@@ -89,7 +93,7 @@ export default function Blog() {
               to={`/blog/${featured.slug}`}
               className="group block rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 hover:shadow-xl transition-shadow"
             >
-              <Thumbnail category={featured.category} className="h-48 sm:h-56" />
+              <Thumbnail slug={featured.slug} category={featured.category} className="h-48 sm:h-56" />
               <div className="p-5">
                 <p className="text-xs font-semibold text-primary mb-2">{featured.category.toUpperCase()}</p>
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2 leading-snug group-hover:text-primary transition-colors">
@@ -133,7 +137,7 @@ export default function Blog() {
                   to={`/blog/${post.slug}`}
                   className="group flex flex-col rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all"
                 >
-                  <Thumbnail category={post.category} className="h-36" />
+                  <Thumbnail slug={post.slug} category={post.category} className="h-36" />
                   <div className="p-5 flex flex-col flex-1">
                     <span className="text-xs font-semibold text-primary mb-2">{post.category.toUpperCase()}</span>
                     <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 leading-snug group-hover:text-primary transition-colors flex-1">
