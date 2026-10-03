@@ -45,19 +45,39 @@ const clientLogos = [
   "WiseHub",
 ];
 
-// Sidebar items chosen to showcase the features that actually sell the
-// product (AI, automation, WhatsApp) alongside the bread-and-butter Leads
-// view, rather than a literal 1:1 copy of every real sidebar entry.
-const navItems = [
-  { key: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { key: "leads", icon: Users, label: "Leads" },
-  { key: "pipeline", icon: GitBranch, label: "Pipeline" },
-  { key: "whatsapp", icon: WhatsAppLogo, label: "WhatsApp" },
-  { key: "automation", icon: Workflow, label: "Automation" },
-  { key: "ai", icon: Sparkles, label: "Pype AI" },
-] as const;
+type TabKey = "dashboard" | "leads" | "pipeline" | "whatsapp" | "automation" | "ai";
 
-type TabKey = (typeof navItems)[number]["key"];
+interface NavItem {
+  key: TabKey;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}
+
+// Grouped the same way the real Sidebar.tsx groups its ~25 items (a labeled
+// section per group, divider between), just curated down to the handful of
+// items that actually sell the product on a marketing page rather than a
+// literal 1:1 copy of every real nav entry.
+const navGroups: { title: string; items: NavItem[] }[] = [
+  {
+    title: "Overview",
+    items: [{ key: "dashboard", icon: LayoutDashboard, label: "Dashboard" }],
+  },
+  {
+    title: "Sales Engine",
+    items: [
+      { key: "leads", icon: Users, label: "Leads" },
+      { key: "pipeline", icon: GitBranch, label: "Pipeline" },
+    ],
+  },
+  {
+    title: "Growth",
+    items: [
+      { key: "whatsapp", icon: WhatsAppLogo, label: "WhatsApp" },
+      { key: "automation", icon: Workflow, label: "Automation" },
+      { key: "ai", icon: Sparkles, label: "Pype AI" },
+    ],
+  },
+];
 
 const leadRows = [
   { name: "Priya Sharma", status: "Won", color: "bg-emerald-100 text-emerald-700", avatar: "bg-rose-200", value: "₹48,000" },
@@ -227,47 +247,70 @@ export default function Hero() {
             }}
           >
             <div className="flex h-[480px] sm:h-[560px]">
-              {/* Sidebar - same chrome as the real app's Sidebar.tsx */}
-              <div className="hidden sm:flex flex-col w-52 shrink-0 bg-sidebar-bg text-sidebar-text border-r border-sidebar-border">
-                <div className="h-14 flex items-center px-4 border-b border-sidebar-border">
-                  <Logo size="sm" />
+              {/* Sidebar - exact chrome/classes from the real Sidebar.tsx: w-64,
+                  h-20 logo header, px-4 py-3 text-sm font-bold nav items,
+                  uppercase group labels, and a border-t divider between groups. */}
+              <div className="hidden sm:flex flex-col w-64 shrink-0 bg-sidebar-bg text-sidebar-text border-r border-sidebar-border">
+                <div className="h-20 flex items-center px-6 shrink-0">
+                  <Logo size="lg" />
                 </div>
-                <div className="flex-1 p-3 space-y-1">
-                  {navItems.map((item) => (
-                    <button
-                      key={item.key}
-                      type="button"
-                      onClick={() => setActiveTab(item.key)}
-                      className={`w-full flex items-center gap-2.5 rounded-[10px] px-3 py-2 text-sm font-semibold cursor-pointer transition-colors text-left ${
-                        activeTab === item.key
-                          ? "bg-sidebar-active text-white"
-                          : "text-sidebar-text/80 hover:bg-sidebar-hover"
-                      }`}
-                    >
-                      <item.icon className="h-4 w-4 shrink-0" />
-                      {item.label}
-                    </button>
-                  ))}
+                <div className="flex-1 overflow-y-auto py-4 px-3">
+                  <div className="space-y-6">
+                    {navGroups.map((group, groupIndex) => (
+                      <div key={group.title}>
+                        {groupIndex > 0 && <div className="mx-3 mt-2 mb-3 border-t border-sidebar-text/15" />}
+                        <div className="space-y-1">
+                          <div className="px-3 text-xs font-bold text-sidebar-text/70 uppercase tracking-wider mb-2 mt-2">
+                            {group.title}
+                          </div>
+                          {group.items.map((item) => (
+                            <button
+                              key={item.key}
+                              type="button"
+                              onClick={() => setActiveTab(item.key)}
+                              className={`group w-full flex items-center gap-3 rounded-[10px] px-4 py-3 text-sm font-bold cursor-pointer transition-all duration-200 text-left ${
+                                activeTab === item.key
+                                  ? "bg-sidebar-active text-white"
+                                  : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover"
+                              }`}
+                            >
+                              <item.icon
+                                className={`h-5 w-5 shrink-0 stroke-[2.5] transition-colors ${
+                                  activeTab === item.key ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text"
+                                }`}
+                              />
+                              {item.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               {/* Main content */}
               <div className="flex-1 min-w-0 flex flex-col bg-background">
-                {/* Header - mirrors the real app's Header.tsx */}
-                <div className="flex items-center gap-3 px-4 md:px-5 h-14 border-b border-border shrink-0">
-                  <div className="flex-1 max-w-xs">
-                    <div className="flex items-center gap-2 rounded-full bg-card border border-border px-3 py-1.5 text-sm text-muted-foreground">
-                      <Search className="h-3.5 w-3.5 shrink-0" />
-                      <span className="hidden sm:inline">Search leads, contacts...</span>
+                {/* Header - exact classes from the real Header.tsx + GlobalSearch.tsx:
+                    h-16, transparent bg, chart-5-tinted rounded-full search pill,
+                    chart-5 circular Quick Add button. */}
+                <div className="flex h-16 items-center gap-2 sm:gap-4 bg-transparent px-2 sm:px-4 shrink-0">
+                  <div className="flex-1 min-w-0">
+                    <div className="max-w-[240px] sm:max-w-xs">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <div className="h-10 pl-9 pr-3 flex items-center rounded-full bg-[hsl(var(--chart-5))]/5 border border-[hsl(var(--chart-5))]/15 text-sm text-muted-foreground truncate">
+                          <span className="hidden sm:inline">Search leads, contacts, accounts...</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex-1" />
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                     <div className="h-9 w-9 rounded-full bg-[hsl(var(--chart-5))] text-white flex items-center justify-center cursor-pointer">
-                      <Zap className="h-4 w-4 fill-current" />
+                      <Zap className="h-5 w-5 fill-current" />
                     </div>
-                    <Bell className="h-4.5 w-4.5 text-foreground/60 cursor-pointer hidden sm:block" />
-                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-gray-500 border border-border" />
+                    <Bell className="h-5 w-5 text-foreground/70 cursor-pointer hidden sm:block" />
+                    <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-gray-500 border border-border" />
                   </div>
                 </div>
 
@@ -284,21 +327,31 @@ export default function Hero() {
                     >
                       {activeTab === "dashboard" && (
                         <div>
-                          <h3 className="font-poppins font-semibold text-foreground mb-3">Dashboard</h3>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                            {statTiles.map((tile) => (
-                              <div key={tile.label} className="relative rounded-[10px] border border-border bg-card p-3 overflow-hidden">
-                                <span className={`absolute top-0 left-0 right-0 h-0.5 ${tile.accent}`} />
-                                <tile.icon className="h-4 w-4 text-muted-foreground mb-1.5" />
-                                <p className="text-lg font-semibold font-poppins text-foreground">{tile.value}</p>
-                                <p className="text-xs text-muted-foreground">{tile.label}</p>
-                              </div>
-                            ))}
+                          {/* Exact header line from DashboardV2.tsx */}
+                          <h3 className="text-base font-medium font-poppins tracking-tight text-foreground flex items-center gap-1.5 mb-0.5">
+                            Dashboard <span aria-hidden>👋</span>
+                          </h3>
+                          <p className="text-muted-foreground font-poppins text-[11px] opacity-80 mb-3">
+                            Here's what's happening with your CRM today.
+                          </p>
+
+                          {/* Exact QuickStatsBar.tsx layout: one divided card, top
+                              accent strip per tile, label-then-value, not separate boxes */}
+                          <div className="rounded-[10px] bg-card border border-border overflow-hidden mb-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-border">
+                              {statTiles.map((tile) => (
+                                <div key={tile.label} className="relative flex flex-col items-center justify-center gap-1 px-3 py-3 overflow-hidden">
+                                  <span className={`absolute top-0 left-0 right-0 h-0.5 ${tile.accent} opacity-70`} />
+                                  <span className="text-[11px] font-poppins text-muted-foreground">{tile.label}</span>
+                                  <span className="text-base font-medium font-poppins text-foreground">{tile.value}</span>
+                                </div>
+                              ))}
+                            </div>
                           </div>
 
                           <div className="grid sm:grid-cols-[1fr_180px] gap-3">
-                            <div className="rounded-[10px] border border-border bg-card p-3">
-                              <p className="text-xs font-semibold text-muted-foreground mb-2">Leads Trend (7 days)</p>
+                            <div className="rounded-[10px] md:rounded-[20px] border border-border bg-card p-3">
+                              <p className="text-sm font-medium font-poppins text-foreground mb-2">Leads Trend</p>
                               <ResponsiveContainer width="100%" height={140}>
                                 <AreaChart data={leadsTrendData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
                                   <defs>
