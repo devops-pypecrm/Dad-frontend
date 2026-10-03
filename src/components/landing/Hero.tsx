@@ -168,12 +168,12 @@ export default function Hero() {
       </div>
 
       <div className="container mx-auto px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28 relative z-10">
-        <div className="max-w-4xl mx-auto text-center mb-16 md:mb-20">
+        <div className="max-w-4xl text-left mb-16 md:mb-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col items-center"
+            className="flex flex-col items-start"
           >
             <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 pl-4 pr-3 py-1.5 text-sm font-semibold text-gray-700 dark:text-gray-200 shadow-sm mb-7">
               The Best CRM has
@@ -196,20 +196,20 @@ export default function Hero() {
               Track leads. Close deals. Infinite pipeline visibility.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6">
               <Link to="/enquire">
                 <Button size="lg" className="h-14 px-8 text-lg rounded-full shadow-none transition-transform hover:scale-[1.03]">
                   Get started. It&apos;s FREE! <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <div className="text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left leading-snug">
+              <div className="text-sm text-gray-500 dark:text-gray-400 text-left leading-snug">
                 No Credit Card Required.
                 <br />
                 14-Day Free Trial.
               </div>
             </div>
 
-            <div className="mt-5 flex flex-row items-center justify-center gap-2">
+            <div className="mt-5 flex flex-row items-center justify-start gap-2">
               <div className="relative inline-flex">
                 <div className="flex gap-0.5 text-gray-300 dark:text-gray-700">
                   {[...Array(5)].map((_, i) => (
