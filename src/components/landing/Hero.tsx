@@ -6,6 +6,7 @@ import {
   ArrowRight,
   ChevronRight,
   Sparkles,
+  Star,
   Plus,
   LayoutDashboard,
   Users,
@@ -134,10 +135,31 @@ export default function Hero() {
                 </Button>
               </Link>
               <div className="text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left leading-snug">
-                Free forever.
+                No Credit Card Required.
                 <br />
-                No credit card.
+                14-Day Free Trial.
               </div>
+            </div>
+
+            <div className="mt-5 flex flex-row items-center justify-center gap-2">
+              <div className="relative inline-flex">
+                <div className="flex gap-0.5 text-gray-300 dark:text-gray-700">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-4 w-4 fill-current" />
+                  ))}
+                </div>
+                <div
+                  className="absolute inset-0 flex gap-0.5 text-amber-400 overflow-hidden"
+                  style={{ width: "92%" }}
+                >
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-4 w-4 fill-current shrink-0" />
+                  ))}
+                </div>
+              </div>
+              <p className="text-xs font-normal text-gray-600 dark:text-gray-400">
+                Loved by growing sales teams
+              </p>
             </div>
           </motion.div>
         </div>
