@@ -95,7 +95,7 @@ export const getSubordinates = async (): Promise<{ subordinates: Subordinate[] }
     return response.data;
 };
 
-export const assignTarget = async (data: AssignTargetInput): Promise<{ message: string; target: SalesTarget }> => {
+export const assignTarget = async (data: AssignTargetInput): Promise<{ message: string; target: SalesTarget; skipped?: string[] }> => {
     const response = await api.post('/sales-targets', data);
     return response.data;
 };

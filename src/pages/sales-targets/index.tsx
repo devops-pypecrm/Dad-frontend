@@ -68,6 +68,53 @@ import * as XLSX from "xlsx"
 import { Download } from "lucide-react"
 import { FILTER_CARD_CLASS, FILTER_ICON_CLASS, FILTER_LABEL_CLASS, FILTER_TRIGGER_CLASS } from "@/pages/leads/filterStyles"
 
+// Segmented control for short, mutually exclusive choices (Measure By, Period)
+function Segmented<T extends string>({ value, onChange, options }: { value: T; onChange: (v: T) => void; options: { value: T; label: string }[] }) {
+  return (
+    <div role="radiogroup" className="grid gap-1 rounded-[10px] bg-muted p-1" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
+      {options.map(o => (
+        <button
+          key={o.value}
+          type="button"
+          role="radio"
+          aria-checked={value === o.value}
+          onClick={() => onChange(o.value)}
+          className={cn(
+            'rounded-[8px] px-2 py-1.5 text-xs sm:text-sm font-poppins font-medium transition-all',
+            value === o.value ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+// Selectable card used for the target scope
+function ScopeCard({ active, onClick, icon: Icon, title, text }: { active: boolean; onClick: () => void; icon: typeof User; title: string; text: string }) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={active}
+      onClick={onClick}
+      className={cn(
+        'flex flex-col items-start gap-1.5 rounded-[12px] border p-3 text-left transition-all',
+        active
+          ? 'border-[hsl(var(--chart-5))] bg-[hsl(var(--chart-5))]/10 ring-1 ring-[hsl(var(--chart-5))]/40'
+          : 'border-border bg-card hover:border-[hsl(var(--chart-5))]/40'
+      )}
+    >
+      <span className={cn('flex h-7 w-7 items-center justify-center rounded-[8px]', active ? 'bg-[hsl(var(--chart-5))] text-white' : 'bg-muted text-muted-foreground')}>
+        <Icon className="h-3.5 w-3.5" />
+      </span>
+      <span className="text-sm font-poppins font-semibold text-foreground">{title}</span>
+      <span className="text-[11px] leading-snug text-muted-foreground">{text}</span>
+    </button>
+  )
+}
+
 // Tree Node interface for hierarchical display
 interface TargetTreeNode extends SalesTarget {
   children: TargetTreeNode[];
@@ -188,7 +235,7 @@ const TargetNode = ({ node, level = 0, onDelete, onEdit }: { node: TargetTreeNod
 };
 
 export default function SalesTargetsPage() {
-  const { formatCurrency } = useCurrency()
+  const { formatCurrency, currencySymbol } = useCurrency()
   const [activeTab, setActiveTab] = useState<'my' | 'team'>('my')
   const [deletingTarget, setDeletingTarget] = useState<SalesTarget | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -270,12 +317,17 @@ export default function SalesTargetsPage() {
 
   const assignMutation = useMutation({
     mutationFn: (data: AssignTargetInput) => assignTarget(data),
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['sales-targets'] })
       setIsDialogOpen(false)
       setSelectedSubordinate("")
       setTargetValue("")
-      toast.success("Target assigned successfully! Subordinates have been auto-distributed their targets.")
+      toast.success(res.target?.autoDistributed
+        ? "Target assigned and split equally among their team."
+        : "Target assigned successfully.")
+      if (res.skipped?.length) {
+        toast.warning(`${res.skipped.join(', ')} already had a matching target, so they got no share of this split.`)
+      }
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to assign target")
@@ -312,13 +364,19 @@ export default function SalesTargetsPage() {
     }
   })
 
+  const parsedTarget = parseFloat(targetValue)
+  const isTargetValid = Number.isFinite(parsedTarget) && parsedTarget > 0 && (metric === 'revenue' || Number.isInteger(parsedTarget))
+  const selectedPerson = subordinates.find((sub: Subordinate) => sub.id === selectedSubordinate)
+  const selectedName = selectedPerson ? `${selectedPerson.firstName} ${selectedPerson.lastName}` : null
+  const periodLabel = { monthly: 'month', quarterly: 'quarter', yearly: 'year' }[period]
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedSubordinate || !targetValue) return
+    if (!selectedSubordinate || !isTargetValid) return
 
     assignMutation.mutate({
       assignToUserId: selectedSubordinate,
-      targetValue: parseFloat(targetValue),
+      targetValue: parsedTarget,
       period,
       metric,
       scope,
@@ -423,7 +481,7 @@ export default function SalesTargetsPage() {
                       <Plus className="h-3.5 w-3.5" />Assign Target
                     </Button>
                   </DialogTrigger>
-                  <DialogContent aria-describedby="assign-target-desc" className="max-h-[90vh] overflow-y-auto rounded-[16px] sm:rounded-[20px]">
+                  <DialogContent aria-describedby="assign-target-desc" className="max-h-[90vh] overflow-y-auto rounded-[16px] sm:max-w-xl sm:rounded-[20px]">
                     <form onSubmit={handleSubmit}>
                       <DialogHeader>
                         <DialogTitle className="font-poppins text-lg flex items-center gap-2.5">
@@ -437,85 +495,109 @@ export default function SalesTargetsPage() {
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-5 py-4">
-                        <div className="space-y-3">
-                          <p className="text-[11px] font-poppins font-semibold uppercase tracking-wider text-muted-foreground/70">Who &amp; How</p>
-                          <div>
-                            <Label className="font-poppins">Assign To</Label>
-                            <Select value={selectedSubordinate} onValueChange={setSelectedSubordinate}>
-                              <SelectTrigger className="rounded-[10px]">
-                                <SelectValue placeholder="Select team member" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {subordinates.map((sub: Subordinate) => (
-                                  <SelectItem key={sub.id} value={sub.id}>
-                                    {sub.firstName} {sub.lastName}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            {subordinates.length === 0 && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                No direct reports found. You can only assign targets to your subordinates.
+                        {/* 1. Who */}
+                        <div className="space-y-2">
+                          <p className="text-[11px] font-poppins font-semibold uppercase tracking-wider text-muted-foreground/70">1 · Who gets the target</p>
+                          <Select value={selectedSubordinate} onValueChange={setSelectedSubordinate}>
+                            <SelectTrigger className="rounded-[10px]">
+                              <SelectValue placeholder="Select team member" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {subordinates.map((sub: Subordinate) => (
+                                <SelectItem key={sub.id} value={sub.id}>
+                                  {sub.firstName} {sub.lastName}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {subordinates.length === 0 && (
+                            <p className="text-xs text-muted-foreground">
+                              No direct reports found. You can only assign targets to your subordinates.
+                            </p>
+                          )}
+                        </div>
+
+                        {/* 2. What and how long */}
+                        <div className="space-y-3 border-t border-border pt-4">
+                          <p className="text-[11px] font-poppins font-semibold uppercase tracking-wider text-muted-foreground/70">2 · What and for how long</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                              <Label className="font-poppins text-xs text-muted-foreground">Measure by</Label>
+                              <Segmented
+                                value={metric}
+                                onChange={setMetric}
+                                options={[{ value: 'revenue', label: 'Revenue' }, { value: 'units', label: 'Units (Qty)' }]}
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="font-poppins text-xs text-muted-foreground">Period</Label>
+                              <Segmented
+                                value={period}
+                                onChange={setPeriod}
+                                options={[{ value: 'monthly', label: 'Monthly' }, { value: 'quarterly', label: 'Quarterly' }, { value: 'yearly', label: 'Yearly' }]}
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="font-poppins text-xs text-muted-foreground">{metric === 'revenue' ? 'Target amount' : 'Target units (Qty)'}</Label>
+                            <div className="relative">
+                              {metric === 'revenue' && (
+                                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground">{currencySymbol}</span>
+                              )}
+                              <Input
+                                type="number"
+                                min={1}
+                                step={metric === 'revenue' ? 'any' : 1}
+                                inputMode="decimal"
+                                value={targetValue}
+                                onChange={(e) => setTargetValue(e.target.value)}
+                                placeholder={metric === 'revenue' ? "e.g. 100000" : "e.g. 50"}
+                                className={cn('rounded-[10px] text-base font-semibold', metric === 'revenue' && 'pl-8')}
+                                aria-invalid={targetValue !== '' && !isTargetValid}
+                                required
+                              />
+                            </div>
+                            {targetValue !== '' && !isTargetValid && (
+                              <p className="text-[11px] text-destructive">
+                                {metric === 'units' ? 'Enter a whole number greater than 0.' : 'Enter an amount greater than 0.'}
                               </p>
                             )}
                           </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                              <Label className="font-poppins">Measure By</Label>
-                              <Select value={metric} onValueChange={(v) => setMetric(v as 'revenue' | 'units')}>
-                                <SelectTrigger className="rounded-[10px]">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="revenue">Revenue Amount</SelectItem>
-                                  <SelectItem value="units">Product Units (Qty)</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <Label className="font-poppins">Period</Label>
-                              <Select value={period} onValueChange={(v) => setPeriod(v as typeof period)}>
-                                <SelectTrigger className="rounded-[10px]">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="monthly">Monthly</SelectItem>
-                                  <SelectItem value="quarterly">Quarterly</SelectItem>
-                                  <SelectItem value="yearly">Yearly</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                          <div>
-                            <Label className="font-poppins">Target Scope</Label>
-                            <Select value={scope} onValueChange={(v) => setScope(v as 'INDIVIDUAL' | 'HIERARCHY')}>
-                              <SelectTrigger className="rounded-[10px]">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="HIERARCHY">Team Hierarchy (Rollup)</SelectItem>
-                                <SelectItem value="INDIVIDUAL">Individual Only</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <p className="text-[11px] text-muted-foreground mt-1">
-                              {scope === 'HIERARCHY'
-                                ? "Target includes sales from the user + their team."
-                                : "Target counts ONLY the user's personal sales."}
-                            </p>
+                        </div>
+
+                        {/* 3. Whose sales count */}
+                        <div className="space-y-2 border-t border-border pt-4">
+                          <p className="text-[11px] font-poppins font-semibold uppercase tracking-wider text-muted-foreground/70">3 · Whose sales count</p>
+                          <div role="radiogroup" className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <ScopeCard
+                              active={scope === 'HIERARCHY'}
+                              onClick={() => setScope('HIERARCHY')}
+                              icon={Users}
+                              title="Team rollup"
+                              text="Their sales plus their team's. Split equally across their direct reports."
+                            />
+                            <ScopeCard
+                              active={scope === 'INDIVIDUAL'}
+                              onClick={() => setScope('INDIVIDUAL')}
+                              icon={User}
+                              title="Individual only"
+                              text="Only their own sales. Nothing is split to their team."
+                            />
                           </div>
                         </div>
 
-                        <div className="space-y-3 pt-1 border-t border-border">
-                          <p className="text-[11px] font-poppins font-semibold uppercase tracking-wider text-muted-foreground/70 pt-3">Advanced Filters (Optional)</p>
+                        {/* 4. Optional narrowing */}
+                        <div className="space-y-3 border-t border-border pt-4">
+                          <p className="text-[11px] font-poppins font-semibold uppercase tracking-wider text-muted-foreground/70">4 · Narrow it down (optional)</p>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                              <Label className="font-poppins">Product</Label>
+                            <div className="space-y-1.5">
+                              <Label className="font-poppins text-xs text-muted-foreground">Product</Label>
                               <Select value={selectedProductId} onValueChange={setSelectedProductId}>
                                 <SelectTrigger className="rounded-[10px]">
                                   <SelectValue placeholder="All Products" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="ALL">All Products (General Target)</SelectItem>
+                                  <SelectItem value="ALL">All products</SelectItem>
                                   {products.map((product: { id: string; name: string }) => (
                                     <SelectItem key={product.id} value={product.id}>
                                       {product.name}
@@ -524,42 +606,51 @@ export default function SalesTargetsPage() {
                                 </SelectContent>
                               </Select>
                             </div>
-                            <div>
-                              <Label className="font-poppins">Opportunity Type</Label>
+                            <div className="space-y-1.5">
+                              <Label className="font-poppins text-xs text-muted-foreground">Opportunity type</Label>
                               <Select value={opportunityType} onValueChange={(v) => setOpportunityType(v as 'NEW_BUSINESS' | 'UPSALE' | 'ALL')}>
                                 <SelectTrigger className="rounded-[10px]">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="ALL">All Types</SelectItem>
+                                  <SelectItem value="ALL">All types</SelectItem>
                                   <SelectItem value="NEW_BUSINESS">New Business</SelectItem>
                                   <SelectItem value="UPSALE">Upsale</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
                           </div>
+                          {metric === 'units' && selectedProductId === 'ALL' && (
+                            <p className="text-[11px] text-muted-foreground">Units across all products are added together. Pick a product if you want a per-product quantity.</p>
+                          )}
                         </div>
 
-                        <div>
-                          <Label className="font-poppins">{metric === 'revenue' ? 'Target Amount' : 'Target Units (Qty)'}</Label>
-                          <Input
-                            type="number"
-                            value={targetValue}
-                            onChange={(e) => setTargetValue(e.target.value)}
-                            placeholder={metric === 'revenue' ? "e.g. 100000" : "e.g. 50"}
-                            className="rounded-[10px]"
-                            required
-                          />
-                        </div>
-
-                        <div className="p-3 rounded-[10px] bg-[hsl(var(--chart-5))]/10 text-sm font-poppins text-[hsl(var(--chart-5))]">
-                          <strong>Note:</strong> If the selected person has subordinates, the target will be automatically split equally among them.
+                        {/* Live summary */}
+                        <div className="rounded-[12px] border border-[hsl(var(--chart-5))]/30 bg-[hsl(var(--chart-5))]/10 p-3 text-sm font-poppins text-foreground">
+                          <p className="font-semibold">Summary</p>
+                          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+                            <span className="font-medium text-foreground">{selectedName ?? 'Select a person'}</span>
+                            {' gets '}
+                            <span className="font-medium text-foreground">
+                              {isTargetValid ? (metric === 'revenue' ? formatCurrency(parsedTarget, { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : `${parsedTarget.toLocaleString()} units`) : (metric === 'revenue' ? 'an amount' : 'a quantity')}
+                            </span>
+                            {` per ${periodLabel}`}
+                            {selectedProductId !== 'ALL' && products.find((pr: { id: string }) => pr.id === selectedProductId) ? ` for ${products.find((pr: { id: string; name: string }) => pr.id === selectedProductId)!.name}` : ''}
+                            {opportunityType !== 'ALL' ? `, ${opportunityType === 'NEW_BUSINESS' ? 'new business' : 'upsale'} only` : ''}
+                            {scope === 'HIERARCHY' ? ", counting their sales and their team's." : ", counting only their own sales."}
+                          </p>
+                          {/* Splitting only happens for the team rollup, and only when the person has direct reports */}
+                          {scope === 'HIERARCHY' && (
+                            <p className="mt-2 text-xs text-muted-foreground">
+                              <strong className="text-foreground">Note:</strong> if this person has direct reports, the target is split equally among them (and again down each branch). If they have none, it stays with them.
+                            </p>
+                          )}
                         </div>
                       </div>
                       <DialogFooter>
                         <Button
                           type="submit"
-                          disabled={assignMutation.isPending || !selectedSubordinate}
+                          disabled={assignMutation.isPending || !selectedSubordinate || !isTargetValid}
                           className="rounded-[10px] font-poppins font-semibold bg-[hsl(var(--chart-5))] text-white hover:bg-[hsl(var(--chart-5))]/90"
                         >
                           {assignMutation.isPending ? "Assigning..." : "Assign Target"}
