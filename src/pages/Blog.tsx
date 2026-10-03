@@ -91,10 +91,10 @@ export default function Blog() {
 
             <Link
               to={`/blog/${featured.slug}`}
-              className="group block rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 hover:shadow-xl transition-shadow"
+              className="group block overflow-hidden"
             >
-              <Thumbnail slug={featured.slug} category={featured.category} className="h-48 sm:h-56" />
-              <div className="p-5">
+              <Thumbnail slug={featured.slug} category={featured.category} className="h-48 sm:h-56 rounded-2xl" />
+              <div className="pt-3">
                 <p className="text-xs font-semibold text-primary mb-2">{featured.category.toUpperCase()}</p>
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2 leading-snug group-hover:text-primary transition-colors">
                   {featured.title}
@@ -135,10 +135,10 @@ export default function Blog() {
               <div key={post.slug} className="contents">
                 <Link
                   to={`/blog/${post.slug}`}
-                  className="group flex flex-col rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all"
+                  className="group flex flex-col overflow-hidden"
                 >
-                  <Thumbnail slug={post.slug} category={post.category} className="h-36" />
-                  <div className="p-5 flex flex-col flex-1">
+                  <Thumbnail slug={post.slug} category={post.category} className="h-36 rounded-2xl" />
+                  <div className="pt-5 flex flex-col flex-1">
                     <span className="text-xs font-semibold text-primary mb-2">{post.category.toUpperCase()}</span>
                     <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 leading-snug group-hover:text-primary transition-colors flex-1">
                       {post.title}
