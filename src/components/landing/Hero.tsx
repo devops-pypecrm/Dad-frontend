@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
   ChevronRight,
@@ -8,15 +9,20 @@ import {
   Plus,
   LayoutDashboard,
   Users,
-  Target,
-  Package,
-  FileText,
-  Settings,
+  GitBranch,
+  Workflow,
   Search,
   Bell,
   Zap,
+  TrendingUp,
+  Wallet,
+  Percent,
+  ArrowRightLeft,
+  CalendarClock,
+  MailCheck,
 } from "lucide-react";
 import Logo from "../shared/Logo";
+import { WhatsAppLogo } from "@/components/icons/BrandLogos";
 
 const clientLogos = [
   "Learnuz",
@@ -32,14 +38,19 @@ const clientLogos = [
   "WiseHub",
 ];
 
+// Sidebar items chosen to showcase the features that actually sell the
+// product (AI, automation, WhatsApp) alongside the bread-and-butter Leads
+// view, rather than a literal 1:1 copy of every real sidebar entry.
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard" },
-  { icon: Users, label: "Leads", active: true },
-  { icon: Target, label: "Opportunities" },
-  { icon: Package, label: "Products" },
-  { icon: FileText, label: "Reports" },
-  { icon: Settings, label: "Settings" },
-];
+  { key: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { key: "leads", icon: Users, label: "Leads" },
+  { key: "pipeline", icon: GitBranch, label: "Pipeline" },
+  { key: "whatsapp", icon: WhatsAppLogo, label: "WhatsApp" },
+  { key: "automation", icon: Workflow, label: "Automation" },
+  { key: "ai", icon: Sparkles, label: "Pype AI" },
+] as const;
+
+type TabKey = (typeof navItems)[number]["key"];
 
 const leadRows = [
   { name: "Priya Sharma", status: "Won", color: "bg-emerald-100 text-emerald-700", avatar: "bg-rose-200", value: "₹48,000" },
@@ -49,7 +60,35 @@ const leadRows = [
   { name: "Sneha Iyer", status: "Contacted", color: "bg-sky-100 text-sky-700", avatar: "bg-emerald-200", value: "₹28,000" },
 ];
 
+const statTiles = [
+  { label: "Total Leads", value: "1,248", icon: Users, accent: "bg-[hsl(var(--chart-5))]" },
+  { label: "Won This Month", value: "₹4.2L", icon: Wallet, accent: "bg-emerald-500" },
+  { label: "Pipeline Value", value: "₹18.6L", icon: TrendingUp, accent: "bg-indigo-500" },
+  { label: "Conversion Rate", value: "32%", icon: Percent, accent: "bg-amber-500" },
+];
+
+const pipelineColumns = [
+  { label: "New", color: "bg-gray-100 text-gray-600", cards: [{ title: "Rohit Verma", value: "₹12,000" }, { title: "Karthik S.", value: "₹9,500" }] },
+  { label: "In Progress", color: "bg-blue-100 text-blue-700", cards: [{ title: "Kavya Nair", value: "₹35,000" }, { title: "Arjun Mehta", value: "₹22,500" }] },
+  { label: "Won", color: "bg-emerald-100 text-emerald-700", cards: [{ title: "Priya Sharma", value: "₹48,000" }] },
+];
+
+const automationSteps = [
+  { icon: WhatsAppLogo, title: "New WhatsApp enquiry", sub: "Lead captured automatically" },
+  { icon: ArrowRightLeft, title: "Auto-assigned to rep", sub: "Round-robin by branch" },
+  { icon: CalendarClock, title: "Follow-up scheduled", sub: "Reminder set for 24h later" },
+  { icon: MailCheck, title: "Confirmation sent", sub: "Email + WhatsApp template" },
+];
+
+const aiInsights = [
+  "Priya Sharma is 80% likely to close this week — nudge her today.",
+  "Response time dropped 40% since automation was turned on.",
+  "3 leads need a follow-up before end of day.",
+];
+
 export default function Hero() {
+  const [activeTab, setActiveTab] = useState<TabKey>("leads");
+
   return (
     <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 overflow-hidden bg-white dark:bg-gray-950 selection:bg-blue-100 dark:selection:bg-blue-900">
 
@@ -125,17 +164,19 @@ export default function Hero() {
                 </div>
                 <div className="flex-1 p-3 space-y-1">
                   {navItems.map((item) => (
-                    <div
-                      key={item.label}
-                      className={`flex items-center gap-2.5 rounded-[10px] px-3 py-2 text-sm font-semibold cursor-pointer transition-colors ${
-                        item.active
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setActiveTab(item.key)}
+                      className={`w-full flex items-center gap-2.5 rounded-[10px] px-3 py-2 text-sm font-semibold cursor-pointer transition-colors text-left ${
+                        activeTab === item.key
                           ? "bg-sidebar-active text-white"
                           : "text-sidebar-text/80 hover:bg-sidebar-hover"
                       }`}
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
                       {item.label}
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -160,35 +201,139 @@ export default function Hero() {
                   </div>
                 </div>
 
-                {/* Leads list */}
+                {/* Tab content */}
                 <div className="flex-1 min-w-0 overflow-hidden p-4 md:p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-poppins font-semibold text-foreground">Leads</h3>
-                    <span className="inline-flex items-center gap-1.5 rounded-[10px] bg-[hsl(var(--chart-5))] text-white text-xs font-semibold px-3 py-1.5 cursor-pointer">
-                      <Plus className="h-3.5 w-3.5" /> Add Lead
-                    </span>
-                  </div>
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeTab}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.2 }}
+                      className="h-full"
+                    >
+                      {activeTab === "dashboard" && (
+                        <div>
+                          <h3 className="font-poppins font-semibold text-foreground mb-3">Dashboard</h3>
+                          <div className="grid grid-cols-2 gap-3">
+                            {statTiles.map((tile) => (
+                              <div key={tile.label} className="relative rounded-[10px] border border-border bg-card p-3 overflow-hidden">
+                                <span className={`absolute top-0 left-0 right-0 h-0.5 ${tile.accent}`} />
+                                <tile.icon className="h-4 w-4 text-muted-foreground mb-1.5" />
+                                <p className="text-lg font-semibold font-poppins text-foreground">{tile.value}</p>
+                                <p className="text-xs text-muted-foreground">{tile.label}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
-                  <div className="flex items-center gap-2 mb-3 p-2.5 rounded-[10px] bg-[hsl(var(--chart-5))]/10 text-xs font-poppins text-foreground/80">
-                    <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--chart-5))] shrink-0" />
-                    Insight: Follow-ups are up 18% this week — 3 leads are close to closing.
-                  </div>
+                      {activeTab === "leads" && (
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <h3 className="font-poppins font-semibold text-foreground">Leads</h3>
+                            <span className="inline-flex items-center gap-1.5 rounded-[10px] bg-[hsl(var(--chart-5))] text-white text-xs font-semibold px-3 py-1.5 cursor-pointer">
+                              <Plus className="h-3.5 w-3.5" /> Add Lead
+                            </span>
+                          </div>
+                          <div className="rounded-[10px] border border-border bg-card overflow-hidden">
+                            {leadRows.map((row) => (
+                              <div
+                                key={row.name}
+                                className="flex items-center gap-3 px-3 py-2.5 border-b border-border last:border-0 hover:bg-muted/40 transition-colors cursor-pointer"
+                              >
+                                <div className={`h-7 w-7 rounded-full shrink-0 ${row.avatar}`} />
+                                <span className="text-sm text-foreground truncate flex-1 min-w-0">{row.name}</span>
+                                <span className={`hidden sm:inline-flex text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${row.color}`}>
+                                  {row.status}
+                                </span>
+                                <span className="text-sm font-medium text-foreground shrink-0 w-20 text-right">{row.value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
-                  <div className="rounded-[10px] border border-border bg-card overflow-hidden">
-                    {leadRows.map((row) => (
-                      <div
-                        key={row.name}
-                        className="flex items-center gap-3 px-3 py-2.5 border-b border-border last:border-0 hover:bg-muted/40 transition-colors cursor-pointer"
-                      >
-                        <div className={`h-7 w-7 rounded-full shrink-0 ${row.avatar}`} />
-                        <span className="text-sm text-foreground truncate flex-1 min-w-0">{row.name}</span>
-                        <span className={`hidden sm:inline-flex text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${row.color}`}>
-                          {row.status}
-                        </span>
-                        <span className="text-sm font-medium text-foreground shrink-0 w-20 text-right">{row.value}</span>
-                      </div>
-                    ))}
-                  </div>
+                      {activeTab === "pipeline" && (
+                        <div>
+                          <h3 className="font-poppins font-semibold text-foreground mb-3">Pipeline</h3>
+                          <div className="grid grid-cols-3 gap-2.5">
+                            {pipelineColumns.map((col) => (
+                              <div key={col.label} className="min-w-0">
+                                <span className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold mb-2 ${col.color}`}>
+                                  {col.label}
+                                </span>
+                                <div className="space-y-2">
+                                  {col.cards.map((card) => (
+                                    <div key={card.title} className="rounded-[10px] border border-border bg-card p-2 text-xs cursor-pointer hover:shadow-sm transition-shadow">
+                                      <p className="font-medium text-foreground truncate">{card.title}</p>
+                                      <p className="text-muted-foreground">{card.value}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {activeTab === "whatsapp" && (
+                        <div>
+                          <h3 className="font-poppins font-semibold text-foreground mb-3">WhatsApp</h3>
+                          <div className="rounded-[10px] border border-border bg-card p-3 max-w-xs space-y-2">
+                            <div className="flex items-center gap-2 mb-1">
+                              <WhatsAppLogo className="h-4 w-4" />
+                              <span className="text-xs font-semibold text-foreground">Kavya Nair</span>
+                            </div>
+                            <div className="bg-muted rounded-xl rounded-tl-sm px-3 py-2 text-xs text-foreground max-w-[85%]">
+                              Hi, I'm interested in the weekend batch — is it still open?
+                            </div>
+                            <div className="bg-[hsl(var(--chart-5))]/15 rounded-xl rounded-tr-sm px-3 py-2 text-xs text-foreground max-w-[85%] ml-auto">
+                              Yes! Sending the schedule now 📅
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {activeTab === "automation" && (
+                        <div>
+                          <h3 className="font-poppins font-semibold text-foreground mb-3">Automation</h3>
+                          <div className="space-y-2">
+                            {automationSteps.map((step, i) => (
+                              <div key={step.title} className="flex items-center gap-2.5">
+                                <div className="h-7 w-7 rounded-full bg-[hsl(var(--chart-5))]/10 text-[hsl(var(--chart-5))] flex items-center justify-center shrink-0">
+                                  <step.icon className="h-3.5 w-3.5" />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-xs font-semibold text-foreground truncate">{step.title}</p>
+                                  <p className="text-[11px] text-muted-foreground truncate">{step.sub}</p>
+                                </div>
+                                {i < automationSteps.length - 1 && (
+                                  <div className="flex-1 border-t border-dashed border-border ml-1" />
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {activeTab === "ai" && (
+                        <div>
+                          <h3 className="font-poppins font-semibold text-foreground mb-3 flex items-center gap-1.5">
+                            <Sparkles className="h-4 w-4 text-[hsl(var(--chart-5))]" /> Pype AI Insights
+                          </h3>
+                          <div className="space-y-2">
+                            {aiInsights.map((insight) => (
+                              <div key={insight} className="flex items-start gap-2 p-2.5 rounded-[10px] bg-[hsl(var(--chart-5))]/10 text-xs text-foreground/80">
+                                <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--chart-5))] shrink-0 mt-0.5" />
+                                {insight}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
               </div>
             </div>
