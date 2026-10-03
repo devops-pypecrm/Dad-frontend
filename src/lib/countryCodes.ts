@@ -53,3 +53,33 @@ export const identifyCountryFromPhone = (phone: string) => {
     
     return null;
 };
+
+/** One entry per dialling prefix (the list has +1 twice for US and Canada), for pickers keyed by prefix. */
+export const uniquePrefixes: CountryCode[] = countryCodes.filter((c, i, all) => all.findIndex(x => x.prefix === c.prefix) === i);
+
+/**
+ * Splits a stored lead phone into the picker's country prefix and the local number.
+ * Leads arrive in different shapes: Meta/imports store "+9198...", the quick-add form stores local digits with a
+ * separate phoneCountryCode, and older rows have bare digits with no code at all.
+ */
+export const splitLeadPhone = (phone?: string | null, storedCode?: string | null): { prefix: string; local: string } => {
+    const raw = (phone ?? '').toString().trim();
+    const digits = raw.replace(/\D/g, '');
+    const ccDigits = (storedCode ?? '').replace(/\D/g, '');
+
+    // Explicit "+" means the country code is part of the number
+    if (raw.startsWith('+')) {
+        const found = identifyCountryFromPhone(raw);
+        if (found) return { prefix: found.country.prefix, local: found.localNumber };
+    }
+    // A stored code is authoritative; strip it only when the number clearly carries it already
+    if (ccDigits) {
+        const carries = digits.startsWith(ccDigits) && digits.length >= ccDigits.length + 7 && digits.length > 10;
+        return { prefix: `+${ccDigits}`, local: carries ? digits.slice(ccDigits.length) : digits };
+    }
+    // No code stored: a bare 10-digit mobile is Indian; otherwise try to read the prefix from the digits
+    if (digits.length === 10) return { prefix: '+91', local: digits };
+    const found = identifyCountryFromPhone(digits);
+    if (found && found.localNumber.length >= 6) return { prefix: found.country.prefix, local: found.localNumber };
+    return { prefix: '+91', local: digits };
+};

@@ -26,12 +26,14 @@ import { Input } from "@/components/ui/input"
 import { updateLead, type Lead } from "@/services/leadService"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useLeadStatuses } from "@/hooks/useLeadStatuses"
+import { identifyCountryFromPhone, splitLeadPhone, uniquePrefixes } from "@/lib/countryCodes"
 
 interface EditLeadFormData {
   firstName: string
   lastName?: string
   email: string
   phone: string
+  phoneCountryCode: string
   secondaryPhone?: string
   company: string
   enquiryAbout: string
@@ -43,6 +45,12 @@ interface EditLeadDialogProps {
   open?: boolean
   onOpenChange?: (open: boolean) => void
   lead: Lead
+}
+
+// Shows the number as picker + local digits, whichever way the lead was stored
+const phoneDefaults = (lead: Lead) => {
+  const { prefix, local } = splitLeadPhone(lead.phone, lead.phoneCountryCode)
+  return { phone: local, phoneCountryCode: prefix }
 }
 
 export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadDialogProps) {
@@ -60,7 +68,7 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
       firstName: lead.firstName || "",
       lastName: lead.lastName || "",
       email: lead.email || "",
-      phone: lead.phone || "",
+      ...phoneDefaults(lead),
       secondaryPhone: lead.secondaryPhone || "",
       company: lead.company || "",
       enquiryAbout: lead.enquiryAbout || "",
@@ -75,7 +83,7 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
         firstName: lead.firstName || "",
         lastName: lead.lastName || "",
         email: lead.email || "",
-        phone: lead.phone || "",
+        ...phoneDefaults(lead),
         secondaryPhone: lead.secondaryPhone || "",
         company: lead.company || "",
         enquiryAbout: lead.enquiryAbout || "",
@@ -165,31 +173,75 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="phone"
-              rules={{
-                required: "Phone number is required",
-                minLength: { value: 5, message: "Too short" }
-              }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="+1234567890"
-                      {...field}
-                      onChange={(e) => {
-                        // Allow +, digits, space, hyphen
-                        let value = e.target.value.replace(/[^0-9+\s-]/g, '');
-                        field.onChange(value);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-[96px_1fr] gap-2">
+              <FormField
+                control={form.control}
+                name="phoneCountryCode"
+                render={({ field }) => {
+                  // keep a lead's own code selectable even if it is not in the standard list
+                  const options = uniquePrefixes.some(c => c.prefix === field.value)
+                    ? uniquePrefixes
+                    : [{ name: 'Other', code: 'XX', prefix: field.value, flag: '🌐' }, ...uniquePrefixes]
+                  return (
+                    <FormItem>
+                      <FormLabel>Code</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="px-2">
+                            <SelectValue>{field.value}</SelectValue>
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="max-h-[300px]">
+                          {options.map((c) => (
+                            <SelectItem key={c.prefix} value={c.prefix}>
+                              <span className="flex items-center gap-2">
+                                <span>{c.flag}</span>
+                                <span className="font-mono">{c.prefix}</span>
+                                <span className="text-muted-foreground text-[10px] truncate max-w-[80px]">{c.name}</span>
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )
+                }}
+              />
+              <FormField
+                control={form.control}
+                name="phone"
+                rules={{
+                  required: "Phone number is required",
+                  validate: (v) => v.replace(/\D/g, '').length >= 5 || "Too short",
+                }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone</FormLabel>
+                    <FormControl>
+                      <Input
+                        inputMode="numeric"
+                        placeholder="9876543210"
+                        {...field}
+                        onChange={(e) => {
+                          const raw = e.target.value
+                          // A pasted "+971..." number picks its own country code
+                          if (raw.trim().startsWith('+')) {
+                            const found = identifyCountryFromPhone(raw)
+                            if (found) {
+                              form.setValue('phoneCountryCode', found.country.prefix, { shouldDirty: true })
+                              field.onChange(found.localNumber)
+                              return
+                            }
+                          }
+                          field.onChange(raw.replace(/\D/g, ''))
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="secondaryPhone"
