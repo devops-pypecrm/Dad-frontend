@@ -25,6 +25,10 @@ import { socketService } from './services/socketService';
 
 // Lazy load secondary pages
 const DownloadApp = lazy(() => import('./pages/DownloadApp'));
+const Blog = lazy(() => import('./pages/Blog'));
+const BlogPost = lazy(() => import('./pages/BlogPost'));
+const Help = lazy(() => import('./pages/Help'));
+const HelpArticle = lazy(() => import('./pages/HelpArticle'));
 const LeadsPage = lazy(() => import('./pages/leads'));
 const CreateLeadPage = lazy(() => import('./pages/leads/new'));
 const LeadDetailPage = lazy(() => import('./pages/leads/[id]'));
@@ -424,6 +428,10 @@ function AppContent() {
 
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<Terms />} />
+      <Route path="/blog" element={<Blog />} />
+      <Route path="/blog/:slug" element={<BlogPost />} />
+      <Route path="/help" element={<Help />} />
+      <Route path="/help/:slug" element={<HelpArticle />} />
       <Route path="/download" element={<DownloadApp />} />
       <Route path="/data-deletion" element={<DataDeletion />} />
       <Route path="/shared-product/:slug" element={<SharedProductPage />} />
