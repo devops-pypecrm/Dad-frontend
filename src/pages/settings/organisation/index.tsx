@@ -126,7 +126,7 @@ export default function OrganisationSettingsPage() {
                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border/50">
                       <div className="space-y-0.5">
                         <Label className="text-sm font-bold">Email Report Delivery</Label>
-                        <p className="text-xs text-muted-foreground">Automatically send this report to all Org Admins via email.</p>
+                        <p className="text-xs text-muted-foreground">Automatically send this report to the Contact Email.</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Switch 
