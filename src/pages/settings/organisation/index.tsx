@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { api } from "@/services/api"
 
@@ -59,17 +59,44 @@ export default function OrganisationSettingsPage() {
     }
   })
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    updateMutation.mutate({
+  const profileFormRef = useRef<HTMLFormElement>(null)
+  const [isSendingTest, setIsSendingTest] = useState(false)
+
+  const buildProfilePayload = (form: HTMLFormElement) => {
+    const formData = new FormData(form)
+    return {
       name: formData.get('name'),
       contactEmail: formData.get('contactEmail'),
       contactPhone: formData.get('contactPhone'),
       address: formData.get('address'),
       dailyReportTime: formData.get('dailyReportTime'),
       dailyReportEmailEnabled: emailEnabled
-    })
+    }
+  }
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    updateMutation.mutate(buildProfilePayload(e.currentTarget))
+  }
+
+  // "Send Daily Report Now" used to fire independently of the form, so it
+  // tested whatever contact email was already saved in the DB - not
+  // whatever the admin had just typed into the field. Save first (whether
+  // or not they'd clicked "Save Changes" separately) so the test always
+  // reflects what's currently in the form.
+  const handleSendTestReport = async () => {
+    if (!profileFormRef.current) return
+    setIsSendingTest(true)
+    try {
+      await updateMutation.mutateAsync(buildProfilePayload(profileFormRef.current))
+      await api.post('/organisation/send-test-report')
+      toast.success('Test report sent successfully')
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error.response?.data?.message || 'Failed to send test report')
+    } finally {
+      setIsSendingTest(false)
+    }
   }
 
   if (isLoading) return <div className="flex h-screen items-center justify-center">Loading...</div>
@@ -88,7 +115,7 @@ export default function OrganisationSettingsPage() {
             <CardDescription>Update your organisation's details.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form ref={profileFormRef} onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Organisation Name</Label>
@@ -142,17 +169,10 @@ export default function OrganisationSettingsPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={async () => {
-                    try {
-                      await api.post('/organisation/send-test-report')
-                      toast.success('Test report sent successfully')
-                    } catch (err: unknown) {
-                      const error = err as { response?: { data?: { message?: string } } };
-                      toast.error(error.response?.data?.message || 'Failed to send test report')
-                    }
-                  }}
+                  disabled={isSendingTest || updateMutation.isPending}
+                  onClick={handleSendTestReport}
                 >
-                  Send Daily Report Now
+                  {isSendingTest ? 'Sending...' : 'Send Daily Report Now'}
                 </Button>
                 <Button type="submit" disabled={updateMutation.isPending}>Save Changes</Button>
               </div>
