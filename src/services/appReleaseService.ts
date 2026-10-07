@@ -1,7 +1,7 @@
 import { api } from './api';
 import { API_URL } from '@/config';
 
-export type AppReleasePlatform = 'mobile' | 'helper';
+export type AppReleasePlatform = 'mobile' | 'helper' | 'dialer';
 
 export interface AppRelease {
     versionName: string;

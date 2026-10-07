@@ -4,7 +4,7 @@ import Footer from "@/components/landing/Footer";
 import SEO from "@/components/shared/SEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Smartphone, Wrench, Download, Loader2 } from "lucide-react";
+import { Smartphone, Wrench, Phone, Download, Loader2 } from "lucide-react";
 import { getLatestRelease, getDownloadUrl, type AppRelease, type AppReleasePlatform } from "@/services/appReleaseService";
 
 interface AppEntry {
@@ -27,6 +27,12 @@ const APPS: AppEntry[] = [
     description: "Companion app for call recording and WhatsApp reply sync.",
     icon: Wrench,
   },
+  {
+    platform: "dialer",
+    title: "Pype Dialer",
+    description: "Default-dialer replacement with CRM lead lookup, call logs, and call recording.",
+    icon: Phone,
+  },
 ];
 
 export default function DownloadApp() {
@@ -39,7 +45,7 @@ export default function DownloadApp() {
       />
       <LandingNavbar />
       <main className="py-20">
-        <div className="container mx-auto px-4 max-w-4xl">
+        <div className="container mx-auto px-4 max-w-5xl">
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
               Download PypeCRM
@@ -49,7 +55,7 @@ export default function DownloadApp() {
             </p>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {APPS.map((app) => (
               <AppDownloadCard key={app.platform} app={app} />
             ))}
