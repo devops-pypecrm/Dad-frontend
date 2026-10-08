@@ -74,6 +74,7 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
     restrictCampaigns: boolean
     allowedCampaignIds: string[]
     pixelId: string
+    capiToken: string
   }
 
   // A Page's leads can come from more than one ad account (e.g. two separate ad accounts
@@ -93,7 +94,8 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
       adAccountIds: initialAdAccountIds(account),
       restrictCampaigns: !!(account?.allowedCampaignIds?.length > 0),
       allowedCampaignIds: account?.allowedCampaignIds || [],
-      pixelId: account?.pixelId || ""
+      pixelId: account?.pixelId || "",
+      capiToken: account?.capiToken || ""
     }
   })
 
@@ -105,7 +107,8 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
         adAccountIds: initialAdAccountIds(account),
         restrictCampaigns: !!(account.allowedCampaignIds?.length > 0),
         allowedCampaignIds: account.allowedCampaignIds || [],
-        pixelId: account.pixelId || ""
+        pixelId: account.pixelId || "",
+        capiToken: account.capiToken || ""
       })
     }
   }, [open, account, form])
@@ -169,6 +172,7 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
       const allowedCampaignIds = data.restrictCampaigns ? data.allowedCampaignIds : [];
 
       const pixelId = data.pixelId.trim() || undefined;
+      const capiToken = data.capiToken.trim() || undefined;
 
       // update the specific account in the array using pageId
       const updatedAccounts = allAccounts.map((acc: any) => {
@@ -182,7 +186,8 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
             enabledLeadSyncAccounts: data.adAccountIds,
             allowedCampaignIds,
             needsAdAccountSelection: resolvedSelection ? false : acc.needsAdAccountSelection,
-            pixelId
+            pixelId,
+            capiToken
           }
         }
         return acc
@@ -200,7 +205,8 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
           enabledLeadSyncAccounts: data.adAccountIds,
           allowedCampaignIds,
           needsAdAccountSelection: resolvedSelection ? false : updatedMeta.needsAdAccountSelection,
-          pixelId
+          pixelId,
+          capiToken
         };
       }
 
@@ -418,12 +424,27 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
                   <FormLabel>Conversions API — Pixel ID</FormLabel>
                   <FormDescription>
                     Lets PypeCRM report lead/deal events back to this Meta Pixel
-                    server-side, separate from lead sync above. Find it in Meta Events
-                    Manager under this ad account's Pixel. Uses the same access token
-                    already connected for this account — nothing else to add.
+                    server-side. Find it in Meta Events Manager under this ad account's Pixel.
                   </FormDescription>
                   <FormControl>
                     <Input placeholder="e.g. 1234567890123456" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="capiToken"
+              render={({ field }) => (
+                <FormItem className="rounded-lg border p-3 shadow-sm bg-card">
+                  <FormLabel>Conversions API — Access Token</FormLabel>
+                  <FormDescription>
+                    Optional. PypeCRM automatically uses your Facebook connection for authentication. 
+                    If the agency insists on providing a manually generated "Generate Access Token" from Events Manager, paste it here to override.
+                  </FormDescription>
+                  <FormControl>
+                    <Input placeholder="e.g. EAA..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
