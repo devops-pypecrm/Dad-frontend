@@ -296,44 +296,46 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="bg-white space-y-4 sm:space-y-8 animate-in fade-in duration-500 p-6 rounded-[10px] border border-border">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-        <p className="text-muted-foreground mt-1">Manage your CRM configuration and preferences.</p>
+        <h1 className="text-xl sm:text-3xl font-medium font-poppins tracking-tight text-foreground flex items-center gap-2">
+          Settings ⚙️
+        </h1>
+        <p className="text-gray-600 tracking-tight font-poppins mt-0.5 text-[12px] sm:text-[14px] opacity-80">
+          Manage your CRM configuration and preferences.
+        </p>
       </div>
 
-      {/* Quick Stats */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
-        <Card className="bg-gradient-to-br from-card to-muted/50 border-border backdrop-blur-sm shadow-sm">
-          <CardContent className="p-4">
+        <Card className="rounded-[10px] bg-card border border-border overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Users className="h-6 w-6 text-primary" />
+              <div className="h-12 w-12 rounded-[10px] bg-[hsl(var(--chart-5))]/10 flex items-center justify-center">
+                <Users className="h-6 w-6 text-[hsl(var(--chart-5))]" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">{userCount}</p>
-                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Team Members</p>
+                <p className="text-2xl font-medium font-poppins text-foreground">{userCount}</p>
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Team Members</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Settings Cards Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredSections.map((section: any, index: number) => (
           <Link key={index} to={section.href}>
-            <Card className="h-full bg-card border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1 cursor-pointer group overflow-hidden">
-              <CardContent className="p-6">
+            <Card className="h-full rounded-[10px] bg-card border border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1 cursor-pointer group overflow-hidden">
+              <CardContent className="p-5 sm:p-6">
                 <div className="flex items-start gap-4">
-                  <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${section.gradient} flex items-center justify-center shadow-lg shadow-indigo-500/20 flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}>
-                    <section.icon className="h-6 w-6 text-white" />
+                  <div className={`h-12 w-12 rounded-[10px] bg-gradient-to-br ${section.gradient} flex items-center justify-center shadow-lg shadow-indigo-500/20 flex-shrink-0 group-hover:scale-105 transition-transform duration-300`}>
+                    <section.icon className="h-5.5 w-5.5 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-card-foreground group-hover:text-primary transition-colors">
+                    <h3 className="font-medium font-poppins tracking-tight text-card-foreground group-hover:text-primary transition-colors">
                       {section.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                    <p className="text-sm text-gray-600 font-poppins mt-0.5 line-clamp-2">
                       {section.description}
                     </p>
                   </div>

@@ -305,20 +305,20 @@ export default function IntegrationsPage() {
   const connectedCount = filteredIntegrations.filter(i => i.connected).length;
 
   return (
-    <div className="flex flex-col gap-5 p-5">
+    <div className="bg-white space-y-4 sm:space-y-8 animate-in fade-in duration-500 p-6 rounded-[10px] border border-border">
       {/* Header */}
       <div className="flex items-center gap-4">
         <div className="h-12 w-12 rounded-[10px] bg-[hsl(var(--chart-5))]/10 flex items-center justify-center text-[hsl(var(--chart-5))] shrink-0">
           <Plug className="h-6 w-6" />
         </div>
         <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold font-poppins text-foreground tracking-tight flex items-center gap-2.5">
+          <h1 className="text-xl sm:text-3xl font-medium font-poppins tracking-tight text-foreground flex items-center gap-2.5">
             Integrations
             <span className="bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-sm font-bold">
               {connectedCount}/{filteredIntegrations.length}
             </span>
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+          <p className="text-gray-600 tracking-tight font-poppins mt-0.5 text-[12px] sm:text-[14px] opacity-80">
             Manage webhooks, APIs, and third-party integrations
           </p>
         </div>
@@ -346,7 +346,7 @@ export default function IntegrationsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredIntegrations.map((integration) => (
-          <Card key={integration.id} className={`rounded-[10px] ${integration.connected ? "border-green-200 dark:border-green-800" : ""}`}>
+          <Card key={integration.id} className={`rounded-[10px] shadow-sm hover:shadow-md transition-shadow ${integration.connected ? "border-green-200 dark:border-green-800" : ""}`}>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
