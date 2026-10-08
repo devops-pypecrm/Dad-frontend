@@ -442,8 +442,7 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
                 <FormItem className="rounded-[10px] border border-border p-3 shadow-sm bg-card">
                   <FormLabel className="font-medium font-poppins">Conversions API — Access Token</FormLabel>
                   <FormDescription className="text-[12px] text-gray-600 font-poppins">
-                    Optional. PypeCRM automatically uses your Facebook connection for authentication. 
-                    If the agency insists on providing a manually generated "Generate Access Token" from Events Manager, paste it here to override.
+                    Paste the Conversions API Access Token generated from Meta Events Manager to enable server-side event tracking.
                   </FormDescription>
                   <FormControl>
                     <Input placeholder="e.g. EAA..." {...field} className="rounded-[10px]" />
