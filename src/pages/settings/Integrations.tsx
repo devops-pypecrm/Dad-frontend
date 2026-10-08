@@ -35,6 +35,7 @@ interface MetaAccount {
   connected?: boolean;
   needsAdAccountSelection?: boolean;
   pixelId?: string;
+  enabledLeadSyncAccounts?: string[];
 }
 
 interface WhatsAppAccount {
@@ -430,10 +431,23 @@ export default function IntegrationsPage() {
                             </Badge>
                           )}
                         </div>
-                        <span className={`text-xs ${acc.needsAdAccountSelection ? 'text-amber-600 dark:text-amber-500 font-medium' : 'text-muted-foreground'}`}>
+                        <span
+                          className={`text-xs ${acc.needsAdAccountSelection ? 'text-amber-600 dark:text-amber-500 font-medium' : 'text-muted-foreground'}`}
+                          title={
+                            !acc.needsAdAccountSelection && (acc.enabledLeadSyncAccounts?.length || 0) > 1
+                              ? `All linked ad accounts: ${acc.enabledLeadSyncAccounts!.join(', ')}`
+                              : undefined
+                          }
+                        >
                           {acc.needsAdAccountSelection
                             ? 'This Facebook user has multiple ad accounts — select which one to use'
-                            : acc.adAccountName ? `Ad Account: ${acc.adAccountName}` : 'No ad account linked'}
+                            : acc.adAccountName
+                              ? `Ad Account: ${acc.adAccountName}${
+                                  (acc.enabledLeadSyncAccounts?.length || 0) > 1
+                                    ? ` (+${acc.enabledLeadSyncAccounts!.length - 1} more linked)`
+                                    : ''
+                                }`
+                              : 'No ad account linked'}
                         </span>
                         {!acc.needsAdAccountSelection && (
                           <span className={`text-[11px] ${acc.pixelId ? 'text-green-600 dark:text-green-500' : 'text-muted-foreground'}`}>
