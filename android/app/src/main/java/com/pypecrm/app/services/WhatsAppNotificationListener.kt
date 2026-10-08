@@ -98,6 +98,15 @@ class WhatsAppNotificationListener : NotificationListenerService() {
                 
                 if (!response.isSuccessful) {
                     Log.e("WhatsAppListener", "Sync failed: ${response.code}, queuing")
+                    if (response.code == 401) {
+                        try {
+                            val prefs = applicationContext.getSharedPreferences("crm_prefs", Context.MODE_PRIVATE)
+                            prefs.edit().remove("jwt_token").apply()
+                            Log.w("WhatsAppListener", "Cleared JWT token due to 401 Unauthorized")
+                        } catch (e: Exception) {
+                            Log.e("WhatsAppListener", "Failed to clear token", e)
+                        }
+                    }
                     // Do not trigger worker retries immediately on 401 auth failures
                     queueWhatsAppForSync(contact, message, shouldScheduleWorker = (response.code != 401))
                 } else {
