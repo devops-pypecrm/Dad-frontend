@@ -151,9 +151,12 @@ export default function AuditLogsPage() {
     }
   });
 
-  const { data: orgUsers = [] } = useQuery({
+  const { data: orgUsersRaw } = useQuery({
     queryKey: ['users', 'list'], queryFn: getUsers, enabled: canSeeOrgWide, staleTime: 5 * 60 * 1000,
   });
+  const orgUsers: { id: string; firstName: string; lastName: string }[] = Array.isArray(orgUsersRaw)
+    ? orgUsersRaw
+    : orgUsersRaw?.users || [];
   const { data: branches = [] } = useQuery({
     queryKey: ['branches', 'list'], queryFn: getBranches, enabled: canSeeOrgWide, staleTime: 5 * 60 * 1000,
   });
