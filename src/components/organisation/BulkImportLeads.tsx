@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { importLeads, type CreateLeadData } from "@/services/leadService"
+import { importLeads, type CreateLeadData, type ImportLeadsResult } from "@/services/leadService"
 import { getBranches, getUsers } from "@/services/settingsService"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,6 +14,14 @@ import { isAdmin, isBranchManager, getUserInfo } from "@/lib/utils"
 import * as XLSX from 'xlsx'
 import { getAssignmentRules } from "@/services/assignmentRuleService"
 
+// One huge request for a whole file used to exceed the request timeout
+// ("timeout of 60000ms exceeded") for large files / orgs with many existing
+// leads, while the server kept importing in the background, so a retry
+// re-imported everything as re-enquiries. Small batches each finish quickly.
+const IMPORT_BATCH_SIZE = 50
+
+type ImportOutcome = ImportLeadsResult & { failedRows: number }
+
 export function BulkImportLeads() {
   const [file, setFile] = useState<File | null>(null)
   const [previewCount, setPreviewCount] = useState<number>(0)
@@ -23,6 +31,7 @@ export function BulkImportLeads() {
   const [selectedRuleId, setSelectedRuleId] = useState<string>("default")
   const [applyRules, setApplyRules] = useState<boolean>(true)
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
 
   const queryClient = useQueryClient()
   const user = getUserInfo();
@@ -58,8 +67,18 @@ export function BulkImportLeads() {
   // (getUsers already filters by hierarchy on backend)
   const availableUsers = allUsers; // Include self to allow assignment to uploader as well
 
+  const resetForm = () => {
+    setFile(null)
+    setParsedData([])
+    setPreviewCount(0)
+    setSelectedBranchId(userBranchId || "") // Reset to user's branch after successful import
+    setSelectedRuleId("default")
+    setApplyRules(true)
+    setSelectedUserIds([])
+  }
+
   const importMutation = useMutation({
-    mutationFn: (data: CreateLeadData[]) => {
+    mutationFn: async (data: CreateLeadData[]): Promise<ImportOutcome> => {
       // Attach branchId if selected or user has one
       const finalData = data.map(lead => ({
         ...lead,
@@ -68,33 +87,64 @@ export function BulkImportLeads() {
           : (userBranchId || undefined)
       }));
 
-      return importLeads(finalData, {
-        assignmentRuleId: selectedRuleId === 'default' ? undefined : selectedRuleId,
-        applyAssignmentRules: applyRules,
-        splitUserIds: selectedUserIds.length > 0 ? selectedUserIds : undefined
-      })
+      const totals: ImportOutcome = { created: 0, reEnquiries: 0, duplicates: 0, failedRows: 0 }
+      let splitStartIndex = 0
+      setProgress({ done: 0, total: finalData.length })
+
+      for (let start = 0; start < finalData.length; start += IMPORT_BATCH_SIZE) {
+        const batch = finalData.slice(start, start + IMPORT_BATCH_SIZE)
+        let result: ImportLeadsResult
+        try {
+          result = await importLeads(batch, {
+            assignmentRuleId: selectedRuleId === 'default' ? undefined : selectedRuleId,
+            applyAssignmentRules: applyRules,
+            splitUserIds: selectedUserIds.length > 0 ? selectedUserIds : undefined,
+            splitStartIndex
+          })
+        } catch (err) {
+          // Keep only the rows that haven't been sent yet (this batch onward)
+          // so clicking Import again resumes rather than re-importing the
+          // rows that already landed as duplicates/re-enquiries.
+          const remaining = data.slice(start)
+          setParsedData(remaining)
+          setPreviewCount(remaining.length)
+          if (totals.created + totals.reEnquiries > 0) {
+            queryClient.invalidateQueries({ queryKey: ['leads'] })
+          }
+          const reason = (err as { response?: { data?: { message?: string } }; message?: string })
+          const detail = reason.response?.data?.message || reason.message || 'Unknown error'
+          throw new Error(
+            `Import stopped after ${start} of ${finalData.length} rows (${totals.created} created, ${totals.reEnquiries} re-enquiries): ${detail}. ` +
+            `Click "Import Leads" to continue with the remaining ${remaining.length} rows.`
+          )
+        }
+
+        totals.created += result.created || 0
+        totals.reEnquiries += result.reEnquiries || 0
+        totals.failedRows += result.errors?.length || 0
+        if (typeof result.nextSplitIndex === 'number') splitStartIndex = result.nextSplitIndex
+        setProgress({ done: Math.min(start + batch.length, finalData.length), total: finalData.length })
+      }
+
+      return totals
     },
     onSuccess: (data) => {
-      const total = (data.created || 0) + (data.reEnquiries || 0)
-      const message = data.reEnquiries > 0
-        ? `Successfully imported ${data.created} new leads and ${data.reEnquiries} re-enquiries`
-        : `Successfully imported ${data.created} leads`
-      toast.success(message)
-      setFile(null)
-      setParsedData([])
-      setPreviewCount(0)
-      setSelectedBranchId(userBranchId || "") // Reset to user's branch after successful import
-      setSelectedRuleId("default")
-      setApplyRules(true)
-      setSelectedUserIds([])
+      const parts = [`${data.created} new leads`]
+      if (data.reEnquiries > 0) parts.push(`${data.reEnquiries} re-enquiries`)
+      toast.success(`Successfully imported ${parts.join(' and ')}`)
+      if (data.failedRows > 0) {
+        toast.warning(`${data.failedRows} rows could not be imported (invalid data). Check the file and try those rows again.`)
+      }
+      resetForm()
       // Invalidate all leads queries
       queryClient.invalidateQueries({ queryKey: ['leads'] })
       queryClient.invalidateQueries({ queryKey: ['leads', 'all'] })
     },
-    onError: (err: { message: string }) => {
+    onError: (err: Error) => {
       toast.error(err.message || 'Failed to import leads')
       setError(err.message || 'Failed to import leads')
-    }
+    },
+    onSettled: () => setProgress(null)
   })
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -229,6 +279,7 @@ export function BulkImportLeads() {
 
   const handleImport = () => {
     if (parsedData.length === 0) return
+    setError(null)
     importMutation.mutate(parsedData)
   }
 
@@ -394,7 +445,9 @@ export function BulkImportLeads() {
 
         <div className="flex justify-end pt-2">
           <Button onClick={handleImport} disabled={!file || parsedData.length === 0 || importMutation.isPending}>
-            {importMutation.isPending ? "Importing..." : "Import Leads"}
+            {importMutation.isPending
+              ? (progress ? `Importing ${progress.done} / ${progress.total}...` : "Importing...")
+              : "Import Leads"}
           </Button>
         </div>
       </CardContent>

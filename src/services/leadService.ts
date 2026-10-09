@@ -141,9 +141,30 @@ export const deleteLead = async (id: string) => {
     return response.data;
 };
 
-export const importLeads = async (leads: CreateLeadData[], options?: { assignmentRuleId?: string, applyAssignmentRules?: boolean, splitUserIds?: string[], flagAsReEnquiry?: boolean }) => {
+export interface ImportLeadsOptions {
+    assignmentRuleId?: string;
+    applyAssignmentRules?: boolean;
+    splitUserIds?: string[];
+    flagAsReEnquiry?: boolean;
+    splitStartIndex?: number;
+}
+
+export interface ImportLeadsResult {
+    created: number;
+    reEnquiries: number;
+    duplicates: number;
+    errors?: { lead: unknown; error: string }[];
+    nextSplitIndex?: number;
+}
+
+// The server processes import rows one at a time (duplicate check + assignment
+// rules + insert per row), so a single batch must stay small enough to finish
+// well inside this timeout even for orgs with a large existing lead table.
+const IMPORT_BATCH_TIMEOUT_MS = 5 * 60 * 1000;
+
+export const importLeads = async (leads: CreateLeadData[], options?: ImportLeadsOptions): Promise<ImportLeadsResult> => {
     const payload = options ? { leads, ...options } : leads;
-    const response = await api.post('/leads/bulk', payload);
+    const response = await api.post('/leads/bulk', payload, { timeout: IMPORT_BATCH_TIMEOUT_MS });
     return response.data;
 };
 
