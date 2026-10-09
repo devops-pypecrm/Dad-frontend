@@ -81,7 +81,6 @@ const menuGroups = [
       { title: "Ads Manager", href: "/marketing/ads-manager", icon: Presentation, role: "admin" },
       { title: "WhatsApp", href: "/marketing/whatsapp", icon: WhatsAppLogo, role: "admin" },
       { title: "SMS", href: "/marketing/sms", icon: Smartphone, role: "admin" },
-      { title: "Landing Pages", href: "/marketing/landing-pages", icon: Globe, role: "admin" },
       { title: "Web Forms", href: "/marketing/forms", icon: FileInput, role: "admin" },
       { title: "Email Lists", href: "/marketing/lists", icon: Mail, role: "admin" },
     ]

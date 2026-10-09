@@ -12,6 +12,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 import DataDeletion from './pages/DataDeletion';
 import SharedProductPage from './pages/public/SharedProductPage';
+const WebFormView = lazy(() => import('./pages/public/WebFormView'));
 import LandingPageView from './pages/public/LandingPageView';
 import DailySummaryView from './pages/public/DailySummaryView';
 import { PageLoader } from './components/ui/page-loader';
@@ -63,7 +64,6 @@ const CommissionsPage = lazy(() => import('./pages/sales/commissions'));
 const ReportsPage = lazy(() => import('./pages/reports'));
 const WhatsAppInbox = lazy(() => import('./pages/WhatsAppInbox'));
 const SMSCampaignsPage = lazy(() => import('./pages/marketing/sms'));
-const LandingPagesManager = lazy(() => import('./pages/marketing/landing-pages'));
 const WebFormsPage = lazy(() => import('./pages/marketing/forms'));
 const WhatsAppCampaignsPage = lazy(() => import('./pages/marketing/whatsapp'));
 const WhatsAppAutomationsPage = lazy(() => import('./pages/marketing/whatsapp/automations'));
@@ -341,7 +341,6 @@ function AppContent() {
        <Route path="/marketing/ads" element={<Navigate to="/marketing/ads-manager" replace />} />
        <Route path="/marketing/ads-manager" element={<AdsManager />} />
        <Route path="/marketing/sms" element={<SMSCampaignsPage />} />
-       <Route path="/marketing/landing-pages" element={<LandingPagesManager />} />
        <Route path="/marketing/forms" element={<WebFormsPage />} />
        <Route path="/marketing/campaigns/new" element={<CreateCampaignPage />} />
        <Route path="/marketing/lists" element={<EmailListsPage />} />
@@ -435,6 +434,7 @@ function AppContent() {
       <Route path="/download" element={<DownloadApp />} />
       <Route path="/data-deletion" element={<DataDeletion />} />
       <Route path="/shared-product/:slug" element={<SharedProductPage />} />
+      <Route path="/forms/:id" element={<WebFormView />} />
       <Route path="/daily-summary/:token" element={<DailySummaryView />} />
       {/* Deliberately NOT wrapped in PublicRoute - a logged-in user visiting
           "/" directly (e.g. bookmarked it, or just typed the domain) should
