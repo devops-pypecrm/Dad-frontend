@@ -1,22 +1,18 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getOrganisation } from "@/services/settingsService";
+import { whatsAppAccountService } from "@/services/whatsAppAccountService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Settings, CheckCircle2, Unplug, Plug } from "lucide-react";
+import { Settings, CheckCircle2, Unplug, Plug, ExternalLink } from "lucide-react";
 import {
   FacebookLogo,
   WhatsAppLogo,
   GoogleAdsLogo,
-  HappileeLogo,
-  WabisLogo,
-  DoubleTickLogo,
-  WatiLogo,
   GallaboxLogo,
-  HalApiLogo,
   WebFormLogo,
   ZapierLogo
 } from "@/components/icons/BrandLogos";
@@ -38,15 +34,6 @@ interface MetaAccount {
   enabledLeadSyncAccounts?: string[];
 }
 
-interface WhatsAppAccount {
-  phoneNumberId?: string;
-  wabaId?: string;
-  displayPhoneNumber?: string;
-  verifiedName?: string;
-  connected?: boolean;
-  connectedAt?: string;
-}
-
 export default function IntegrationsPage() {
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -54,7 +41,7 @@ export default function IntegrationsPage() {
 
   // Config Dialog State
   const [configOpen, setConfigOpen] = useState(false);
-  const [activeConfigType, setActiveConfigType] = useState<'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox' | 'zapier' | null>(null);
+  const [activeConfigType, setActiveConfigType] = useState<'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'googleads' | 'gallabox' | 'zapier' | null>(null);
 
   // Meta Account Config State
   const [metaConfigOpen, setMetaConfigOpen] = useState(false);
@@ -68,6 +55,9 @@ export default function IntegrationsPage() {
 
 
   const integrations = orgData?.integrations || {};
+
+  // WhatsApp numbers live in the relational account table (single source of truth for the WhatsApp hub).
+  const { data: waAccounts = [] } = useQuery({ queryKey: ['whatsapp-accounts'], queryFn: whatsAppAccountService.getWhatsAppAccounts });
 
   // Right after connecting, if the connecting Facebook user had more than one ad account,
   // there's no safe default to pick — force the "which ad account" choice immediately instead
@@ -137,7 +127,7 @@ export default function IntegrationsPage() {
     }
   };
 
-  const openConfig = (type: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox' | 'zapier') => {
+  const openConfig = (type: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'googleads' | 'gallabox' | 'zapier') => {
     setActiveConfigType(type);
     setConfigOpen(true);
   };
@@ -170,61 +160,25 @@ export default function IntegrationsPage() {
     },
     {
       id: 'whatsapp',
-      name: 'Whatsapp',
-      description: 'With this feature, leads from WhatsApp are automatically synced to Workpex, saving you from manual data entry.',
+      name: 'WhatsApp Business',
+      description: 'Official WhatsApp Cloud API: team inbox, templates, campaigns, chatbots and automations.',
       icon: WhatsAppLogo,
       iconColor: 'text-green-500',
-      connected: (integrations.whatsappAccounts?.length > 0) || integrations.whatsapp?.connected,
-      accounts: integrations.whatsappAccounts || [],
+      connected: waAccounts.length > 0 || !!integrations.whatsapp?.connected,
+      accounts: waAccounts,
       onEnable: () => handleConnectMeta('whatsapp'),
       onDisable: async () => {
         try {
           const { api } = await import('@/services/api');
           await api.post('/meta/disconnect', { type: 'whatsapp' });
           queryClient.invalidateQueries({ queryKey: ['organisation'] });
+          queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts'] });
           toast.success('Disconnected from WhatsApp');
         } catch {
           toast.error('Failed to disconnect');
         }
       },
-      hasSettings: true,
-      settingsType: 'whatsapp' as const,
-      isPlaceholder: false
-    },
-    {
-      id: 'happilee',
-      name: 'Happilee',
-      description: 'With this feature, leads from Happilee are automatically synced to Workpex, saving you from manual data entry.',
-      icon: HappileeLogo,
-      iconColor: 'text-blue-400',
-      connected: integrations.happilee?.connected,
-      onEnable: () => openConfig('happilee'),
-      hasSettings: true,
-      settingsType: 'happilee' as const,
-      isPlaceholder: false
-    },
-    {
-      id: 'wabis',
-      name: 'Wabis',
-      description: 'With this feature, leads from Wabis are automatically synced to Workpex, saving you from manual data entry.',
-      icon: WabisLogo,
-      iconColor: 'text-green-600',
-      connected: integrations.wabis?.connected,
-      onEnable: () => openConfig('wabis'),
-      hasSettings: true,
-      settingsType: 'wabis' as const,
-      isPlaceholder: false
-    },
-    {
-      id: 'doubletick',
-      name: 'DoubleTick',
-      description: 'With this feature, leads from DoubleTick are automatically synced to Workpex, saving you from manual data entry.',
-      icon: DoubleTickLogo,
-      iconColor: 'text-green-600',
-      connected: integrations.doubletick?.connected,
-      onEnable: () => openConfig('doubletick'),
-      hasSettings: true,
-      settingsType: 'doubletick' as const,
+      hasSettings: false,
       isPlaceholder: false
     },
     {
@@ -237,30 +191,6 @@ export default function IntegrationsPage() {
       onEnable: () => openConfig('googleads'),
       hasSettings: true,
       settingsType: 'googleads' as const,
-      isPlaceholder: false
-    },
-    {
-      id: 'wati',
-      name: 'Wati',
-      description: 'With this feature, leads from Wati are automatically synced to Workpex, saving you from manual data entry.',
-      icon: WatiLogo,
-      iconColor: 'text-green-600',
-      connected: integrations.wati?.connected,
-      onEnable: () => openConfig('wati'),
-      hasSettings: true,
-      settingsType: 'wati' as const,
-      isPlaceholder: false
-    },
-    {
-      id: 'halapi',
-      name: 'HAL API',
-      description: 'Custom implementation for HAL API integration.',
-      icon: HalApiLogo,
-      iconColor: 'text-purple-600',
-      connected: integrations.halapi?.connected,
-      onEnable: () => openConfig('halapi'),
-      hasSettings: true,
-      settingsType: 'halapi' as const,
       isPlaceholder: false
     },
     {
@@ -354,12 +284,7 @@ export default function IntegrationsPage() {
                   <div className={`w-10 h-10 rounded-[10px] flex items-center justify-center ${integration.id === 'facebook' ? 'bg-gradient-to-br from-blue-600 to-blue-800' :
                       integration.id === 'webform' ? 'bg-gradient-to-br from-indigo-500 to-indigo-700' :
                         integration.id === 'whatsapp' ? 'bg-gradient-to-br from-green-500 to-green-700' :
-                          integration.id === 'happilee' ? 'bg-gradient-to-br from-sky-400 to-sky-600' :
-                            integration.id === 'wabis' ? 'bg-gradient-to-br from-emerald-500 to-emerald-700' :
-                              integration.id === 'doubletick' ? 'bg-gradient-to-br from-teal-500 to-teal-700' :
                                 integration.id === 'googleads' ? 'bg-gradient-to-br from-yellow-400 via-red-400 to-blue-500' :
-                                  integration.id === 'wati' ? 'bg-gradient-to-br from-green-600 to-green-800' :
-                                    integration.id === 'halapi' ? 'bg-gradient-to-br from-purple-500 to-purple-700' :
                                       integration.id === 'gallabox' ? 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500' :
                                           integration.id === 'zapier' ? 'bg-gradient-to-br from-orange-500 to-amber-600' :
                                             'bg-gradient-to-br from-gray-500 to-gray-700'
@@ -371,7 +296,7 @@ export default function IntegrationsPage() {
                     <CardDescription className="text-xs">
                       {integration.id === 'facebook' ? 'Auto-sync leads from Facebook' :
                         integration.id === 'webform' ? 'Capture leads from your website' :
-                          integration.id === 'whatsapp' ? 'Sync leads from WhatsApp' :
+                          integration.id === 'whatsapp' ? 'Messaging, templates & automation' :
                             integration.id === 'googleads' ? 'Import leads from Google Ads' :
                               integration.id === 'zapier' ? 'Facebook Leads via Zapier webhook' :
                                 `Connect with ${integration.name}`}
@@ -499,58 +424,29 @@ export default function IntegrationsPage() {
                 </div>
               ) : integration.id === 'whatsapp' && integration.accounts && integration.accounts.length > 0 ? (
                 <div className="space-y-4">
-                  {integration.accounts.map((acc: WhatsAppAccount, idx: number) => (
-                    <div key={acc.phoneNumberId || idx} className={`flex items-center justify-between p-3 rounded-[8px] border ${
-                      acc.connected !== false
+                  {integration.accounts.map((acc: { id: string; phoneNumber: string; displayName?: string; status: string; provider: string; phoneNumberId?: string }) => (
+                    <div key={acc.id} className={`flex items-center justify-between p-3 rounded-[8px] border ${
+                      acc.status === 'active'
                         ? "bg-green-50/50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30"
                         : "bg-slate-50/30 dark:bg-slate-900/5 border-slate-100 dark:border-slate-900/10 opacity-70"
                     }`}>
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">{acc.displayPhoneNumber || acc.phoneNumberId || 'Number'}</span>
-                          {acc.connected !== false ? (
-                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 text-[10px] py-0 px-1.5 h-4">
-                              Active
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-900/20 dark:text-slate-400 dark:border-slate-800 text-[10px] py-0 px-1.5 h-4">
-                              Inactive
-                            </Badge>
-                          )}
+                          <span className="text-sm font-medium">{acc.phoneNumber}</span>
+                          <Badge variant="outline" className={`text-[10px] py-0 px-1.5 h-4 ${acc.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                            {acc.status === 'active' ? 'Active' : 'Inactive'}
+                          </Badge>
                         </div>
-                        <span className="text-xs text-muted-foreground">
-                          {acc.verifiedName || 'No business name set'}
-                        </span>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={async () => {
-                            try {
-                              const { api } = await import('@/services/api');
-                              await api.post('/meta/disconnect', { type: 'whatsapp', phoneNumberId: acc.phoneNumberId });
-                              queryClient.invalidateQueries({ queryKey: ['organisation'] });
-                              toast.success(`Disconnected ${acc.displayPhoneNumber || 'number'}`);
-                            } catch {
-                              toast.error('Failed to disconnect');
-                            }
-                          }}
-                        >
-                          <Unplug className="h-3 w-3 mr-1" />
-                          Disconnect
-                        </Button>
+                        <span className="text-xs text-muted-foreground">{acc.displayName || 'No business name set'} · <span className="capitalize">{acc.provider}</span></span>
                       </div>
                     </div>
                   ))}
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleConnectMeta('whatsapp')}
-                  >
-                    Add Another Number
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" onClick={() => handleConnectMeta('whatsapp')}>Add Another Number</Button>
+                    <Button size="sm" asChild className="gap-1.5 bg-[hsl(var(--chart-5))] text-white hover:bg-[hsl(var(--chart-5))]/90">
+                      <Link to="/whatsapp/settings"><ExternalLink className="h-3.5 w-3.5" />Manage in WhatsApp</Link>
+                    </Button>
+                  </div>
                 </div>
               ) : integration.connected ? (
                 <div className="space-y-3">

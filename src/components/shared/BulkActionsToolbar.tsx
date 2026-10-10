@@ -13,7 +13,6 @@ import {
  Trash2,
  Download,
  Tag,
- MessageSquare,
  Phone,
  Calendar,
  Archive
@@ -55,13 +54,11 @@ export function BulkActionsToolbar({
     { label: 'Update Status', icon: Tag, action: 'update-status' },
     { label: 'Assign to User', icon: UserPlus, action: 'assign' },
     { label: 'Send Email', icon: Mail, action: 'send-email' },
-    { label: 'Send WhatsApp', icon: MessageSquare, action: 'send-whatsapp' },
     { label: 'Schedule Follow-up', icon: Calendar, action: 'schedule-followup' },
     { label: 'Convert to Contacts', icon: UserPlus, action: 'convert' },
    ],
    contacts: [
     { label: 'Send Email', icon: Mail, action: 'send-email' },
-    { label: 'Send WhatsApp', icon: MessageSquare, action: 'send-whatsapp' },
     { label: 'Schedule Call', icon: Phone, action: 'schedule-call' },
     { label: 'Add to Campaign', icon: Mail, action: 'add-to-campaign' },
    ],

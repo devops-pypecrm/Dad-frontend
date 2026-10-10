@@ -15,14 +15,15 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({ mediaId, type, caption, fil
 
   useEffect(() => {
     let isMounted = true;
+    let objectUrl: string | null = null;
     const fetchMedia = async () => {
       try {
         const response = await api.get(`/whatsapp/messages/media/${mediaId}`, {
           responseType: 'blob'
         });
         if (isMounted) {
-          const blobUrl = URL.createObjectURL(response.data);
-          setUrl(blobUrl);
+          objectUrl = URL.createObjectURL(response.data);
+          setUrl(objectUrl);
         }
       } catch (err) {
         console.error('Failed to load media:', err);
@@ -36,9 +37,9 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({ mediaId, type, caption, fil
 
     return () => {
       isMounted = false;
-      if (url) URL.revokeObjectURL(url);
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [mediaId, url]);
+  }, [mediaId]);
 
   if (loading) {
     return (

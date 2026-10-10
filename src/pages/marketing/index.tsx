@@ -1,17 +1,15 @@
 import { useState } from "react"
-import { Mail, Facebook, MessageCircle, Megaphone } from "lucide-react"
+import { Mail, Facebook, Megaphone } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { EmailCampaigns } from "./components/EmailCampaigns"
 import { MetaCampaigns } from "./components/MetaCampaigns"
-import { WhatsAppCampaigns } from "./components/WhatsAppCampaigns"
 
-type Channel = "email" | "meta" | "whatsapp"
+type Channel = "email" | "meta"
 
 const CHANNELS: { id: Channel; label: string; icon: typeof Mail }[] = [
   { id: "email", label: "Email Campaigns", icon: Mail },
   { id: "meta", label: "Meta Ads", icon: Facebook },
-  { id: "whatsapp", label: "WhatsApp", icon: MessageCircle },
 ]
 
 export default function MarketingPage() {
@@ -52,7 +50,6 @@ export default function MarketingPage() {
 
       {activeChannel === "email" && <EmailCampaigns />}
       {activeChannel === "meta" && <MetaCampaigns />}
-      {activeChannel === "whatsapp" && <WhatsAppCampaigns />}
     </div>
   )
 }

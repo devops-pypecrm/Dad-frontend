@@ -97,7 +97,7 @@ const TemplatePicker: React.FC<TemplatePickerProps> = ({ onSelect, onClose }) =>
                 <input
                   type="text"
                   placeholder="Search templates..."
-                  className="w-full pl-9 pr-3 py-2 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground"
+                  className="w-full pl-9 pr-3 py-2 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-[hsl(var(--chart-5))] text-foreground placeholder:text-muted-foreground"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -113,7 +113,7 @@ const TemplatePicker: React.FC<TemplatePickerProps> = ({ onSelect, onClose }) =>
                 filteredTemplates.map(t => (
                   <div
                     key={t.name}
-                    className={`p-3 rounded-md cursor-pointer transition-colors ${selectedTemplate?.name === t.name ? 'bg-primary/10 border-primary border' : 'hover:bg-muted border border-transparent'}`}
+                    className={`p-3 rounded-md cursor-pointer transition-colors ${selectedTemplate?.name === t.name ? 'bg-[hsl(var(--chart-5))]/10 border-[hsl(var(--chart-5))] border' : 'hover:bg-muted border border-transparent'}`}
                     onClick={() => handleTemplateSelect(t)}
                   >
                     <p className="font-medium text-sm text-foreground truncate">{t.name.replace(/_/g, ' ')}</p>
@@ -147,7 +147,7 @@ const TemplatePicker: React.FC<TemplatePickerProps> = ({ onSelect, onClose }) =>
                         <label className="text-[10px] font-bold text-muted-foreground uppercase">Variable {v}</label>
                         <input
                           type="text"
-                          className="w-full px-3 py-2 text-sm bg-background border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
+                          className="w-full px-3 py-2 text-sm bg-background border border-border rounded focus:outline-none focus:ring-1 focus:ring-[hsl(var(--chart-5))] text-foreground"
                           placeholder={`Enter value for {{${v}}}`}
                           value={variables[v]}
                           onChange={(e) => setVariables(prev => ({ ...prev, [v]: e.target.value }))}
@@ -173,7 +173,7 @@ const TemplatePicker: React.FC<TemplatePickerProps> = ({ onSelect, onClose }) =>
               <button
                 disabled={!selectedTemplate}
                 onClick={() => selectedTemplate && onSelect(selectedTemplate, variables)}
-                className={`flex-1 px-4 py-2 text-sm font-medium text-white rounded-md transition-colors ${selectedTemplate ? 'bg-primary hover:bg-primary/90 shadow-md' : 'bg-primary/50 cursor-not-allowed'}`}
+                className={`flex-1 px-4 py-2 text-sm font-medium text-white rounded-md transition-colors ${selectedTemplate ? 'bg-[hsl(var(--chart-5))] hover:bg-[hsl(var(--chart-5))]/90 shadow-md' : 'bg-[hsl(var(--chart-5))]/50 cursor-not-allowed'}`}
               >
                 Send Template
               </button>

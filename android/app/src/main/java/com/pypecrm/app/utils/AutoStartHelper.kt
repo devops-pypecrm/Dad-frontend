@@ -164,7 +164,7 @@ class AutoStartHelper private constructor() {
     private fun showAlert(context: Context, onClick: () -> Unit) {
         AlertDialog.Builder(context)
             .setTitle("Background Reliability")
-            .setMessage("To ensure Call Logs and WhatsApp sync accurately in the background, please enable 'Auto-Start' or 'Allow Background Activity' for Pype CRM in the next screen.")
+            .setMessage("To ensure Call Logs sync accurately in the background, please enable 'Auto-Start' or 'Allow Background Activity' for Pype CRM in the next screen.")
             .setPositiveButton("Open Settings") { dialog, _ ->
                 onClick()
                 dialog.dismiss()

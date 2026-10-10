@@ -14,7 +14,7 @@ data class LeadEntity(
 @Entity(tableName = "sync_queue")
 data class SyncQueueEntry(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val type: String, // "CALL_LOG", "WHATSAPP", "RECORDING"
+    val type: String, // "CALL_LOG", "RECORDING"
     val payload: String, // JSON payload
     val filePath: String? = null,
     val createdAt: Long = System.currentTimeMillis(),

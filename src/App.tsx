@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Suspense, lazy, useEffect, useState } from 'react';
 import Login from './pages/Login';
 import Enquire from './pages/Enquire';
@@ -63,12 +63,17 @@ const SalesTargetsPage = lazy(() => import('./pages/sales-targets'));
 const CommissionsPage = lazy(() => import('./pages/sales/commissions'));
 const ReportsPage = lazy(() => import('./pages/reports'));
 const WhatsAppInbox = lazy(() => import('./pages/WhatsAppInbox'));
+const WhatsAppTemplatesPage = lazy(() => import('./pages/whatsapp/templates'));
 const SMSCampaignsPage = lazy(() => import('./pages/marketing/sms'));
 const WebFormsPage = lazy(() => import('./pages/marketing/forms'));
-const WhatsAppCampaignsPage = lazy(() => import('./pages/marketing/whatsapp'));
-const WhatsAppAutomationsPage = lazy(() => import('./pages/marketing/whatsapp/automations'));
-const WhatsAppFlowsPage = lazy(() => import('./pages/marketing/whatsapp/flows'));
-const WhatsAppFlowEditorPage = lazy(() => import('./pages/marketing/whatsapp/flows/[id]'));
+const WhatsAppCampaignsPage = lazy(() => import('./pages/whatsapp/campaigns'));
+const WhatsAppCampaignDetailPage = lazy(() => import('./pages/whatsapp/campaigns/detail'));
+const WhatsAppResponderPage = lazy(() => import('./pages/whatsapp/responder'));
+const WhatsAppNurturingPage = lazy(() => import('./pages/whatsapp/nurturing'));
+const WhatsAppAutomationsPage = lazy(() => import('./pages/whatsapp/automations'));
+const WhatsAppChatbotPage = lazy(() => import('./pages/whatsapp/chatbot'));
+const WhatsAppFlowEditorPage = lazy(() => import('./pages/whatsapp/chatbot/[id]'));
+const WhatsAppSettingsPage = lazy(() => import('./pages/whatsapp/settings'));
 const EmailListsPage = lazy(() => import('./pages/marketing/lists'));
 
 // Settings sub-pages
@@ -115,12 +120,10 @@ const BulkImportSettingsPage = lazy(() => import('./pages/settings/bulk-import')
 const BillingSettingsPage = lazy(() => import('./pages/settings/Billing'));
 const AuditLogsPage = lazy(() => import('./pages/settings/audit-logs'));
 const DeveloperSettingsPage = lazy(() => import('./pages/settings/developer'));
-const WhatsAppScraperSettingsPage = lazy(() => import('./pages/settings/whatsapp-scraper'));
 const GmailCallbackPage = lazy(() => import('./pages/settings/gmail-callback'));
 const LeadStatusesSettingsPage = lazy(() => import('./pages/settings/lead-statuses'));
 const BroadcastSettingsPage = lazy(() => import('./pages/settings/broadcast'));
 const SSOLogin = lazy(() => import('./pages/SSOLogin'));
-const WhatsAppAccountsSettingsPage = lazy(() => import('./pages/settings/whatsapp-accounts'));
 
 const ShufflerSettingsPage = lazy(() => import('./pages/settings/shuffler'));
 const TrashPage = lazy(() => import('./pages/trash'));
@@ -147,6 +150,12 @@ const queryClient = new QueryClient({
   },
  },
 });
+
+// Old flow-editor bookmarks (/marketing/whatsapp/flows/:id) keep working.
+function LegacyFlowRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/whatsapp/chatbot/${id}`} replace />;
+}
 
 function AuthListener() {
  const navigate = useNavigate();
@@ -344,12 +353,23 @@ function AppContent() {
        <Route path="/marketing/forms" element={<WebFormsPage />} />
        <Route path="/marketing/campaigns/new" element={<CreateCampaignPage />} />
        <Route path="/marketing/lists" element={<EmailListsPage />} />
-       <Route path="/marketing/whatsapp" element={<WhatsAppCampaignsPage />} />
-       <Route path="/marketing/whatsapp/automations" element={<WhatsAppAutomationsPage />} />
-       <Route path="/marketing/whatsapp/flows" element={<WhatsAppFlowsPage />} />
-       <Route path="/marketing/whatsapp/flows/:id" element={<WhatsAppFlowEditorPage />} />
+       {/* Legacy WhatsApp URLs now live in the WhatsApp section */}
+       <Route path="/marketing/whatsapp" element={<Navigate to="/whatsapp/campaigns" replace />} />
+       <Route path="/marketing/whatsapp/automations" element={<Navigate to="/whatsapp/automations" replace />} />
+       <Route path="/marketing/whatsapp/flows" element={<Navigate to="/whatsapp/chatbot" replace />} />
+       <Route path="/marketing/whatsapp/flows/:id" element={<LegacyFlowRedirect />} />
        {/* <Route path="/communications" element={<CommunicationsPage />} /> */}
+       <Route path="/whatsapp" element={<Navigate to="/whatsapp/inbox" replace />} />
        <Route path="/whatsapp/inbox" element={<WhatsAppInbox />} />
+       <Route path="/whatsapp/templates" element={<WhatsAppTemplatesPage />} />
+       <Route path="/whatsapp/campaigns" element={<WhatsAppCampaignsPage />} />
+       <Route path="/whatsapp/campaigns/:id" element={<WhatsAppCampaignDetailPage />} />
+       <Route path="/whatsapp/chatbot" element={<WhatsAppChatbotPage />} />
+       <Route path="/whatsapp/chatbot/:id" element={<WhatsAppFlowEditorPage />} />
+       <Route path="/whatsapp/responder" element={<WhatsAppResponderPage />} />
+       <Route path="/whatsapp/nurturing" element={<WhatsAppNurturingPage />} />
+       <Route path="/whatsapp/automations" element={<WhatsAppAutomationsPage />} />
+       <Route path="/whatsapp/settings" element={<WhatsAppSettingsPage />} />
        <Route path="/calendar" element={<CalendarPage />} />
        <Route path="/follow-ups" element={<FollowUpsPage />} />
        <Route path="/calls" element={<CallsPage />} />
@@ -366,7 +386,6 @@ function AppContent() {
        <Route path="/settings/custom-fields" element={<CustomFieldsSettingsPage />} />
        <Route path="/settings/territories" element={<TerritoriesSettingsPage />} />
        <Route path="/settings/call-recording" element={<CallRecordingSettingsPage />} />
-       <Route path="/settings/whatsapp-scraper" element={<WhatsAppScraperSettingsPage />} />
        <Route path="/settings/import" element={<ImportSettingsPage />} />
        <Route path="/settings/bulk-import" element={<BulkImportSettingsPage />} />
        <Route path="/settings/billing" element={<BillingSettingsPage />} />
@@ -421,7 +440,7 @@ function AppContent() {
        <Route path="/settings/notifications" element={<NotificationsSettingsPage />} />
        <Route path="/settings/lead-statuses" element={<LeadStatusesSettingsPage />} />
        <Route path="/settings/gmail-callback" element={<GmailCallbackPage />} />
-       <Route path="/settings/whatsapp-accounts" element={<WhatsAppAccountsSettingsPage />} />
+       <Route path="/settings/whatsapp-accounts" element={<Navigate to="/whatsapp/settings" replace />} />
        <Route path="/notifications" element={<NotificationsPage />} />
       </Route>
 

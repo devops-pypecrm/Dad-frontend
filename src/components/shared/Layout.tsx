@@ -25,7 +25,7 @@ export default function Layout() {
   const isDashboard = location.pathname === '/dashboard';
   const isFullWidthPage = location.pathname.startsWith('/automation/workflows') ||
     location.pathname.startsWith('/workflows') ||
-    location.pathname.startsWith('/whatsapp') ||
+    location.pathname === '/whatsapp/inbox' ||
     location.pathname.startsWith('/communications') ||
     // Only the opportunities LIST is full-width, not detail pages (/opportunities/:id)
     location.pathname === '/opportunities';

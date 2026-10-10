@@ -1,48 +1,79 @@
 import React, { useState } from 'react';
-import ConversationList from '../components/WhatsApp/ConversationList';
-import ChatWindow from '../components/WhatsApp/ChatWindow';
+import { MessageSquarePlus } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { WhatsAppConnectionGate } from '@/components/WhatsApp/hub/WhatsAppConnectionGate';
+import { NewChatDialog } from '@/components/WhatsApp/hub/NewChatDialog';
+import { WhatsAppPage } from '@/components/WhatsApp/hub/WhatsAppPage';
+import { WA_CARD, WA_PRIMARY_BTN } from '@/components/WhatsApp/hub/whatsappStyles';
+import { ConversationListPanel } from '@/components/WhatsApp/inbox/ConversationListPanel';
+import { ThreadPanel } from '@/components/WhatsApp/inbox/ThreadPanel';
+import { DetailsPanel } from '@/components/WhatsApp/inbox/DetailsPanel';
+import { useInboxRealtime } from '@/components/WhatsApp/inbox/useInboxRealtime';
+import { cn } from '@/lib/utils';
 
 const WhatsAppInbox: React.FC = () => {
-  const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [newChatOpen, setNewChatOpen] = useState(false);
+  const queryClient = useQueryClient();
+  useInboxRealtime();
 
   return (
-    <div className="flex h-full overflow-hidden bg-background">
-      {/* Conversation List Sidebar */}
-      <div className={`${selectedPhone ? 'hidden md:flex' : 'flex'} w-full md:w-80 lg:w-96 flex-col border-r border-border bg-card`}>
-        <div className="p-4 border-b border-border flex justify-between items-center bg-card">
-          <h2 className="text-xl font-semibold text-foreground">Inbox</h2>
-          {/* Potential place for "New Chat" button */}
-        </div>
-        <ConversationList
-          onSelectConversation={setSelectedPhone}
-          selectedPhone={selectedPhone}
-        />
-      </div>
-
-      {/* Chat Window */}
-      <div className={`${!selectedPhone ? 'hidden md:flex' : 'flex'} flex-1 flex-col bg-background relative`}>
-        {selectedPhone ? (
-          <ChatWindow
-            phoneNumber={selectedPhone}
-            onBack={() => setSelectedPhone(null)}
-          />
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8 text-center bg-muted/20">
-            <div className="w-64 h-64 bg-primary/5 rounded-full mb-6 flex items-center justify-center border border-primary/10">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-32 h-32 text-primary/20">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-bold text-foreground mb-2">WhatsApp for CRM</h3>
-            <p className="max-w-md text-muted-foreground">Select a conversation from the left to start messaging your leads and contacts.</p>
-            <div className="mt-8 text-sm text-muted-foreground/70 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              End-to-End Encrypted via Meta Cloud API
-            </div>
+    <WhatsAppPage
+      fullHeight
+      title="Team Inbox"
+      emoji="💬"
+      subtitle="Chat with your leads and contacts on WhatsApp."
+      actions={
+        <Button className={WA_PRIMARY_BTN} onClick={() => setNewChatOpen(true)}>
+          <MessageSquarePlus className="h-4 w-4 mr-1.5" /> New chat
+        </Button>
+      }
+    >
+      <WhatsAppConnectionGate returnPath="/whatsapp/inbox">
+        <div className={cn(WA_CARD, 'flex flex-1 min-h-0')}>
+          <div className={cn('w-full md:w-[340px] lg:w-[380px] shrink-0 flex-col border-r border-border bg-white', selectedId ? 'hidden md:flex' : 'flex')}>
+            <ConversationListPanel selectedId={selectedId} onSelect={c => setSelectedId(c.id)} />
           </div>
-        )}
-      </div>
-    </div>
+
+          <div className={cn('flex-1 min-w-0 flex-col', !selectedId ? 'hidden md:flex' : 'flex')}>
+            {selectedId ? (
+              <ThreadPanel
+                key={selectedId}
+                conversationId={selectedId}
+                onBack={() => setSelectedId(null)}
+                detailsOpen={detailsOpen}
+                onToggleDetails={() => setDetailsOpen(o => !o)}
+              />
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#f6f6f4]">
+                <div className="h-28 w-28 rounded-full bg-[hsl(var(--chart-5))]/10 flex items-center justify-center mb-5">
+                  <MessageSquarePlus strokeWidth={1.25} className="h-12 w-12 text-[hsl(var(--chart-5))]" />
+                </div>
+                <h3 className="text-xl font-medium font-poppins text-black mb-1">WhatsApp for CRM</h3>
+                <p className="max-w-sm text-sm font-poppins text-muted-foreground">Select a conversation, or start a new chat with any lead or contact.</p>
+              </div>
+            )}
+          </div>
+
+          {selectedId && detailsOpen && (
+            <div className="hidden lg:block w-[300px] shrink-0 border-l border-border">
+              <DetailsPanel conversationId={selectedId} />
+            </div>
+          )}
+        </div>
+
+        <NewChatDialog
+          open={newChatOpen}
+          onOpenChange={setNewChatOpen}
+          onSent={(conversationId) => {
+            setSelectedId(conversationId);
+            queryClient.invalidateQueries({ queryKey: ['whatsapp', 'inbox'] });
+          }}
+        />
+      </WhatsAppConnectionGate>
+    </WhatsAppPage>
   );
 };
 

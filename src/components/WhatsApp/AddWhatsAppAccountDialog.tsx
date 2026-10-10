@@ -48,7 +48,7 @@ export function AddWhatsAppAccountDialog({ children, open, onOpenChange, account
 
   const form = useForm<Partial<WhatsAppAccount>>({
     defaultValues: {
-      provider: 'gallabox',
+      provider: 'meta',
       status: 'active',
       isDefault: false
     }
@@ -67,7 +67,7 @@ export function AddWhatsAppAccountDialog({ children, open, onOpenChange, account
       })
     } else {
       form.reset({
-        provider: 'gallabox',
+        provider: 'meta',
         status: 'active',
         isDefault: false
       })
@@ -154,17 +154,13 @@ export function AddWhatsAppAccountDialog({ children, open, onOpenChange, account
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value="meta">WhatsApp Cloud API (Meta)</SelectItem>
                       <SelectItem value="gallabox">Gallabox</SelectItem>
-                      <SelectItem value="wati">Wati</SelectItem>
-                      <SelectItem value="doubletick">DoubleTick</SelectItem>
-                      <SelectItem value="wabis">Wabis</SelectItem>
-                      <SelectItem value="happilee">Happilee</SelectItem>
-                      <SelectItem value="halapi">HAL API</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Connecting an official Meta/WhatsApp Business number? Use the "Connect via Meta" button
-                    instead — no WABA ID or token needed.
+                    Only the official WhatsApp Cloud API and Gallabox are supported. For a Meta number, the
+                    "Connect via Meta" button is easier — no WABA ID or token needed.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

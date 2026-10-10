@@ -57,9 +57,6 @@ class UnifiedSyncWorker(context: Context, workerParams: WorkerParameters) : Coro
             performSelfHealingCallLogSync(forceDeepScan)
         }
         
-        // Recover WhatsApp messages from SharedPreferences fallback
-        recoverWhatsAppFallbackQueue(db)
-
         return if (hasAuthFailure) {
             Log.e("UnifiedSync", "Worker finished with JWT auth failure. Halting WorkManager retries.")
             Result.failure()
@@ -74,33 +71,12 @@ class UnifiedSyncWorker(context: Context, workerParams: WorkerParameters) : Coro
         return try {
             when (item.type) {
                 "CALL_LOG" -> uploadMetadata(item.payload)
-                "WHATSAPP" -> uploadWhatsApp(item.payload)
                 "RECORDING" -> uploadRecording(item.payload, item.filePath)
                 else -> true // Unknown type, skip
             }
         } catch (e: Exception) {
             Log.e("UnifiedSync", "Error processing item ${item.id}", e)
             false
-        }
-    }
-
-    private suspend fun recoverWhatsAppFallbackQueue(db: AppDatabase) {
-        try {
-            val prefs = applicationContext.getSharedPreferences("crm_whatsapp_fallback", Context.MODE_PRIVATE)
-            val existing = prefs.getString("failed_messages", "[]")
-            if (existing == "[]") return
-            
-            val array = org.json.JSONArray(existing)
-            for (i in 0 until array.length()) {
-                val json = array.getJSONObject(i)
-                db.syncQueueDao().insert(
-                    SyncQueueEntry(type = "WHATSAPP", payload = json.toString())
-                )
-            }
-            prefs.edit().putString("failed_messages", "[]").apply()
-            Log.d("UnifiedSync", "Recovered ${array.length()} WhatsApp messages from fallback")
-        } catch (e: Exception) {
-            Log.e("UnifiedSync", "Error recovering WhatsApp fallback", e)
         }
     }
 
@@ -127,19 +103,6 @@ class UnifiedSyncWorker(context: Context, workerParams: WorkerParameters) : Coro
             .post(requestBodyBuilder.build())
             .build()
 
-        return executeRequest(request)
-    }
-
-    private fun uploadWhatsApp(payload: String): Boolean {
-        val (token, apiBase) = getAuthData() ?: return false
-        val requestBody = RequestBody.create("application/json".toMediaTypeOrNull(), payload)
-        
-        val request = Request.Builder()
-            .url("$apiBase/api/android/whatsapp/sync")
-            .addHeader("Authorization", "Bearer $token")
-            .post(requestBody)
-            .build()
-            
         return executeRequest(request)
     }
 

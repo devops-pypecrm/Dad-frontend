@@ -38,7 +38,7 @@ interface IntegrationConfigDialogProps {
   children?: React.ReactNode
   open?: boolean
   onOpenChange?: (open: boolean) => void
-  integrationType: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox' | 'zapier'
+  integrationType: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'googleads' | 'gallabox' | 'zapier'
   initialValues?: Partial<IntegrationSettings>
 }
 
@@ -134,18 +134,8 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
         ? 'Twilio Integration'
         : integrationType === 'whatsapp'
           ? 'WhatsApp Integration'
-          : integrationType === 'happilee'
-            ? 'Happilee Integration'
-            : integrationType === 'wabis'
-              ? 'Wabis Integration'
-              : integrationType === 'doubletick'
-                ? 'DoubleTick Integration'
                 : integrationType === 'googleads'
                   ? 'Google Ads Integration'
-                  : integrationType === 'wati'
-                    ? 'Wati Integration'
-                    : integrationType === 'halapi'
-                      ? 'HAL API Integration'
                       : integrationType === 'gallabox'
                         ? 'Gallabox Integration'
                         : integrationType === 'zapier'
@@ -160,18 +150,8 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
         ? 'Connect Twilio account for cloud telephony.'
         : integrationType === 'whatsapp'
           ? 'Connect WhatsApp Business API.'
-          : integrationType === 'happilee'
-            ? 'Connect Happilee for WhatsApp automation.'
-            : integrationType === 'wabis'
-              ? 'Sync leads from Wabis.'
-              : integrationType === 'doubletick'
-                ? 'Integrate DoubleTick WhatsApp API.'
                 : integrationType === 'googleads'
                   ? 'Sync Google Ads lead forms.'
-                  : integrationType === 'wati'
-                    ? 'Connect Wati for WhatsApp marketing.'
-                    : integrationType === 'halapi'
-                      ? 'Integrate HAL API for appointments.'
                       : integrationType === 'gallabox'
                         ? 'Connect Gallabox for WhatsApp lead sync.'
                         : integrationType === 'zapier'
@@ -692,9 +672,9 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
               )
             }
 
-            {/* Fields for Happilee, Wabis, DoubleTick, Wati, HAL API, Gallabox */}
+            {/* Gallabox (official BSP) credentials */}
             {
-              ['happilee', 'wabis', 'doubletick', 'wati', 'halapi', 'gallabox'].includes(integrationType) && isConnected && (
+              ['gallabox'].includes(integrationType) && isConnected && (
                 <>
                   <FormField
                     control={form.control}

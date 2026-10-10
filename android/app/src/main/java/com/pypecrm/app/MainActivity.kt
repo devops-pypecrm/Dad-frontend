@@ -393,43 +393,12 @@ class MainActivity : AppCompatActivity() {
                 permissionsNeeded.toTypedArray(),
                 PERMISSION_REQUEST_CODE
             )
-        } else {
-            // If standard permissions are okay, check for the special Notification Access
-            checkNotificationAccess()
         }
         
         checkBatteryOptimization()
     }
 
 
-
-    private fun checkNotificationAccess() {
-        if (!isNotificationServiceEnabled()) {
-            android.app.AlertDialog.Builder(this)
-                .setTitle("WhatsApp Scraper Required")
-                .setMessage("To automatically sync WhatsApp messages, you must grant 'Notification Access' to CRM in the next screen. Please find 'CRM' and toggle it ON.")
-                .setPositiveButton("Open Settings") { _, _ ->
-                    startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
-                }
-                .setNegativeButton("Later", null)
-                .show()
-        }
-    }
-
-    private fun isNotificationServiceEnabled(): Boolean {
-        val pkgName = packageName
-        val flat = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
-        if (!flat.isNullOrEmpty()) {
-            val names = flat.split(":")
-            for (name in names) {
-                val cn = ComponentName.unflattenFromString(name)
-                if (cn != null && cn.packageName == pkgName) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
 
     private fun checkBatteryOptimization() {
         com.pypecrm.app.utils.AutoStartHelper.instance.getAutoStartPermission(this)

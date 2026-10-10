@@ -45,7 +45,9 @@ import {
   PlayCircle,
   Inbox,
   Bot,
-  FileCheck2
+  FileCheck2,
+  Reply,
+  Sprout
 } from "lucide-react";
 import { WhatsAppLogo } from "@/components/icons/BrandLogos";
 import Logo from "./Logo";
@@ -93,7 +95,9 @@ const menuGroups = [
       { title: "Team Inbox", href: "/whatsapp/inbox", icon: Inbox },
       { title: "Templates", href: "/whatsapp/templates", icon: FileCheck2, role: "admin" },
       { title: "Campaigns", href: "/whatsapp/campaigns", icon: Megaphone, role: "admin" },
-      { title: "Chatbot", href: "/whatsapp/chatbot", icon: Bot, role: "admin" },
+      { title: "Chatbot & AI", href: "/whatsapp/chatbot", icon: Bot, role: "admin" },
+      { title: "Auto Responder", href: "/whatsapp/responder", icon: Reply, role: "admin" },
+      { title: "Lead Nurturing", href: "/whatsapp/nurturing", icon: Sprout, role: "admin" },
       { title: "Automations", href: "/whatsapp/automations", icon: Zap, role: "admin" },
       { title: "WhatsApp Settings", href: "/whatsapp/settings", icon: WhatsAppLogo, role: "admin" },
     ]

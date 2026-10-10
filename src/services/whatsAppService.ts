@@ -97,3 +97,39 @@ export const getWhatsAppStatistics = async () => {
     const response = await api.get('/whatsapp/messages/statistics');
     return response.data;
 };
+
+export interface WhatsAppConnectionStatus {
+    connected: boolean;
+    healthy?: boolean;
+    phoneNumberId?: string;
+    wabaId?: string;
+    phoneNumber?: string;
+    verifiedName?: string;
+    qualityRating?: string;
+    messagingTier?: string | null;
+    accountId?: string | null;
+    accountsCount?: number;
+    error?: string;
+}
+
+export interface CreateTemplateRequest {
+    name: string;
+    category: 'AUTHENTICATION' | 'MARKETING' | 'UTILITY';
+    language: string;
+    components: Array<Record<string, unknown>>;
+}
+
+export const getWhatsAppConnection = async (): Promise<WhatsAppConnectionStatus> => {
+    const response = await api.get('/whatsapp/connection');
+    return response.data;
+};
+
+export const createWhatsAppTemplate = async (data: CreateTemplateRequest) => {
+    const response = await api.post('/whatsapp/templates', data);
+    return response.data;
+};
+
+export const deleteWhatsAppTemplate = async (name: string) => {
+    const response = await api.delete(`/whatsapp/templates/${encodeURIComponent(name)}`);
+    return response.data;
+};

@@ -21,8 +21,7 @@ import {
   Phone,
   CreditCard,
   FileText,
-  Shuffle,
-  MessageSquare
+  Shuffle
 } from "lucide-react"
 
 const ALL_SETTINGS_SECTIONS = [
@@ -157,22 +156,6 @@ const ALL_SETTINGS_SECTIONS = [
     description: "Configure automatic call recording and storage settings",
     href: "/settings/call-recording",
     icon: Phone,
-    gradient: "from-indigo-600 to-violet-600",
-    roles: ['admin']
-  },
-  {
-    title: "WhatsApp Accounts",
-    description: "Manage multiple WhatsApp numbers, routing rules, and view usage metrics",
-    href: "/settings/whatsapp-accounts",
-    icon: MessageSquare,
-    gradient: "from-indigo-600 to-violet-600",
-    roles: ['admin']
-  },
-  {
-    title: "WhatsApp Scraper",
-    description: "Control automatic WhatsApp message synchronization from Android devices",
-    href: "/settings/whatsapp-scraper",
-    icon: Webhook,
     gradient: "from-indigo-600 to-violet-600",
     roles: ['admin']
   },
