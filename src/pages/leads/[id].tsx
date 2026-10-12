@@ -1,3 +1,4 @@
+import { useWhatsAppEnabled } from '@/hooks/useWhatsAppEnabled'
 import { useNavigate, useParams, Link } from "react-router-dom"
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query"
 import { api } from "@/services/api"
@@ -61,6 +62,21 @@ const WhatsAppIcon = () => (
 )
 
 
+// sourceDetails is sometimes a JSON string, sometimes already an object, and occasionally
+// malformed - an unguarded JSON.parse here throws during render and gets caught by the
+// page-level ErrorBoundary ("Something went wrong") instead of just hiding the detail.
+function safeSourceDetails(sourceDetails: unknown): Record<string, any> {
+  if (!sourceDetails) return {}
+  if (typeof sourceDetails === 'string') {
+    try {
+      return JSON.parse(sourceDetails) || {}
+    } catch {
+      return {}
+    }
+  }
+  return sourceDetails as Record<string, any>
+}
+
 export default function LeadDetailPage() {
   const { formatCurrency } = useCurrency()
   const { id } = useParams()
@@ -84,10 +100,18 @@ export default function LeadDetailPage() {
   const { statuses, selectableStatuses, getStatusDetails } = useLeadStatuses()
   const queryClient = useQueryClient()
 
-  const { data: lead, isLoading: leadLoading } = useQuery({
+  const { data: lead, isLoading: leadLoading, isError: leadIsError, error: leadError } = useQuery({
     queryKey: ['lead', id],
     queryFn: async () => (await api.get(`/leads/${id}`)).data,
-    enabled: id !== 'new'
+    enabled: id !== 'new',
+    retry: (failureCount, err: any) => {
+      const status = err?.response?.status
+      // 403 (no longer visible) and 404 (deleted/wrong id) are permanent - retrying wastes time
+      // and delays showing the right message. Anything else (timeout, 5xx, network blip) is
+      // worth a couple of retries before giving up.
+      if (status === 403 || status === 404) return false
+      return failureCount < 2
+    }
   })
 
   const updateStatusMutation = useMutation({
@@ -116,13 +140,45 @@ export default function LeadDetailPage() {
     enabled: id !== 'new'
   })
 
+  const whatsAppEnabled = useWhatsAppEnabled()
   const { data: whatsappMessages, isLoading: wsLoading } = useQuery({
     queryKey: ['whatsapp-messages', id],
     queryFn: async () => (await api.get(`/whatsapp/lead/${id}`)).data,
-    enabled: id !== 'new'
+    enabled: id !== 'new' && whatsAppEnabled,
+    retry: false
   })
 
   if (leadLoading) return <div className="p-8 space-y-4"><Skeleton className="h-12 w-1/3" /><Skeleton className="h-64 w-full" /></div>
+
+  if (leadIsError) {
+    const status = (leadError as any)?.response?.status
+    if (status === 403) {
+      return (
+        <div className="p-8 text-center space-y-3">
+          <p className="text-lg font-semibold">You no longer have access to this lead</p>
+          <p className="text-sm text-muted-foreground">It may have been reassigned to someone outside your team. Contact your manager if this looks wrong.</p>
+          <Button onClick={() => navigate('/leads')}>Back to Leads</Button>
+        </div>
+      )
+    }
+    if (status === 404) {
+      return (
+        <div className="p-8 text-center space-y-3">
+          <p className="text-lg font-semibold">Lead not found</p>
+          <p className="text-sm text-muted-foreground">It may have been deleted, or the link is incorrect.</p>
+          <Button onClick={() => navigate('/leads')}>Back to Leads</Button>
+        </div>
+      )
+    }
+    return (
+      <div className="p-8 text-center space-y-3">
+        <p className="text-lg font-semibold">Couldn't load this lead</p>
+        <p className="text-sm text-muted-foreground">There was a problem reaching the server. Check your connection and try again.</p>
+        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['lead', id] })}>Retry</Button>
+      </div>
+    )
+  }
+
   if (!lead) return <div className="p-8">Lead not found</div>
 
   const isWhatsAppCall = (msg: any) => {
@@ -533,7 +589,7 @@ export default function LeadDetailPage() {
               <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Created: {formatIST(lead.createdAt, "MMM d, yyyy")}</span></div>
               
               {(() => {
-                const details = typeof lead.sourceDetails === 'string' ? JSON.parse(lead.sourceDetails) : lead.sourceDetails;
+                const details = safeSourceDetails(lead.sourceDetails);
                 if (!details?.metaCreatedTime) return null;
                 return (
                   <div className="flex items-center gap-3 text-blue-600 dark:text-blue-400">
@@ -561,7 +617,7 @@ export default function LeadDetailPage() {
 
               {/* Campaign Display */}
               {(() => {
-                const details = typeof lead.sourceDetails === 'string' ? JSON.parse(lead.sourceDetails) : lead.sourceDetails;
+                const details = safeSourceDetails(lead.sourceDetails);
                 const campaign = details?.campaignName || details?.metaCampaignName;
                 if (!campaign) return null;
                 
