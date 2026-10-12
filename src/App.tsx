@@ -62,6 +62,7 @@ const GoalsPage = lazy(() => import('./pages/goals'));
 const SalesTargetsPage = lazy(() => import('./pages/sales-targets'));
 const CommissionsPage = lazy(() => import('./pages/sales/commissions'));
 const ReportsPage = lazy(() => import('./pages/reports'));
+import { WhatsAppFeatureRoute } from './components/WhatsApp/hub/WhatsAppFeatureRoute';
 const WhatsAppInbox = lazy(() => import('./pages/WhatsAppInbox'));
 const WhatsAppTemplatesPage = lazy(() => import('./pages/whatsapp/templates'));
 const SMSCampaignsPage = lazy(() => import('./pages/marketing/sms'));
@@ -359,17 +360,19 @@ function AppContent() {
        <Route path="/marketing/whatsapp/flows" element={<Navigate to="/whatsapp/chatbot" replace />} />
        <Route path="/marketing/whatsapp/flows/:id" element={<LegacyFlowRedirect />} />
        {/* <Route path="/communications" element={<CommunicationsPage />} /> */}
-       <Route path="/whatsapp" element={<Navigate to="/whatsapp/inbox" replace />} />
-       <Route path="/whatsapp/inbox" element={<WhatsAppInbox />} />
-       <Route path="/whatsapp/templates" element={<WhatsAppTemplatesPage />} />
-       <Route path="/whatsapp/campaigns" element={<WhatsAppCampaignsPage />} />
-       <Route path="/whatsapp/campaigns/:id" element={<WhatsAppCampaignDetailPage />} />
-       <Route path="/whatsapp/chatbot" element={<WhatsAppChatbotPage />} />
-       <Route path="/whatsapp/chatbot/:id" element={<WhatsAppFlowEditorPage />} />
-       <Route path="/whatsapp/responder" element={<WhatsAppResponderPage />} />
-       <Route path="/whatsapp/nurturing" element={<WhatsAppNurturingPage />} />
-       <Route path="/whatsapp/automations" element={<WhatsAppAutomationsPage />} />
-       <Route path="/whatsapp/settings" element={<WhatsAppSettingsPage />} />
+       <Route element={<WhatsAppFeatureRoute />}>
+         <Route path="/whatsapp" element={<Navigate to="/whatsapp/inbox" replace />} />
+         <Route path="/whatsapp/inbox" element={<WhatsAppInbox />} />
+         <Route path="/whatsapp/templates" element={<WhatsAppTemplatesPage />} />
+         <Route path="/whatsapp/campaigns" element={<WhatsAppCampaignsPage />} />
+         <Route path="/whatsapp/campaigns/:id" element={<WhatsAppCampaignDetailPage />} />
+         <Route path="/whatsapp/chatbot" element={<WhatsAppChatbotPage />} />
+         <Route path="/whatsapp/chatbot/:id" element={<WhatsAppFlowEditorPage />} />
+         <Route path="/whatsapp/responder" element={<WhatsAppResponderPage />} />
+         <Route path="/whatsapp/nurturing" element={<WhatsAppNurturingPage />} />
+         <Route path="/whatsapp/automations" element={<WhatsAppAutomationsPage />} />
+         <Route path="/whatsapp/settings" element={<WhatsAppSettingsPage />} />
+       </Route>
        <Route path="/calendar" element={<CalendarPage />} />
        <Route path="/follow-ups" element={<FollowUpsPage />} />
        <Route path="/calls" element={<CallsPage />} />

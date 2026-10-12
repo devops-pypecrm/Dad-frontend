@@ -47,7 +47,8 @@ import {
   Bot,
   FileCheck2,
   Reply,
-  Sprout
+  Sprout,
+  ToggleRight
 } from "lucide-react";
 import { WhatsAppLogo } from "@/components/icons/BrandLogos";
 import Logo from "./Logo";
@@ -267,7 +268,9 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
     navigate('/login');
   };
 
-  const filteredGroups = userIsSuperAdmin ? [] : menuGroups.map(group => ({
+  const whatsAppEnabled = Array.isArray(user?.organisation?.enabledFeatures) && user.organisation.enabledFeatures.includes('whatsapp');
+
+  const filteredGroups = userIsSuperAdmin ? [] : menuGroups.filter(g => g.title !== 'WhatsApp' || whatsAppEnabled).map(group => ({
     ...group,
     items: group.items.filter(item => {
       if (item.title === 'Settings') return canAccessSettings(user);
@@ -340,6 +343,14 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
               )}>
                 <PlayCircle className={cn("h-5 w-5 shrink-0 transition-colors stroke-[1.75]", location.search.includes('tab=training') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>Training Videos</span>}
+              </Link>
+              <Link to="/super-admin?tab=features" className={cn(
+                "group flex items-center gap-3 rounded-[10px] px-4 py-3 text-sm font-medium transition-all duration-200",
+                location.search.includes('tab=features') ? "bg-sidebar-active text-white" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
+              )}>
+                <ToggleRight className={cn("h-5 w-5 shrink-0 transition-colors stroke-[1.75]", location.search.includes('tab=features') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                {!isCollapsed && <span>Feature Settings</span>}
               </Link>
               <Link to="/super-admin/seo" className={cn(
                 "group flex items-center gap-3 rounded-[10px] px-4 py-3 text-sm font-medium transition-all duration-200",

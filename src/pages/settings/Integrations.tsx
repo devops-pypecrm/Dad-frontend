@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getOrganisation } from "@/services/settingsService";
 import { whatsAppAccountService } from "@/services/whatsAppAccountService";
+import { useWhatsAppEnabled } from "@/hooks/useWhatsAppEnabled";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -57,7 +58,8 @@ export default function IntegrationsPage() {
   const integrations = orgData?.integrations || {};
 
   // WhatsApp numbers live in the relational account table (single source of truth for the WhatsApp hub).
-  const { data: waAccounts = [] } = useQuery({ queryKey: ['whatsapp-accounts'], queryFn: whatsAppAccountService.getWhatsAppAccounts });
+  const whatsAppEnabled = useWhatsAppEnabled();
+  const { data: waAccounts = [] } = useQuery({ queryKey: ['whatsapp-accounts'], queryFn: whatsAppAccountService.getWhatsAppAccounts, enabled: whatsAppEnabled });
 
   // Right after connecting, if the connecting Facebook user had more than one ad account,
   // there's no safe default to pick — force the "which ad account" choice immediately instead
@@ -229,9 +231,9 @@ export default function IntegrationsPage() {
     }
   ];
 
-  const filteredIntegrations = INTEGRATION_LIST.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredIntegrations = INTEGRATION_LIST
+    .filter(item => whatsAppEnabled || (item.id !== 'whatsapp' && item.id !== 'gallabox'))
+    .filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   const connectedCount = filteredIntegrations.filter(i => i.connected).length;
 

@@ -1,3 +1,4 @@
+import { FeatureSettings } from '@/components/super-admin/FeatureSettings';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
@@ -224,6 +225,7 @@ export default function SuperAdminDashboard() {
           <TabsTrigger value="plans" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">License Plans</TabsTrigger>
           <TabsTrigger value="landing-page" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">Landing Page</TabsTrigger>
           <TabsTrigger value="training" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">Training</TabsTrigger>
+          <TabsTrigger value="features" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">Feature Settings</TabsTrigger>
           <TabsTrigger value="roles" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">System Roles</TabsTrigger>
           <TabsTrigger value="database" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">Database</TabsTrigger>
           <TabsTrigger value="passwords" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">Passwords</TabsTrigger>
@@ -470,6 +472,10 @@ export default function SuperAdminDashboard() {
 
         <TabsContent value="training">
           <TrainingVideoManagement />
+        </TabsContent>
+
+        <TabsContent value="features">
+          <FeatureSettings />
         </TabsContent>
 
         <TabsContent value="roles">
