@@ -2,17 +2,14 @@ import { useState, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getUserPerformanceDetails } from "@/services/analyticsService";
 import { getBranches } from "@/services/settingsService";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Link } from "react-router-dom";
-import { 
-  Activity, 
-  Phone, 
-  CheckCircle2, 
-  AlertCircle, 
-  TrendingUp, 
-  FileText, 
-  Download, 
+import {
+  Activity,
+  Phone,
+  AlertCircle,
+  Download,
   Calendar,
   Users,
   Building,
@@ -21,10 +18,10 @@ import {
   Target,
   ArrowUpDown,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import PageHeader from "../../components/shared/PageHeader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -45,13 +42,13 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, startOfYear, endOfYear } from "date-fns";
 import { toISTDateString, getISTNow } from "@/lib/dateUtils";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   Cell,
   Legend,
@@ -60,8 +57,7 @@ import {
 } from "recharts";
 import { jsPDF } from "jspdf";
 import { toPng } from "html-to-image";
-
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#64748b', '#22c55e'];
+import { FILTER_CARD_CLASS, FILTER_ICON_CLASS, FILTER_LABEL_CLASS, FILTER_TRIGGER_CLASS } from "@/pages/leads/filterStyles";
 
 export default function UserPerformanceReport() {
   const { formatCurrency } = useCurrency();
@@ -105,7 +101,7 @@ export default function UserPerformanceReport() {
   const filteredPerformanceData = useMemo(() => {
     if (!performanceData) return [];
     let data = [...performanceData];
-    
+
     // Filter by User
     if (selectedUserId !== "all") {
       data = data.filter((u: any) => u.userId === selectedUserId);
@@ -122,7 +118,7 @@ export default function UserPerformanceReport() {
         const getValue = (obj: any, path: string) => {
           return path.split('.').reduce((acc, part) => acc && acc[part], obj);
         };
-        
+
         const aValue = getValue(a, sortConfig.key);
         const bValue = getValue(b, sortConfig.key);
 
@@ -131,7 +127,7 @@ export default function UserPerformanceReport() {
         return 0;
       });
     }
-    
+
     return data;
   }, [performanceData, selectedUserId, sortConfig, exportOverrideUserIds]);
 
@@ -143,7 +139,7 @@ export default function UserPerformanceReport() {
   // Summary Metrics
   const summary = useMemo(() => {
     if (!filteredPerformanceData || filteredPerformanceData.length === 0) return null;
-    
+
     const data = filteredPerformanceData;
     const total = data.length;
     const totalLeads = data.reduce((acc: number, u: any) => acc + u.metrics.totalLeads, 0);
@@ -198,7 +194,6 @@ export default function UserPerformanceReport() {
     setEndDate(format(end, "yyyy-MM-dd"));
   };
 
-  // PDF Generation
   const handleSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'desc';
     if (sortConfig && sortConfig.key === key && sortConfig.direction === 'desc') {
@@ -209,67 +204,67 @@ export default function UserPerformanceReport() {
 
   const SortIcon = ({ columnKey }: { columnKey: string }) => {
     if (!sortConfig || sortConfig.key !== columnKey) return <ArrowUpDown className="ml-1 h-3 w-3 opacity-30 group-hover:opacity-100 transition-opacity" />;
-    return sortConfig.direction === 'asc' ? <ChevronUp className="ml-1 h-3 w-3 text-primary" /> : <ChevronDown className="ml-1 h-3 w-3 text-primary" />;
+    return sortConfig.direction === 'asc' ? <ChevronUp className="ml-1 h-3 w-3 text-[hsl(var(--chart-5))]" /> : <ChevronDown className="ml-1 h-3 w-3 text-[hsl(var(--chart-5))]" />;
   };
 
   const UserPerformanceCard = ({ user }: { user: any }) => (
-    <Card className="border border-border/50 shadow-sm overflow-hidden mb-4 bg-card/50">
-      <CardHeader className="p-4 border-b bg-muted/20">
+    <Card className="border border-border overflow-hidden mb-3 rounded-[10px]">
+      <div className="p-4 border-b bg-muted/20">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 border border-primary/10 shadow-sm">
+            <Avatar className="h-10 w-10 border border-border shadow-sm">
               <AvatarImage src={user.profileImage} />
-              <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">
+              <AvatarFallback className="bg-[hsl(var(--chart-5)/0.1)] text-[hsl(var(--chart-5))] text-xs font-semibold">
                 {user.name.split(' ').map((n: string) => n[0]).join('')}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <span className="font-bold text-sm tracking-tight">{user.name}</span>
-              <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{user.branch}</span>
+              <span className="font-semibold text-sm font-poppins">{user.name}</span>
+              <span className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wide">{user.branch}</span>
             </div>
           </div>
           <div className="flex flex-col items-end">
             <span className={cn(
-              "text-2xl font-black tracking-tighter leading-none",
-              user.metrics.performanceIndex > 80 ? "text-primary" : user.metrics.performanceIndex > 50 ? "text-blue-500" : "text-orange-500"
+              "text-xl font-bold leading-none font-poppins",
+              user.metrics.performanceIndex > 80 ? "text-[hsl(var(--chart-5))]" : user.metrics.performanceIndex > 50 ? "text-blue-500" : "text-orange-500"
             )}>
               {user.metrics.performanceIndex}
             </span>
-            <span className="text-[8px] font-bold text-muted-foreground tracking-widest uppercase">Index Score</span>
+            <span className="text-[9px] font-semibold text-muted-foreground tracking-wide uppercase">Index Score</span>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="p-4 grid grid-cols-2 gap-4">
+      </div>
+      <div className="p-4 grid grid-cols-2 gap-4">
         <div className="space-y-1">
-          <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Revenue</p>
-          <p className="text-sm font-black text-foreground">{formatCurrency(user.metrics.revenue)}</p>
+          <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wide">Revenue</p>
+          <p className="text-sm font-bold text-foreground">{formatCurrency(user.metrics.revenue)}</p>
         </div>
         <div className="space-y-1">
-          <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Leads</p>
-          <p className="text-sm font-black text-foreground">{user.metrics.totalLeads}</p>
+          <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wide">Leads</p>
+          <p className="text-sm font-bold text-foreground">{user.metrics.totalLeads}</p>
         </div>
         <div className="space-y-1">
-          <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Calls</p>
+          <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wide">Calls</p>
           <div className="flex items-baseline gap-1">
-            <p className="text-sm font-black text-blue-600">{user.metrics.callsMade}</p>
+            <p className="text-sm font-bold text-blue-600">{user.metrics.callsMade}</p>
             <span className="text-[10px] text-muted-foreground">interactions</span>
           </div>
         </div>
         <div className="space-y-1">
-          <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Target Match</p>
+          <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wide">Target Match</p>
           <div className="flex items-baseline gap-1">
-            <p className="text-sm font-black text-green-600">{user.metrics.wonDeals}</p>
+            <p className="text-sm font-bold text-green-600">{user.metrics.wonDeals}</p>
             <span className="text-[10px] text-muted-foreground">({user.metrics.conversionRate}%)</span>
           </div>
         </div>
-      </CardContent>
-      <div className="h-1.5 w-full bg-muted overflow-hidden">
-        <div 
+      </div>
+      <div className="h-1 w-full bg-muted overflow-hidden">
+        <div
           className={cn(
             "h-full transition-all duration-500",
-            user.metrics.performanceIndex > 80 ? "bg-primary" : user.metrics.performanceIndex > 50 ? "bg-blue-500" : "bg-orange-500"
-          )} 
-          style={{ width: `${user.metrics.performanceIndex}%` }} 
+            user.metrics.performanceIndex > 80 ? "bg-[hsl(var(--chart-5))]" : user.metrics.performanceIndex > 50 ? "bg-blue-500" : "bg-orange-500"
+          )}
+          style={{ width: `${user.metrics.performanceIndex}%` }}
         />
       </div>
     </Card>
@@ -302,35 +297,35 @@ export default function UserPerformanceReport() {
           padding: '20px'
         }
       });
-      
+
       const pdf = new jsPDF("p", "mm", "a4");
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      
+
       const img = new Image();
       img.src = dataUrl;
       await new Promise((resolve) => { img.onload = resolve; });
-      
+
       const margin = 10;
       const contentWidth = pageWidth - (2 * margin);
       const contentHeight = pageHeight - (2 * margin);
-      
+
       const pxWidth = img.width;
       const pxPageHeight = (img.width * contentHeight) / contentWidth;
-      
+
       let totalHeightLeft = img.height;
       let startY = 0;
       let firstPage = true;
 
       while (totalHeightLeft > 0) {
         if (!firstPage) pdf.addPage();
-        
+
         const canvas = document.createElement('canvas');
         const sliceHeight = Math.min(pxPageHeight, totalHeightLeft);
-        
+
         canvas.width = pxWidth;
         canvas.height = sliceHeight;
-        
+
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, startY, pxWidth, sliceHeight, 0, 0, pxWidth, sliceHeight);
@@ -338,7 +333,7 @@ export default function UserPerformanceReport() {
           const displayHeight = (sliceHeight * contentWidth) / pxWidth;
           pdf.addImage(sliceDataUrl, 'PNG', margin, margin, contentWidth, displayHeight);
         }
-        
+
         startY += sliceHeight;
         totalHeightLeft -= sliceHeight;
         firstPage = false;
@@ -374,242 +369,205 @@ export default function UserPerformanceReport() {
 
   if (isLoading) {
     return (
-      <div className="p-8 space-y-8 max-w-7xl mx-auto">
-        <Skeleton className="h-12 w-1/3" />
-        <div className="grid grid-cols-4 gap-6">
-          {[1,2,3,4].map(i => <Skeleton key={i} className="h-32 rounded-xl" />)}
+      <div className="p-5 space-y-5 max-w-[1600px] mx-auto">
+        <Skeleton className="h-12 w-1/3 rounded-[10px]" />
+        <Skeleton className="h-20 w-full rounded-[10px]" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1,2,3,4].map(i => <Skeleton key={i} className="h-24 rounded-[10px]" />)}
         </div>
-        <Skeleton className="h-[400px] w-full rounded-xl" />
+        <Skeleton className="h-[400px] w-full rounded-[10px]" />
       </div>
     );
   }
 
+  const statTiles = summary ? [
+    { label: 'Performance Index', value: `${summary.avgPerformanceIndex}%`, icon: Award },
+    { label: 'Total Interactions', value: summary.totalCalls, icon: Phone },
+    { label: 'Overall Conversion', value: `${summary.overallConversion}%`, icon: Target },
+    { label: 'Unattended Leads', value: summary.totalUnattended, icon: AlertCircle },
+  ] : [];
+
   return (
-    <div className="p-4 sm:p-8 space-y-8 max-w-[1600px] mx-auto">
-      <PageHeader
-        title="User Total Report"
-        description="Comprehensive individual-wise performance metrics, activity logs, and conversion analysis."
-        actions={
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => refetch()} 
-              disabled={isRefetching}
-              className="bg-background/50 hover:bg-background"
-            >
-              <RefreshCw className={cn("h-4 w-4 mr-2", isRefetching && "animate-spin")} />
-              Refresh
-            </Button>
-            <Button onClick={openExportDialog} disabled={isExporting} className="bg-primary text-primary-foreground shadow-lg shadow-primary/20">
-              <Download className="h-4 w-4 mr-2" />
-              {isExporting ? "Generating..." : "Download PDF"}
-            </Button>
+    <div className="flex flex-col gap-5 p-5 max-w-[1600px] mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="h-12 w-12 rounded-[10px] bg-[hsl(var(--chart-5))]/10 flex items-center justify-center text-[hsl(var(--chart-5))] shrink-0">
+            <Award className="h-6 w-6" />
           </div>
-        }
-      />
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold font-poppins text-foreground tracking-tight">
+              User Total Report
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+              Individual-wise performance metrics, activity logs, and conversion analysis.
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => refetch()}
+            disabled={isRefetching}
+            className="h-9 rounded-[10px] gap-2 text-xs sm:text-sm font-medium"
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", isRefetching && "animate-spin")} />
+            <span className="hidden sm:inline">Refresh</span>
+          </Button>
+          <Button
+            onClick={openExportDialog}
+            disabled={isExporting}
+            className="h-9 rounded-[10px] gap-2 text-xs sm:text-sm font-medium bg-[hsl(var(--chart-5))] hover:bg-[hsl(var(--chart-5)/0.9)] text-white"
+          >
+            {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+            {isExporting ? "Generating..." : "Download PDF"}
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats row - single divided card, matching QuickStatsBar's pattern */}
+      {statTiles.length > 0 && (
+        <div className="rounded-[10px] bg-card border border-border overflow-hidden">
+          <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-border">
+            {statTiles.map((tile) => (
+              <div key={tile.label} className="relative flex flex-col items-center justify-center gap-1 px-3 py-4 overflow-hidden">
+                <span className="absolute top-0 left-0 right-0 h-0.5 bg-[hsl(var(--chart-5))] opacity-70" />
+                <tile.icon className="h-4 w-4 text-muted-foreground mb-0.5" />
+                <span className="text-lg sm:text-xl font-medium font-poppins text-foreground">{tile.value}</span>
+                <span className="text-xs font-poppins text-muted-foreground text-center">{tile.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
-      <Card className="border-none shadow-sm bg-muted/30 backdrop-blur-sm">
-        <CardContent className="p-4 sm:p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-end">
-            <div className="space-y-1.5">
-              <label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-1">Location</label>
-              <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
-                <SelectTrigger className="h-10 bg-background border-border/50 rounded-xl">
-                  <div className="flex items-center gap-2">
-                    <Building className="h-4 w-4 text-primary/60" />
-                    <SelectValue placeholder="All Branches" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="all">All Organizations</SelectItem>
-                  {(branches || []).map((b: any) => (
-                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-1">Representative</label>
-              <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                <SelectTrigger className="h-10 bg-background border-border/50 rounded-xl">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-primary/60" />
-                    <SelectValue placeholder="All Users" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="all">All Representatives</SelectItem>
-                  {(userOptions || []).map((u: any) => (
-                    <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-1">Period</label>
-              <div className="flex bg-background rounded-xl border border-border/50 h-10 overflow-x-auto">
-                {['today', 'week', 'month', 'year'].map((period) => (
-                  <Button 
-                    key={period}
-                    variant={activePeriod === period ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setPeriod(period)}
-                    className={cn(
-                      "min-w-16 flex-1 capitalize text-xs h-full rounded-lg px-2",
-                      activePeriod === period ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"
-                    )}
-                  >
-                    {period}
-                  </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <div className={FILTER_CARD_CLASS}>
+          <Building className={FILTER_ICON_CLASS} />
+          <div>
+            <span className={FILTER_LABEL_CLASS}>Location</span>
+            <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+              <SelectTrigger className={FILTER_TRIGGER_CLASS}><SelectValue placeholder="All Branches" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Organizations</SelectItem>
+                {(branches || []).map((b: any) => (
+                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                 ))}
-              </div>
-            </div>
-
-            <div className="space-y-1.5 lg:col-span-2">
-              <label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-1">Frequency Window</label>
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    type="date" 
-                    value={startDate} 
-                    onChange={(e) => {setStartDate(e.target.value); setActivePeriod('custom');}} 
-                    className="h-10 pl-10 bg-background border-border/50 rounded-xl" 
-                  />
-                </div>
-                <span className="text-muted-foreground font-medium text-sm">to</span>
-                <div className="relative flex-1">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    type="date" 
-                    value={endDate} 
-                    onChange={(e) => {setEndDate(e.target.value); setActivePeriod('custom');}} 
-                    className="h-10 pl-10 bg-background border-border/50 rounded-xl" 
-                  />
-                </div>
-              </div>
-            </div>
+              </SelectContent>
+            </Select>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Visual Analytics Container */}
-      <div ref={reportRef} className="space-y-8 bg-background rounded-2xl">
-        {/* Scorecards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="h-full">
-            <Card className="h-full border-none shadow-sm bg-gradient-to-br from-primary/10 via-background to-background ring-1 ring-primary/5 transition-all hover:scale-[1.02] active:scale-95 duration-200">
-              <CardHeader className="pb-2 h-full flex flex-col justify-between">
-                <CardDescription className="flex items-center gap-2 text-primary font-bold">
-                  <Award className="h-4 w-4" /> TEAM PERFORMANCE INDEX
-                </CardDescription>
-                <CardTitle className="text-4xl font-black tracking-tighter text-primary">
-                  {summary?.avgPerformanceIndex}
-                  <span className="text-sm font-normal text-muted-foreground ml-2 tracking-normal">% SCORE</span>
-                </CardTitle>
-              </CardHeader>
-            </Card>
-          </div>
-
-          <Link to="/communications" className="block h-full">
-            <Card className="h-full border-none shadow-sm bg-gradient-to-br from-blue-50/50 via-background to-background ring-1 ring-blue-500/5 dark:from-blue-900/10 transition-all hover:scale-[1.02] active:scale-95 duration-200 cursor-pointer">
-              <CardHeader className="pb-2 h-full flex flex-col justify-between">
-                <CardDescription className="flex items-center gap-2 text-blue-600 font-bold">
-                  <Phone className="h-4 w-4" /> TOTAL INTERACTIONS
-                </CardDescription>
-                <CardTitle className="text-4xl font-black tracking-tighter">
-                  {summary?.totalCalls}
-                  <span className="text-sm font-normal text-muted-foreground ml-2 tracking-normal">CALLS</span>
-                </CardTitle>
-              </CardHeader>
-            </Card>
-          </Link>
-
-          <Link to="/reports/sales-book" className="block h-full">
-            <Card className="h-full border-none shadow-sm bg-gradient-to-br from-green-50/50 via-background to-background ring-1 ring-green-500/5 dark:from-green-900/10 transition-all hover:scale-[1.02] active:scale-95 duration-200 cursor-pointer">
-              <CardHeader className="pb-2 h-full flex flex-col justify-between">
-                <CardDescription className="flex items-center gap-2 text-green-600 font-bold">
-                  <Target className="h-4 w-4" /> OVERALL CONVERSION
-                </CardDescription>
-                <CardTitle className="text-4xl font-black tracking-tighter">
-                  {summary?.overallConversion}%
-                  <span className="text-sm font-normal text-muted-foreground ml-2 tracking-normal">RATE</span>
-                </CardTitle>
-              </CardHeader>
-            </Card>
-          </Link>
-
-          <Link to="/leads?view=status-new" className="block h-full">
-            <Card className="h-full border-none shadow-sm bg-gradient-to-br from-red-50/50 via-background to-background ring-1 ring-red-500/5 dark:from-red-900/10 transition-all hover:scale-[1.02] active:scale-95 duration-200 cursor-pointer">
-              <CardHeader className="pb-2 h-full flex flex-col justify-between">
-                <CardDescription className="flex items-center gap-2 text-red-600 font-bold">
-                  <AlertCircle className="h-4 w-4" /> UNATTENDED LEADS
-                </CardDescription>
-                <CardTitle className="text-4xl font-black tracking-tighter text-red-600">
-                  {summary?.totalUnattended}
-                  <span className="text-sm font-normal text-muted-foreground ml-2 tracking-normal font-medium uppercase">NEEDS ACTION</span>
-                </CardTitle>
-              </CardHeader>
-            </Card>
-          </Link>
         </div>
 
+        <div className={FILTER_CARD_CLASS}>
+          <Users className={FILTER_ICON_CLASS} />
+          <div>
+            <span className={FILTER_LABEL_CLASS}>Representative</span>
+            <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+              <SelectTrigger className={FILTER_TRIGGER_CLASS}><SelectValue placeholder="All Users" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Representatives</SelectItem>
+                {(userOptions || []).map((u: any) => (
+                  <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="flex bg-card rounded-[10px] border border-border h-[52px] overflow-x-auto">
+          {['today', 'week', 'month', 'year'].map((period) => (
+            <Button
+              key={period}
+              variant="ghost"
+              size="sm"
+              onClick={() => setPeriod(period)}
+              className={cn(
+                "min-w-16 flex-1 capitalize text-xs h-full rounded-none px-3 font-medium",
+                activePeriod === period ? "bg-[hsl(var(--chart-5))] text-white" : "text-muted-foreground hover:bg-muted"
+              )}
+            >
+              {period}
+            </Button>
+          ))}
+        </div>
+
+        <div className="relative">
+          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="date"
+            value={startDate}
+            onChange={(e) => {setStartDate(e.target.value); setActivePeriod('custom');}}
+            className="h-[52px] pl-10 w-[150px] bg-card border-border rounded-[10px]"
+          />
+        </div>
+        <span className="text-muted-foreground font-medium text-sm">to</span>
+        <div className="relative">
+          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="date"
+            value={endDate}
+            onChange={(e) => {setEndDate(e.target.value); setActivePeriod('custom');}}
+            className="h-[52px] pl-10 w-[150px] bg-card border-border rounded-[10px]"
+          />
+        </div>
+      </div>
+
+      {/* Visual Analytics Container */}
+      <div ref={reportRef} className="space-y-5 bg-background rounded-[20px]">
         {/* Charts Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {/* Activity Comparison Chart */}
-          <Card className="border-none shadow-sm ring-1 ring-border/50 overflow-hidden">
-            <CardHeader className="border-b bg-muted/10">
-              <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                <Activity className="h-4 w-4 text-primary" /> Activity vs Conversion Metrics
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 min-h-0 min-w-0">
-              <div className="h-[300px] sm:h-[400px] w-full min-h-0 min-w-0">
+          <Card className="border border-border rounded-[10px] md:rounded-[20px] overflow-hidden">
+            <div className="border-b border-border px-4 py-3">
+              <h3 className="text-sm font-semibold font-poppins flex items-center gap-2">
+                <Activity className="h-4 w-4 text-[hsl(var(--chart-5))]" /> Activity vs Conversion Metrics
+              </h3>
+            </div>
+            <CardContent className="p-5 min-h-0 min-w-0">
+              <div className="h-[300px] sm:h-[380px] w-full min-h-0 min-w-0">
                 <ResponsiveContainer minWidth={1} minHeight={1} width="100%" height="100%" debounce={100}>
                   <ComposedChart data={filteredPerformanceData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                     <XAxis dataKey="name" tick={{fontSize: 10, fontWeight: 600}} axisLine={false} tickLine={false} />
                     <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{fontSize: 10}} />
                     <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{fontSize: 10}} />
-                    <Tooltip 
-                      contentStyle={{borderRadius: '12px', border: 'none'}}
+                    <Tooltip
+                      contentStyle={{borderRadius: '10px', border: 'none'}}
                       formatter={(value: any, name: string | any) => [name === 'revenue' ? formatCurrency(value) : value, (name || '').toUpperCase()]}
                     />
                     <Legend verticalAlign="top" height={36}/>
                     <Bar yAxisId="left" dataKey="metrics.callsMade" name="calls" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20} />
-                    <Bar yAxisId="left" dataKey="metrics.totalLeads" name="leads" fill="#64748b" radius={[4, 4, 0, 0]} barSize={20} />
+                    <Bar yAxisId="left" dataKey="metrics.totalLeads" name="leads" fill="hsl(var(--chart-5))" radius={[4, 4, 0, 0]} barSize={20} />
                     <Line yAxisId="right" type="monotone" dataKey="metrics.revenue" name="revenue" stroke="#f59e0b" strokeWidth={3} dot={{r: 4, fill: '#f59e0b'}} />
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
- 
+
           {/* Performance Ranking */}
-          <Card className="border-none shadow-sm ring-1 ring-border/50 overflow-hidden">
-            <CardHeader className="border-b bg-muted/10">
-              <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+          <Card className="border border-border rounded-[10px] md:rounded-[20px] overflow-hidden">
+            <div className="border-b border-border px-4 py-3">
+              <h3 className="text-sm font-semibold font-poppins flex items-center gap-2">
                 <Award className="h-4 w-4 text-yellow-500" /> Leaderboard Ranking
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 min-h-0 min-w-0">
-              <div className="h-[300px] sm:h-[400px] w-full min-h-0 min-w-0">
+              </h3>
+            </div>
+            <CardContent className="p-5 min-h-0 min-w-0">
+              <div className="h-[300px] sm:h-[380px] w-full min-h-0 min-w-0">
                 <ResponsiveContainer minWidth={1} minHeight={1} width="100%" height="100%" debounce={100}>
                   <BarChart data={filteredPerformanceData} layout="vertical" margin={{ left: 40, right: 30 }}>
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
                     <XAxis type="number" domain={[0, 100]} hide />
-                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fontSize: 12, fontWeight: 700}} width={100} />
-                    <Tooltip 
+                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fontSize: 12, fontWeight: 600}} width={100} />
+                    <Tooltip
                       cursor={{fill: 'transparent'}}
-                      contentStyle={{borderRadius: '12px', border: 'none'}}
+                      contentStyle={{borderRadius: '10px', border: 'none'}}
                       formatter={(v) => [`${v}%`, 'Performance Index']}
                     />
                     <Bar dataKey="metrics.performanceIndex" radius={[0, 10, 10, 0]} barSize={25}>
                       {filteredPerformanceData?.map((entry: any, index: number) => (
-                        <Cell key={`cell-${index}`} fill={index === 0 ? '#fbbf24' : index === 1 ? '#94a3b8' : index === 2 ? '#cd7f32' : '#3b82f6'} />
+                        <Cell key={`cell-${index}`} fill={index === 0 ? '#fbbf24' : index === 1 ? '#94a3b8' : index === 2 ? '#cd7f32' : 'hsl(var(--chart-5))'} />
                       ))}
                     </Bar>
                   </BarChart>
@@ -618,99 +576,140 @@ export default function UserPerformanceReport() {
             </CardContent>
           </Card>
         </div>
- 
+
+        {/* Quick-link cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <Link to="/communications" className="block">
+            <Card className="border border-border rounded-[10px] hover:bg-muted/30 transition-colors">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="h-9 w-9 rounded-[10px] bg-blue-500/10 flex items-center justify-center text-blue-600 shrink-0">
+                  <Phone className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground font-poppins">View Communications</p>
+                  <p className="text-sm font-semibold text-foreground">{summary?.totalCalls} calls logged</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link to="/reports/sales-book" className="block">
+            <Card className="border border-border rounded-[10px] hover:bg-muted/30 transition-colors">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="h-9 w-9 rounded-[10px] bg-[hsl(var(--chart-5)/0.1)] flex items-center justify-center text-[hsl(var(--chart-5))] shrink-0">
+                  <Target className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground font-poppins">View Sales Book</p>
+                  <p className="text-sm font-semibold text-foreground">{summary?.overallConversion}% conversion</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link to="/leads?view=status-new" className="block">
+            <Card className="border border-border rounded-[10px] hover:bg-muted/30 transition-colors">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="h-9 w-9 rounded-[10px] bg-destructive/10 flex items-center justify-center text-destructive shrink-0">
+                  <AlertCircle className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground font-poppins">Unattended Leads</p>
+                  <p className="text-sm font-semibold text-foreground">{summary?.totalUnattended} need action</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+
         {/* Detailed Data Table */}
-        <Card className="border-none shadow-sm ring-1 ring-border/50 overflow-hidden">
-          <CardHeader className="border-b bg-muted/10 flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-sm font-black uppercase tracking-widest">Individual Performance Breakdown</CardTitle>
-              <CardDescription className="text-xs">Detailed data for all {filteredPerformanceData?.length} sales identifiers.</CardDescription>
-            </div>
-          </CardHeader>
-           <CardContent className="p-0 sm:p-0">
+        <Card className="border border-border rounded-[10px] md:rounded-[20px] overflow-hidden">
+          <div className="border-b border-border px-4 py-3">
+            <h3 className="text-sm font-semibold font-poppins">Individual Performance Breakdown</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Detailed data for all {filteredPerformanceData?.length} sales identifiers.</p>
+          </div>
+          <CardContent className="p-0">
             <div className="hidden sm:block overflow-x-auto">
               <Table>
                 <TableHeader className="bg-muted/50">
-                  <TableRow className="hover:bg-transparent border-b-border/50">
-                    <TableHead onClick={() => handleSort('name')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest">
+                  <TableRow className="hover:bg-transparent border-b-border">
+                    <TableHead onClick={() => handleSort('name')} className="cursor-pointer group font-semibold text-[10px] uppercase tracking-wide">
                       <div className="flex items-center">Representative <SortIcon columnKey="name" /></div>
                     </TableHead>
-                    <TableHead onClick={() => handleSort('branch')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-center">
+                    <TableHead onClick={() => handleSort('branch')} className="cursor-pointer group font-semibold text-[10px] uppercase tracking-wide text-center">
                       <div className="flex items-center justify-center">Branch <SortIcon columnKey="branch" /></div>
                     </TableHead>
-                    <TableHead onClick={() => handleSort('metrics.totalLeads')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-center">
+                    <TableHead onClick={() => handleSort('metrics.totalLeads')} className="cursor-pointer group font-semibold text-[10px] uppercase tracking-wide text-center">
                       <div className="flex items-center justify-center">Owned Leads <SortIcon columnKey="metrics.totalLeads" /></div>
                     </TableHead>
-                    <TableHead onClick={() => handleSort('metrics.callsMade')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-center">
+                    <TableHead onClick={() => handleSort('metrics.callsMade')} className="cursor-pointer group font-semibold text-[10px] uppercase tracking-wide text-center">
                       <div className="flex items-center justify-center">Calls <SortIcon columnKey="metrics.callsMade" /></div>
                     </TableHead>
-                    <TableHead onClick={() => handleSort('metrics.totalTalkTimeSeconds')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-center">
+                    <TableHead onClick={() => handleSort('metrics.totalTalkTimeSeconds')} className="cursor-pointer group font-semibold text-[10px] uppercase tracking-wide text-center">
                       <div className="flex items-center justify-center">Talk Time <SortIcon columnKey="metrics.totalTalkTimeSeconds" /></div>
                     </TableHead>
-                    <TableHead onClick={() => handleSort('metrics.statusChanges')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-center">
+                    <TableHead onClick={() => handleSort('metrics.statusChanges')} className="cursor-pointer group font-semibold text-[10px] uppercase tracking-wide text-center">
                       <div className="flex items-center justify-center">Status Updates <SortIcon columnKey="metrics.statusChanges" /></div>
                     </TableHead>
-                    <TableHead onClick={() => handleSort('metrics.unattendedLeads')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-center">
+                    <TableHead onClick={() => handleSort('metrics.unattendedLeads')} className="cursor-pointer group font-semibold text-[10px] uppercase tracking-wide text-center">
                       <div className="flex items-center justify-center">Unattended <SortIcon columnKey="metrics.unattendedLeads" /></div>
                     </TableHead>
-                    <TableHead onClick={() => handleSort('metrics.wonDeals')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-center">
+                    <TableHead onClick={() => handleSort('metrics.wonDeals')} className="cursor-pointer group font-semibold text-[10px] uppercase tracking-wide text-center">
                       <div className="flex items-center justify-center">Conversions <SortIcon columnKey="metrics.wonDeals" /></div>
                     </TableHead>
-                    <TableHead onClick={() => handleSort('metrics.revenue')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-right">
+                    <TableHead onClick={() => handleSort('metrics.revenue')} className="cursor-pointer group font-semibold text-[10px] uppercase tracking-wide text-right">
                       <div className="flex items-center justify-end">Revenue <SortIcon columnKey="metrics.revenue" /></div>
                     </TableHead>
-                    <TableHead onClick={() => handleSort('metrics.performanceIndex')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-right">
-                      <div className="flex items-center justify-end">Index SCORE <SortIcon columnKey="metrics.performanceIndex" /></div>
+                    <TableHead onClick={() => handleSort('metrics.performanceIndex')} className="cursor-pointer group font-semibold text-[10px] uppercase tracking-wide text-right">
+                      <div className="flex items-center justify-end">Index Score <SortIcon columnKey="metrics.performanceIndex" /></div>
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredPerformanceData?.map((user: any) => (
-                    <TableRow key={user.userId} className="hover:bg-muted/30 transition-colors border-b-border/50">
+                    <TableRow key={user.userId} className="hover:bg-muted/30 transition-colors border-b-border">
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8 border border-border shadow-sm">
                             <AvatarImage src={user.profileImage} />
-                            <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-bold">
+                            <AvatarFallback className="bg-[hsl(var(--chart-5)/0.1)] text-[hsl(var(--chart-5))] text-[10px] font-semibold">
                               {user.name.split(' ').map((n: string) => n[0]).join('')}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex flex-col">
-                            <span className="font-bold text-sm tracking-tight">{user.name}</span>
+                            <span className="font-semibold text-sm font-poppins">{user.name}</span>
                             <span className="text-[10px] text-muted-foreground uppercase font-medium">{user.role}</span>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
-                        <div className="text-[10px] font-bold uppercase tracking-tighter bg-muted/50 px-2 py-0.5 rounded border border-border/50">
+                        <div className="text-[10px] font-semibold uppercase tracking-tight bg-muted/50 px-2 py-0.5 rounded border border-border inline-block">
                           {user.branch}
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className="font-mono text-sm font-bold">{user.metrics.totalLeads}</span>
+                        <span className="font-mono text-sm font-semibold">{user.metrics.totalLeads}</span>
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex flex-col items-center">
-                          <span className="font-bold text-sm text-blue-600">{user.metrics.callsMade}</span>
-                          <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Calls</span>
+                          <span className="font-semibold text-sm text-blue-600">{user.metrics.callsMade}</span>
+                          <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">Calls</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex flex-col items-center">
-                          <span className="font-bold text-sm text-primary">{Math.floor(user.metrics.totalTalkTimeSeconds / 60)}m {user.metrics.totalTalkTimeSeconds % 60}s</span>
-                          <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">Talk Time</span>
+                          <span className="font-semibold text-sm text-[hsl(var(--chart-5))]">{Math.floor(user.metrics.totalTalkTimeSeconds / 60)}m {user.metrics.totalTalkTimeSeconds % 60}s</span>
+                          <span className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wide">Talk Time</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className="text-xs font-semibold px-2 py-0.5 bg-muted rounded-full">
+                        <span className="text-xs font-medium px-2 py-0.5 bg-muted rounded-full">
                           {user.metrics.statusChanges}
                         </span>
                       </TableCell>
                       <TableCell className="text-center">
                         <div
                           className={cn(
-                            "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold text-white",
-                            user.metrics.unattendedLeads > 5 ? "bg-red-500" : user.metrics.unattendedLeads > 0 ? "bg-orange-500" : "bg-green-500"
+                            "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium text-white",
+                            user.metrics.unattendedLeads > 5 ? "bg-destructive" : user.metrics.unattendedLeads > 0 ? "bg-orange-500" : "bg-[hsl(var(--chart-5))]"
                           )}
                         >
                           {user.metrics.unattendedLeads}
@@ -718,23 +717,23 @@ export default function UserPerformanceReport() {
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex flex-col items-center">
-                          <span className="font-bold text-sm text-green-600">{user.metrics.wonDeals}</span>
-                          <span className="text-[9px] text-muted-foreground font-black tracking-tighter">{user.metrics.conversionRate}%</span>
+                          <span className="font-semibold text-sm text-green-600">{user.metrics.wonDeals}</span>
+                          <span className="text-[9px] text-muted-foreground font-semibold">{user.metrics.conversionRate}%</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className="font-bold text-sm">{formatCurrency(user.metrics.revenue)}</span>
+                        <span className="font-semibold text-sm">{formatCurrency(user.metrics.revenue)}</span>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="inline-flex flex-col items-end">
                           <span className={cn(
-                            "text-lg font-black tracking-tighter",
-                            user.metrics.performanceIndex > 80 ? "text-primary" : user.metrics.performanceIndex > 50 ? "text-blue-500" : "text-orange-500"
+                            "text-base font-bold font-poppins",
+                            user.metrics.performanceIndex > 80 ? "text-[hsl(var(--chart-5))]" : user.metrics.performanceIndex > 50 ? "text-blue-500" : "text-orange-500"
                           )}>
                             {user.metrics.performanceIndex}
                           </span>
-                          <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden mt-1">
-                            <div className="h-full bg-primary" style={{ width: `${user.metrics.performanceIndex}%` }} />
+                          <div className="w-16 h-1 bg-muted rounded-full overflow-hidden mt-1">
+                            <div className="h-full bg-[hsl(var(--chart-5))]" style={{ width: `${user.metrics.performanceIndex}%` }} />
                           </div>
                         </div>
                       </TableCell>
@@ -745,12 +744,12 @@ export default function UserPerformanceReport() {
             </div>
 
             {/* Mobile Card View */}
-            <div className="block sm:hidden p-4 space-y-4">
+            <div className="block sm:hidden p-4 space-y-3">
               {filteredPerformanceData?.map((user: any) => (
                 <UserPerformanceCard key={user.userId} user={user} />
               ))}
             </div>
-            
+
             {/* Empty State */}
             {filteredPerformanceData?.length === 0 && (
               <div className="p-12 text-center text-muted-foreground">
@@ -764,9 +763,9 @@ export default function UserPerformanceReport() {
 
       {/* Export scope dialog */}
       <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md rounded-[20px]">
           <DialogHeader>
-            <DialogTitle>Export User Total Report</DialogTitle>
+            <DialogTitle className="font-poppins">Export User Total Report</DialogTitle>
             <DialogDescription>
               Choose whether to export every representative currently shown, or just a specific selection.
             </DialogDescription>
@@ -784,7 +783,7 @@ export default function UserPerformanceReport() {
           </RadioGroup>
 
           {exportScope === 'custom' && (
-            <div className="border border-border rounded-xl max-h-64 overflow-y-auto divide-y divide-border">
+            <div className="border border-border rounded-[10px] max-h-64 overflow-y-auto divide-y divide-border">
               {userOptions.length === 0 ? (
                 <p className="p-4 text-sm text-muted-foreground text-center">No users available.</p>
               ) : (
@@ -807,8 +806,12 @@ export default function UserPerformanceReport() {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setExportDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleExportConfirm} disabled={exportScope === 'custom' && exportUserIds.length === 0}>
+            <Button variant="outline" onClick={() => setExportDialogOpen(false)} className="rounded-[10px]">Cancel</Button>
+            <Button
+              onClick={handleExportConfirm}
+              disabled={exportScope === 'custom' && exportUserIds.length === 0}
+              className="rounded-[10px] bg-[hsl(var(--chart-5))] hover:bg-[hsl(var(--chart-5)/0.9)] text-white"
+            >
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
