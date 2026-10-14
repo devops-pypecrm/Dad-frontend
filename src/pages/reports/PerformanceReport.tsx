@@ -30,6 +30,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, startOfYear, endOfYear } from "date-fns";
@@ -65,6 +76,16 @@ export default function UserPerformanceReport() {
   const [activePeriod, setActivePeriod] = useState<string>("today");
   const [sortConfig, setSortConfig] = useState<{key: string, direction: 'asc' | 'desc'} | null>({ key: 'metrics.performanceIndex', direction: 'desc' });
 
+  // Export scope - separate from the on-screen "Representative" filter above, so picking a
+  // custom export selection doesn't disturb what's currently shown on the page.
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportScope, setExportScope] = useState<'all' | 'custom'>('all');
+  const [exportUserIds, setExportUserIds] = useState<string[]>([]);
+  // Non-null only while a custom-scoped PDF capture is actually running - temporarily narrows
+  // filteredPerformanceData to just the chosen users so the snapshot reflects the selection,
+  // then gets cleared back to null so the live page view is unaffected afterward.
+  const [exportOverrideUserIds, setExportOverrideUserIds] = useState<string[] | null>(null);
+
   // Fetch Base Data
   const { data: branches } = useQuery({
     queryKey: ['branches'],
@@ -90,6 +111,11 @@ export default function UserPerformanceReport() {
       data = data.filter((u: any) => u.userId === selectedUserId);
     }
 
+    // Export-time override - only active during a custom-scoped PDF capture (see downloadPDF)
+    if (exportOverrideUserIds) {
+      data = data.filter((u: any) => exportOverrideUserIds.includes(u.userId));
+    }
+
     // Apply Sorting
     if (sortConfig) {
       data.sort((a, b) => {
@@ -107,7 +133,7 @@ export default function UserPerformanceReport() {
     }
     
     return data;
-  }, [performanceData, selectedUserId, sortConfig]);
+  }, [performanceData, selectedUserId, sortConfig, exportOverrideUserIds]);
 
   const userOptions = useMemo(() => {
     if (!performanceData) return [];
@@ -249,15 +275,25 @@ export default function UserPerformanceReport() {
     </Card>
   );
 
-  const downloadPDF = async () => {
+  const downloadPDF = async (scope: 'all' | 'custom', userIds: string[] = []) => {
     if (!reportRef.current) return;
+    if (scope === 'custom' && userIds.length === 0) {
+      toast.error("Select at least one user to export");
+      return;
+    }
+
     setIsExporting(true);
     toast.info("Preparing PDF report...");
-    
+
+    if (scope === 'custom') {
+      setExportOverrideUserIds(userIds);
+    }
+
     try {
-      // Give time for layout adjustment
+      // Give time for layout to re-render with the export override applied (and the
+      // dialog's own closing animation to finish) before snapshotting the DOM.
       await new Promise(r => setTimeout(r, 500));
-      
+
       const dataUrl = await toPng(reportRef.current, {
         cacheBust: true,
         backgroundColor: '#ffffff',
@@ -308,14 +344,32 @@ export default function UserPerformanceReport() {
         firstPage = false;
       }
 
-      pdf.save(`User_Total_Report_${toISTDateString()}.pdf`);
+      pdf.save(`User_Total_Report_${scope === 'custom' ? 'Custom_' : ''}${toISTDateString()}.pdf`);
       toast.success("PDF report downloaded successfully!");
     } catch (error) {
       console.error("PDF generation error:", error);
       toast.error("Failed to generate PDF");
     } finally {
       setIsExporting(false);
+      setExportOverrideUserIds(null);
     }
+  };
+
+  const openExportDialog = () => {
+    setExportScope('all');
+    setExportUserIds([]);
+    setExportDialogOpen(true);
+  };
+
+  const toggleExportUser = (userId: string) => {
+    setExportUserIds((prev) =>
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+    );
+  };
+
+  const handleExportConfirm = () => {
+    setExportDialogOpen(false);
+    downloadPDF(exportScope, exportUserIds);
   };
 
   if (isLoading) {
@@ -346,7 +400,7 @@ export default function UserPerformanceReport() {
               <RefreshCw className={cn("h-4 w-4 mr-2", isRefetching && "animate-spin")} />
               Refresh
             </Button>
-            <Button onClick={downloadPDF} disabled={isExporting} className="bg-primary text-primary-foreground shadow-lg shadow-primary/20">
+            <Button onClick={openExportDialog} disabled={isExporting} className="bg-primary text-primary-foreground shadow-lg shadow-primary/20">
               <Download className="h-4 w-4 mr-2" />
               {isExporting ? "Generating..." : "Download PDF"}
             </Button>
@@ -707,6 +761,60 @@ export default function UserPerformanceReport() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Export scope dialog */}
+      <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Export User Total Report</DialogTitle>
+            <DialogDescription>
+              Choose whether to export every representative currently shown, or just a specific selection.
+            </DialogDescription>
+          </DialogHeader>
+
+          <RadioGroup value={exportScope} onValueChange={(v) => setExportScope(v as 'all' | 'custom')} className="gap-3">
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="all" id="export-all" />
+              <Label htmlFor="export-all" className="font-normal">All users ({filteredPerformanceData?.length || 0})</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="custom" id="export-custom" />
+              <Label htmlFor="export-custom" className="font-normal">Custom selection</Label>
+            </div>
+          </RadioGroup>
+
+          {exportScope === 'custom' && (
+            <div className="border border-border rounded-xl max-h-64 overflow-y-auto divide-y divide-border">
+              {userOptions.length === 0 ? (
+                <p className="p-4 text-sm text-muted-foreground text-center">No users available.</p>
+              ) : (
+                userOptions.map((u: any) => (
+                  <label
+                    key={u.id}
+                    htmlFor={`export-user-${u.id}`}
+                    className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-muted/50"
+                  >
+                    <Checkbox
+                      id={`export-user-${u.id}`}
+                      checked={exportUserIds.includes(u.id)}
+                      onCheckedChange={() => toggleExportUser(u.id)}
+                    />
+                    <span className="text-sm font-medium">{u.name}</span>
+                  </label>
+                ))
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setExportDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleExportConfirm} disabled={exportScope === 'custom' && exportUserIds.length === 0}>
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
