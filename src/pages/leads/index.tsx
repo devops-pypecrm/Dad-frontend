@@ -95,6 +95,16 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Calendar as CalendarIcon } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Checkbox } from "@/components/ui/checkbox"
 
 // --- Helper Components & Logiccc ---
 
@@ -386,6 +396,23 @@ export default function LeadsPage() {
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const [isBulkFollowUpDialogOpen, setIsBulkFollowUpDialogOpen] = useState(false);
   const [isBulkEmailDialogOpen, setIsBulkEmailDialogOpen] = useState(false);
+
+  // Export scope dialog - "All" (current filters, client-side), "Users", or
+  // "Campaign". The latter two fetch their own fresh set of leads from the
+  // server (not just whatever's currently loaded on screen) so the export
+  // isn't limited to the first 1000 rows already in memory.
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportScope, setExportScope] = useState<'all' | 'users' | 'campaign'>('all');
+  const [exportUserIds, setExportUserIds] = useState<string[]>([]);
+  const [exportCampaignIds, setExportCampaignIds] = useState<string[]>([]);
+  const [exportUserSearch, setExportUserSearch] = useState('');
+  const [exportCampaignSearch, setExportCampaignSearch] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Searchable "Assigned To" filter dropdown (the plain Select had no way to
+  // search a long user list).
+  const [ownerFilterOpen, setOwnerFilterOpen] = useState(false);
+  const [ownerSearch, setOwnerSearch] = useState('');
 
   const pageSize = parseInt(searchParams.get('pageSize') || '50', 10);
   const setPageSize = (val: number | ((prev: number) => number)) => {
@@ -856,10 +883,9 @@ export default function LeadsPage() {
     updateSearchParams({ campaignId: campaignId === 'all' ? undefined : campaignId });
   };
 
-  // Excel download function
-  const handleExcelDownload = () => {
-    const dataToExport = sortedDisplayData as Lead[];
-
+  // Excel download function - shared by every export path (the "All" scope
+  // below, and both the Users/Campaign scoped exports further down).
+  const exportLeadsToExcel = (dataToExport: Lead[], fileNameSuffix: string) => {
     const excelData = dataToExport.map((lead: Lead) => ({
       'First Name': lead.firstName || '',
       'Last Name': lead.lastName || '',
@@ -888,8 +914,85 @@ export default function LeadsPage() {
     }));
     worksheet['!cols'] = colWidths;
 
-    const fileName = `leads_${currentView}_${currentSort}_${toISTDateString()}.xlsx`;
+    const fileName = `leads_${fileNameSuffix}_${toISTDateString()}.xlsx`;
     XLSX.writeFile(workbook, fileName);
+  };
+
+  const handleExcelDownload = () => {
+    exportLeadsToExcel(sortedDisplayData as Lead[], `${currentView}_${currentSort}`);
+  };
+
+  const openExportDialog = () => {
+    setExportScope('all');
+    setExportUserIds([]);
+    setExportCampaignIds([]);
+    setExportUserSearch('');
+    setExportCampaignSearch('');
+    setExportDialogOpen(true);
+  };
+
+  const toggleExportUser = (id: string) => {
+    setExportUserIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const toggleExportCampaign = (id: string) => {
+    setExportCampaignIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const exportUserOptions = useMemo(() => {
+    const term = exportUserSearch.trim().toLowerCase();
+    if (!term) return users;
+    return users.filter((u: any) => `${u.firstName} ${u.lastName || ''}`.toLowerCase().includes(term));
+  }, [users, exportUserSearch]);
+
+  const exportCampaignOptions = useMemo(() => {
+    const term = exportCampaignSearch.trim().toLowerCase();
+    if (!term) return activeCampaigns;
+    return activeCampaigns.filter((c) => c.name.toLowerCase().includes(term));
+  }, [activeCampaigns, exportCampaignSearch]);
+
+  const ownerFilterUsers = useMemo(() => {
+    const term = ownerSearch.trim().toLowerCase();
+    return users
+      .filter((user: any) => currentBranch === 'all' || user.branchId === currentBranch)
+      .filter((user: any) => !term || `${user.firstName} ${user.lastName || ''}`.toLowerCase().includes(term));
+  }, [users, currentBranch, ownerSearch]);
+
+  // Users/Campaign scopes fetch their own fresh set of matching leads from
+  // the server rather than reusing sortedDisplayData, since that's capped at
+  // the first 1000 rows of whatever the page filters currently show - a
+  // user/campaign chosen in this dialog could own far more leads than that.
+  const handleExportConfirm = async () => {
+    if (exportScope === 'all') {
+      handleExcelDownload();
+      setExportDialogOpen(false);
+      return;
+    }
+
+    if (exportScope === 'users' && exportUserIds.length === 0) return;
+    if (exportScope === 'campaign' && exportCampaignIds.length === 0) return;
+
+    setIsExporting(true);
+    try {
+      const result = await getLeads({
+        pageSize: 5000,
+        assignedTo: exportScope === 'users' ? exportUserIds.join(',') : undefined,
+        campaignId: exportScope === 'campaign' ? exportCampaignIds.join(',') : undefined,
+      });
+      const scopedLeads = ((result?.leads || []) as Lead[]).filter((l) => l && typeof l === 'object');
+
+      if (scopedLeads.length === 0) {
+        toast.error('No leads found for the selected scope.');
+        return;
+      }
+
+      exportLeadsToExcel(scopedLeads, exportScope === 'users' ? 'by-users' : 'by-campaign');
+      setExportDialogOpen(false);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Failed to export leads');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const isLoading = leadsLoading || tasksLoading;
@@ -1025,29 +1128,72 @@ export default function LeadsPage() {
                 <Users className={FILTER_ICON_CLASS} />
                 <div className="min-w-0 flex-1">
                 <label className={FILTER_LABEL_CLASS}>Assigned To</label>
-                <Select value={currentOwner} onValueChange={handleOwnerChange}>
-                  <SelectTrigger className={FILTER_TRIGGER_CLASS}>
-                    <SelectValue placeholder="All Owners" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl shadow-2xl border-border/50">
-                    <SelectItem value="all" className="rounded-lg font-medium italic">General Pool (All)</SelectItem>
-                    <SelectGroup>
-                      <SelectLabel className="text-[10px] uppercase tracking-widest font-black text-primary/50 py-3 border-t">Active Users</SelectLabel>
-                      {users
-                        .filter((user: any) => currentBranch === 'all' || user.branchId === currentBranch)
-                        .map((user: any) => (
-                        <SelectItem key={user.id} value={user.id} className="rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                <Popover
+                  open={ownerFilterOpen}
+                  onOpenChange={(open) => {
+                    setOwnerFilterOpen(open);
+                    if (!open) setOwnerSearch('');
+                  }}
+                >
+                  <PopoverTrigger asChild>
+                    <button type="button" className={cn(FILTER_TRIGGER_CLASS, "flex items-center")}>
+                      <span className="truncate">
+                        {currentOwner === 'all'
+                          ? 'General Pool (All)'
+                          : (() => {
+                              const owner = users.find((u: any) => u.id === currentOwner);
+                              return owner ? `${owner.firstName} ${owner.lastName || ''}` : 'All Owners';
+                            })()}
+                      </span>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-0 rounded-xl shadow-2xl border-border/50" align="start">
+                    <div className="p-2 border-b border-border">
+                      <div className="relative">
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                        <Input
+                          autoFocus
+                          value={ownerSearch}
+                          onChange={(e) => setOwnerSearch(e.target.value)}
+                          placeholder="Search users..."
+                          className="pl-8 h-8 text-sm"
+                        />
+                      </div>
+                    </div>
+                    <div className="max-h-60 overflow-y-auto p-1">
+                      <button
+                        type="button"
+                        onClick={() => { handleOwnerChange('all'); setOwnerFilterOpen(false); }}
+                        className={cn(
+                          "w-full flex items-center gap-2 rounded-lg px-2 py-2 text-sm italic font-medium hover:bg-muted/60 text-left",
+                          currentOwner === 'all' && "bg-muted"
+                        )}
+                      >
+                        General Pool (All)
+                      </button>
+                      {ownerFilterUsers.length === 0 ? (
+                        <p className="px-2 py-4 text-xs text-muted-foreground text-center">No users found.</p>
+                      ) : (
+                        ownerFilterUsers.map((user: any) => (
+                          <button
+                            key={user.id}
+                            type="button"
+                            onClick={() => { handleOwnerChange(user.id); setOwnerFilterOpen(false); }}
+                            className={cn(
+                              "w-full flex items-center gap-2 rounded-lg px-2 py-2 text-sm hover:bg-muted/60 text-left",
+                              currentOwner === user.id && "bg-muted"
+                            )}
+                          >
+                            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
                               {user.firstName[0]}{user.lastName?.[0] || ''}
                             </div>
                             <span className="truncate">{user.firstName} {user.lastName || ''}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 </div>
               </div>
             )}
@@ -1339,7 +1485,7 @@ export default function LeadsPage() {
                     toolbarExtra={
                       <Button
                         variant="outline"
-                        onClick={handleExcelDownload}
+                        onClick={openExportDialog}
                         disabled={totalFilteredLeads === 0}
                         className="h-11 px-4 gap-2 rounded-[10px] border-border shrink-0 font-semibold text-sm"
                         title="Export to Excel"
@@ -1443,6 +1589,119 @@ export default function LeadsPage() {
           }}
         />
       )}
+
+      {/* Export scope dialog */}
+      <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
+        <DialogContent className="max-w-md rounded-[20px]">
+          <DialogHeader>
+            <DialogTitle className="font-poppins">Export Leads</DialogTitle>
+            <DialogDescription>
+              Export everything currently shown, or scope the export to specific users or campaigns.
+            </DialogDescription>
+          </DialogHeader>
+
+          <RadioGroup value={exportScope} onValueChange={(v) => setExportScope(v as 'all' | 'users' | 'campaign')} className="gap-3">
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="all" id="export-scope-all" />
+              <Label htmlFor="export-scope-all" className="font-normal">All leads ({sortedDisplayData.length})</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="users" id="export-scope-users" />
+              <Label htmlFor="export-scope-users" className="font-normal">By Users</Label>
+            </div>
+            {activeCampaigns.length > 0 && (
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="campaign" id="export-scope-campaign" />
+                <Label htmlFor="export-scope-campaign" className="font-normal">By Campaign</Label>
+              </div>
+            )}
+          </RadioGroup>
+
+          {exportScope === 'users' && (
+            <div className="space-y-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  value={exportUserSearch}
+                  onChange={(e) => setExportUserSearch(e.target.value)}
+                  placeholder="Search users..."
+                  className="pl-8 h-9 rounded-[10px]"
+                />
+              </div>
+              <div className="border border-border rounded-[10px] max-h-64 overflow-y-auto divide-y divide-border">
+                {exportUserOptions.length === 0 ? (
+                  <p className="p-4 text-sm text-muted-foreground text-center">No users found.</p>
+                ) : (
+                  exportUserOptions.map((u: any) => (
+                    <label
+                      key={u.id}
+                      htmlFor={`export-user-${u.id}`}
+                      className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-muted/50"
+                    >
+                      <Checkbox
+                        id={`export-user-${u.id}`}
+                        checked={exportUserIds.includes(u.id)}
+                        onCheckedChange={() => toggleExportUser(u.id)}
+                      />
+                      <span className="text-sm font-medium">{u.firstName} {u.lastName || ''}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {exportScope === 'campaign' && (
+            <div className="space-y-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  value={exportCampaignSearch}
+                  onChange={(e) => setExportCampaignSearch(e.target.value)}
+                  placeholder="Search campaigns..."
+                  className="pl-8 h-9 rounded-[10px]"
+                />
+              </div>
+              <div className="border border-border rounded-[10px] max-h-64 overflow-y-auto divide-y divide-border">
+                {exportCampaignOptions.length === 0 ? (
+                  <p className="p-4 text-sm text-muted-foreground text-center">No campaigns found.</p>
+                ) : (
+                  exportCampaignOptions.map((c) => (
+                    <label
+                      key={c.id}
+                      htmlFor={`export-campaign-${c.id}`}
+                      className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-muted/50"
+                    >
+                      <Checkbox
+                        id={`export-campaign-${c.id}`}
+                        checked={exportCampaignIds.includes(c.id)}
+                        onCheckedChange={() => toggleExportCampaign(c.id)}
+                      />
+                      <span className="text-sm font-medium">{c.name}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setExportDialogOpen(false)} className="rounded-[10px]">Cancel</Button>
+            <Button
+              onClick={handleExportConfirm}
+              disabled={
+                isExporting ||
+                (exportScope === 'users' && exportUserIds.length === 0) ||
+                (exportScope === 'campaign' && exportCampaignIds.length === 0)
+              }
+              className="rounded-[10px]"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              {isExporting ? 'Exporting...' : 'Export'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>
   )
