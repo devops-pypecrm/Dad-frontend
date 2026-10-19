@@ -38,6 +38,7 @@ const ReEnquiriesPage = lazy(() => import('./pages/re-enquiries'));
 const DuplicatesPage = lazy(() => import('./pages/duplicates'));
 const UnattendedLeadsPage = lazy(() => import('./pages/leads/unattended'));
 const NoActivityLeadsPage = lazy(() => import('./pages/leads/no-activity'));
+const LeadTransfersPage = lazy(() => import('./pages/leads/transfers'));
 const UserProfilePage = lazy(() => import('./pages/users/[id]'));
 const ContactsPage = lazy(() => import('./pages/contacts'));
 const ContactDetailPage = lazy(() => import('./pages/contacts/[id]'));
@@ -338,6 +339,7 @@ function AppContent() {
        <Route path="/trends/user" element={<UserTrendPage />} />
        <Route path="/trends/business" element={<BusinessTrendPage />} />
        <Route path="/leads" element={<LeadsPage />} />
+       <Route path="/leads/transfers" element={<LeadTransfersPage />} />
        <Route path="/leads/import" element={<BulkImportLeadsPage />} />
        <Route path="/leads/new" element={<CreateLeadPage />} />
        <Route path="/leads/:id" element={<LeadDetailPage />} />

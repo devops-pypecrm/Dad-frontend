@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { AlertCircle } from "lucide-react";
+import { useState, useCallback } from "react";
+import { AlertCircle, X, ArrowRight, Trash2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/services/api";
 import {
@@ -16,6 +16,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { formatIST } from "@/lib/dateUtils";
+import { Link } from "react-router-dom";
+import { isSuperAdmin } from "@/lib/utils";
 
 interface Violation {
   id: string;
@@ -33,6 +35,21 @@ export function ViolationAlert() {
   const queryClient = useQueryClient();
   const [selectedViolation, setSelectedViolation] = useState<Violation | null>(null);
   const [explanation, setExplanation] = useState("");
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => {
+    try {
+      const saved = sessionStorage.getItem("dismissedViolations");
+      return saved ? new Set(JSON.parse(saved)) : new Set<string>();
+    } catch {
+      return new Set<string>();
+    }
+  });
+
+  // Don't show violations for super_admin
+  const userInfoStr = localStorage.getItem("userInfo");
+  let currentUser: any = null;
+  try {
+    if (userInfoStr) currentUser = JSON.parse(userInfoStr);
+  } catch { /* ignore */ }
 
   // Fetch Violations
   const { data } = useQuery({
@@ -41,22 +58,16 @@ export function ViolationAlert() {
       const response = await api.get('/leads/violations');
       return response.data;
     },
-    refetchInterval: 60000 // Check every minute
+    refetchInterval: 60000, // Check every minute
+    enabled: !isSuperAdmin(currentUser), // Don't fetch for super_admin
   });
 
   const violations: Violation[] = Array.isArray(data?.violations) ? data.violations : [];
 
-  // Filter for unresolved violations for the current user context
-  // Ideally backend filters, but frontend can double check what needs action.
-  // If I see it, I probably need to act on it if explanation is missing.
-  // But backend should only return what I can see.
-
-  // We assume backend returns violations that concern me.
-  // If User Explanation empty -> User needs to provide.
-  // If Manager Explanation empty -> Manager needs to provide (if I am manager).
-
-  // Simplify: Just show list of pending explanations.
-  const pendingViolations = violations.filter(v => !v.userExplanation || !v.managerExplanation);
+  // Filter for unresolved violations that haven't been dismissed
+  const pendingViolations = violations.filter(
+    v => (!v.userExplanation || !v.managerExplanation) && !dismissedIds.has(v.id)
+  );
 
   const mutation = useMutation({
     mutationFn: async (data: { leadId: string; explanation: string; type: 'user' | 'manager' }) => {
@@ -74,29 +85,43 @@ export function ViolationAlert() {
     }
   });
 
+  const dismissOne = useCallback((id: string) => {
+    setDismissedIds(prev => {
+      const next = new Set(prev);
+      next.add(id);
+      try { sessionStorage.setItem("dismissedViolations", JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
+  }, []);
+
+  const dismissAll = useCallback(() => {
+    const ids = pendingViolations.map(v => v.id);
+    setDismissedIds(prev => {
+      const next = new Set(prev);
+      ids.forEach(id => next.add(id));
+      try { sessionStorage.setItem("dismissedViolations", JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
+  }, [pendingViolations]);
+
+  if (isSuperAdmin(currentUser)) return null;
   if (pendingViolations.length === 0) return null;
 
   const handleSubmit = () => {
     if (!selectedViolation) return;
 
-    // Determine type based on current user vs previous owner
-    const userInfoStr = localStorage.getItem('userInfo');
     let explanationType: 'user' | 'manager' = 'user';
 
-    if (userInfoStr) {
+    if (currentUser) {
       try {
-        const userInfo = JSON.parse(userInfoStr);
-
         // If current user's explanation is already provided, they must be the manager
         if (selectedViolation.userExplanation && !selectedViolation.managerExplanation) {
           explanationType = 'manager';
         }
         // If neither explanation exists, check if current user was the previous owner
         else if (!selectedViolation.userExplanation) {
-          // User assigned to = current user means they are the one who got the lead
-          // Previous owner = current user means they need to explain
           const assignedToName = `${selectedViolation.assignedTo?.firstName || ''} ${selectedViolation.assignedTo?.lastName || ''}`.trim();
-          const currentUserName = `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim();
+          const currentUserName = `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim();
 
           if (assignedToName !== currentUserName) {
             explanationType = 'manager';
@@ -116,9 +141,40 @@ export function ViolationAlert() {
 
   return (
     <>
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-[380px]">
+        {/* Clear All + View All bar */}
+        {pendingViolations.length > 1 && (
+          <div className="flex items-center justify-between gap-2 px-1">
+            <Link
+              to="/leads/transfers"
+              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+            >
+              View all transfers <ArrowRight className="h-3 w-3" />
+            </Link>
+            <button
+              onClick={dismissAll}
+              className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1 transition-colors"
+            >
+              <Trash2 className="h-3 w-3" /> Clear all
+            </button>
+          </div>
+        )}
+
         {pendingViolations.slice(0, 3).map(v => (
-          <Alert key={v.id} variant="destructive" className="w-[350px] bg-destructive/5 dark:bg-destructive/10 border-destructive/20 text-destructive">
+          <Alert
+            key={v.id}
+            variant="destructive"
+            className="w-[350px] bg-destructive/5 dark:bg-destructive/10 border-destructive/20 text-destructive relative pr-8"
+          >
+            {/* Dismiss X button */}
+            <button
+              onClick={(e) => { e.stopPropagation(); dismissOne(v.id); }}
+              className="absolute top-2 right-2 p-0.5 rounded-sm hover:bg-destructive/10 transition-colors text-destructive/60 hover:text-destructive"
+              aria-label="Dismiss"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Lead Assignment Violation: {v.firstName} {v.lastName}</AlertTitle>
             <AlertDescription className="mt-2 flex flex-col gap-2">
@@ -137,6 +193,17 @@ export function ViolationAlert() {
             </AlertDescription>
           </Alert>
         ))}
+
+        {pendingViolations.length === 1 && (
+          <div className="flex justify-end px-1">
+            <Link
+              to="/leads/transfers"
+              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+            >
+              View all transfers <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+        )}
       </div>
 
       <Dialog open={!!selectedViolation} onOpenChange={(open) => !open && setSelectedViolation(null)}>

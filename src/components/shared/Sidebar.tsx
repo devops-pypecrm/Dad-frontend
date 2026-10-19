@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   Users,
+  ArrowLeftRight,
   Building,
   Target,
   CheckSquare,
@@ -71,6 +72,7 @@ const menuGroups = [
     title: "Sales Engine",
     items: [
       { title: "Leads", href: "/leads", icon: Users },
+      { title: "Lead Transfers", href: "/leads/transfers", icon: ArrowLeftRight },
       { title: "Re-Enquiries", href: "/re-enquiries", icon: RefreshCw, role: "admin" },
       { title: "Duplicates", href: "/duplicates", icon: Copy, role: "admin" },
       { title: "Accounts", href: "/accounts", icon: Building },
