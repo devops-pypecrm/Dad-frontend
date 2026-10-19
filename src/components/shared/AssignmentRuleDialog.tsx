@@ -167,7 +167,12 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
   })
 
   function onSubmit(values: CreateAssignmentRuleData) {
-    mutation.mutate(values)
+    // Auto-rotation is temporarily disabled platform-wide (caused a
+    // notification-spam incident) - force it off on every save regardless
+    // of whatever the form's internal state holds, since the checkbox
+    // above is now non-interactive but a rule loaded from an existing
+    // record could still carry a stale `true`.
+    mutation.mutate({ ...values, enableRotation: false })
   }
 
   return (
@@ -312,15 +317,17 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
                     <FormControl>
                       <input
                         type="checkbox"
-                        checked={field.value}
-                        onChange={field.onChange}
-                        className="mt-1"
+                        checked={false}
+                        disabled
+                        className="mt-1 cursor-not-allowed opacity-60"
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>Enable Auto-Rotation</FormLabel>
+                      <FormLabel className="text-muted-foreground">Enable Auto-Rotation (temporarily disabled)</FormLabel>
                       <p className="text-sm text-muted-foreground">
                         Automatically re-assign leads if not acted upon within a time limit.
+                        This is temporarily turned off platform-wide while a notification-spam
+                        issue is fixed — it cannot be re-enabled here for now.
                       </p>
                     </div>
                   </FormItem>
