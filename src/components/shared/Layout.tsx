@@ -26,6 +26,9 @@ export default function Layout() {
   const isFullWidthPage = location.pathname.startsWith('/automation/workflows') ||
     location.pathname.startsWith('/workflows') ||
     location.pathname === '/whatsapp/inbox' ||
+    location.pathname === '/instagram/inbox' ||
+    location.pathname.startsWith('/instagram/chatbots/') ||
+    location.pathname.startsWith('/instagram/ask-to-follow/') ||
     location.pathname.startsWith('/communications') ||
     // Only the opportunities LIST is full-width, not detail pages (/opportunities/:id)
     location.pathname === '/opportunities';

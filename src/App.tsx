@@ -75,6 +75,12 @@ const WhatsAppAutomationsPage = lazy(() => import('./pages/whatsapp/automations'
 const WhatsAppChatbotPage = lazy(() => import('./pages/whatsapp/chatbot'));
 const WhatsAppFlowEditorPage = lazy(() => import('./pages/whatsapp/chatbot/[id]'));
 const WhatsAppSettingsPage = lazy(() => import('./pages/whatsapp/settings'));
+import { InstagramFeatureRoute } from './components/instagram/InstagramFeatureRoute';
+const InstagramSharedInbox = lazy(() => import('./pages/instagram/inbox'));
+const InstagramChatbotList = lazy(() => import('./pages/instagram/chatbots'));
+const InstagramChatbotEditor = lazy(() => import('./pages/instagram/chatbots/editor'));
+const InstagramAskToFollow = lazy(() => import('./pages/instagram/ask-to-follow'));
+const InstagramGateBotPage = lazy(() => import('./pages/instagram/ask-to-follow/bot'));
 const EmailListsPage = lazy(() => import('./pages/marketing/lists'));
 
 // Settings sub-pages
@@ -360,6 +366,16 @@ function AppContent() {
        <Route path="/marketing/whatsapp/flows" element={<Navigate to="/whatsapp/chatbot" replace />} />
        <Route path="/marketing/whatsapp/flows/:id" element={<LegacyFlowRedirect />} />
        {/* <Route path="/communications" element={<CommunicationsPage />} /> */}
+       <Route element={<InstagramFeatureRoute />}>
+         <Route path="/instagram" element={<Navigate to="/instagram/inbox" replace />} />
+         <Route path="/instagram/inbox" element={<InstagramSharedInbox />} />
+         <Route path="/instagram/chatbots" element={<InstagramChatbotList />} />
+         <Route path="/instagram/chatbots/new" element={<InstagramChatbotEditor />} />
+         <Route path="/instagram/chatbots/:id" element={<InstagramChatbotEditor />} />
+         <Route path="/instagram/ask-to-follow" element={<InstagramAskToFollow />} />
+         <Route path="/instagram/ask-to-follow/new" element={<InstagramGateBotPage />} />
+         <Route path="/instagram/ask-to-follow/:id" element={<InstagramGateBotPage />} />
+       </Route>
        <Route element={<WhatsAppFeatureRoute />}>
          <Route path="/whatsapp" element={<Navigate to="/whatsapp/inbox" replace />} />
          <Route path="/whatsapp/inbox" element={<WhatsAppInbox />} />

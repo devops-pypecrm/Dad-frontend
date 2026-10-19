@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { MessageCircle, Search, ToggleRight } from 'lucide-react';
+import { Instagram, MessageCircle, Search, ToggleRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,7 @@ interface Feature { key: string; label: string; description: string; enabledCoun
 interface Org { id: string; name: string; slug: string; status: string; enabledFeatures: string[] }
 interface FeatureData { features: Feature[]; organisations: Org[] }
 
-const ICONS: Record<string, typeof MessageCircle> = { whatsapp: MessageCircle };
+const ICONS: Record<string, typeof MessageCircle> = { whatsapp: MessageCircle, instagram: Instagram };
 
 /** One feature: pick which organisations get it, then save. */
 function FeatureCard({ feature, orgs }: { feature: Feature; orgs: Org[] }) {

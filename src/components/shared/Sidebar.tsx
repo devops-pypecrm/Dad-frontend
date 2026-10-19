@@ -48,7 +48,9 @@ import {
   FileCheck2,
   Reply,
   Sprout,
-  ToggleRight
+  ToggleRight,
+  Instagram as InstagramIcon,
+  UserPlus as UserPlusIcon
 } from "lucide-react";
 import { WhatsAppLogo } from "@/components/icons/BrandLogos";
 import Logo from "./Logo";
@@ -101,6 +103,14 @@ const menuGroups = [
       { title: "Lead Nurturing", href: "/whatsapp/nurturing", icon: Sprout, role: "admin" },
       { title: "Automations", href: "/whatsapp/automations", icon: Zap, role: "admin" },
       { title: "WhatsApp Settings", href: "/whatsapp/settings", icon: WhatsAppLogo, role: "admin" },
+    ]
+  },
+  {
+    title: "Instagram",
+    items: [
+      { title: "Shared Inbox", href: "/instagram/inbox", icon: InstagramIcon },
+      { title: "Instagram Chatbots", href: "/instagram/chatbots", icon: Bot, role: "admin" },
+      { title: "Ask To Follow", href: "/instagram/ask-to-follow", icon: UserPlusIcon, role: "admin" },
     ]
   },
   {
@@ -270,7 +280,9 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
   const whatsAppEnabled = Array.isArray(user?.organisation?.enabledFeatures) && user.organisation.enabledFeatures.includes('whatsapp');
 
-  const filteredGroups = userIsSuperAdmin ? [] : menuGroups.filter(g => g.title !== 'WhatsApp' || whatsAppEnabled).map(group => ({
+  const instagramEnabled = Array.isArray(user?.organisation?.enabledFeatures) && user.organisation.enabledFeatures.includes('instagram');
+
+  const filteredGroups = userIsSuperAdmin ? [] : menuGroups.filter(g => (g.title !== 'WhatsApp' || whatsAppEnabled) && (g.title !== 'Instagram' || instagramEnabled)).map(group => ({
     ...group,
     items: group.items.filter(item => {
       if (item.title === 'Settings') return canAccessSettings(user);

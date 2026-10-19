@@ -3,12 +3,14 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getOrganisation } from "@/services/settingsService";
 import { whatsAppAccountService } from "@/services/whatsAppAccountService";
-import { useWhatsAppEnabled } from "@/hooks/useWhatsAppEnabled";
+import { useFeatureEnabled, useWhatsAppEnabled } from "@/hooks/useWhatsAppEnabled";
+import { INSTAGRAM_CONNECTION_KEY, useInstagramConnection } from "@/hooks/useInstagramConnection";
+import { instagramConnectionApi } from "@/services/instagramService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Settings, CheckCircle2, Unplug, Plug, ExternalLink } from "lucide-react";
+import { Settings, CheckCircle2, Unplug, Plug, ExternalLink, Instagram as InstagramIcon } from "lucide-react";
 import {
   FacebookLogo,
   WhatsAppLogo,
@@ -59,6 +61,8 @@ export default function IntegrationsPage() {
 
   // WhatsApp numbers live in the relational account table (single source of truth for the WhatsApp hub).
   const whatsAppEnabled = useWhatsAppEnabled();
+  const instagramEnabled = useFeatureEnabled('instagram');
+  const { data: igConn } = useInstagramConnection(instagramEnabled);
   const { data: waAccounts = [] } = useQuery({ queryKey: ['whatsapp-accounts'], queryFn: whatsAppAccountService.getWhatsAppAccounts, enabled: whatsAppEnabled });
 
   // Right after connecting, if the connecting Facebook user had more than one ad account,
@@ -184,6 +188,26 @@ export default function IntegrationsPage() {
       isPlaceholder: false
     },
     {
+      id: 'instagram',
+      name: 'Instagram',
+      description: 'Shared DM inbox, keyword chatbots and Ask-to-Follow comment bots for your Instagram business account.',
+      icon: InstagramIcon,
+      iconColor: 'text-pink-500',
+      connected: !!igConn?.connected,
+      actionLabel: 'Open',
+      isPlaceholder: false,
+      link: '/instagram/inbox',
+      onDisable: async () => {
+        try {
+          await instagramConnectionApi.disconnect();
+          queryClient.invalidateQueries({ queryKey: INSTAGRAM_CONNECTION_KEY });
+          toast.success('Disconnected from Instagram');
+        } catch {
+          toast.error('Failed to disconnect');
+        }
+      }
+    },
+    {
       id: 'googleads',
       name: 'Google Ads',
       description: 'With this feature, leads from Google Ads are automatically synced to Workpex, saving you from manual data entry.',
@@ -233,6 +257,7 @@ export default function IntegrationsPage() {
 
   const filteredIntegrations = INTEGRATION_LIST
     .filter(item => whatsAppEnabled || (item.id !== 'whatsapp' && item.id !== 'gallabox'))
+    .filter(item => instagramEnabled || item.id !== 'instagram')
     .filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   const connectedCount = filteredIntegrations.filter(i => i.connected).length;
@@ -286,6 +311,7 @@ export default function IntegrationsPage() {
                   <div className={`w-10 h-10 rounded-[10px] flex items-center justify-center ${integration.id === 'facebook' ? 'bg-gradient-to-br from-blue-600 to-blue-800' :
                       integration.id === 'webform' ? 'bg-gradient-to-br from-indigo-500 to-indigo-700' :
                         integration.id === 'whatsapp' ? 'bg-gradient-to-br from-green-500 to-green-700' :
+                          integration.id === 'instagram' ? 'bg-gradient-to-br from-[#833ab4] via-[#fd1d1d] to-[#fcb045]' :
                                 integration.id === 'googleads' ? 'bg-gradient-to-br from-yellow-400 via-red-400 to-blue-500' :
                                       integration.id === 'gallabox' ? 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500' :
                                           integration.id === 'zapier' ? 'bg-gradient-to-br from-orange-500 to-amber-600' :
@@ -481,6 +507,11 @@ export default function IntegrationsPage() {
                   )}
 
                   <div className="flex gap-2">
+                    {integration.link && integration.id === 'instagram' && (
+                      <Button size="sm" asChild className="gap-1.5 bg-[hsl(var(--chart-5))] text-white hover:bg-[hsl(var(--chart-5))]/90">
+                        <Link to={integration.link}><ExternalLink className="h-3.5 w-3.5" />Open Instagram</Link>
+                      </Button>
+                    )}
                     {integration.hasSettings && (
                       <Button
                         size="sm"
