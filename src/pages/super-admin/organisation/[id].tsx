@@ -38,7 +38,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog"
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, formatRoleName } from '@/lib/utils'
 import { formatIST } from '@/lib/dateUtils'
 import { AssignPlanDialog } from '@/components/super-admin/AssignPlanDialog'
 import { EditOrganisationDialog } from '@/components/super-admin/EditOrganisationDialog'
@@ -551,7 +551,7 @@ export default function OrganisationDetailPage() {
                     </TableCell>
                     <TableCell>
                       <Badge variant={user.role === 'admin' ? 'default' : 'outline'} className={user.role === 'admin' ? 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30' : 'text-muted-foreground border-primary/40'}>
-                        {user.role}
+                        {formatRoleName(user.role)}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-foreground">{user.position || '-'}</TableCell>

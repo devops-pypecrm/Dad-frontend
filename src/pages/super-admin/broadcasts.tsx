@@ -5,6 +5,7 @@ import {
   getAllBroadcasts,
   getBroadcastStats,
   sendBroadcast,
+  setBroadcastActive,
   type Broadcast,
   type BroadcastSeverity,
   type BroadcastAudience,
@@ -16,6 +17,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import {
   Dialog,
   DialogContent,
@@ -90,6 +92,22 @@ export default function SuperAdminBroadcastsPage() {
     onError: (err: unknown) => {
       const parsed = err as { response?: { data?: { message?: string } } }
       toast.error(parsed.response?.data?.message || "Failed to send broadcast")
+    },
+  })
+
+  // Flips Broadcast.active without touching any Notification row — the
+  // still-unread popup stops surfacing to pending users, but this
+  // broadcast's History entry and acknowledgement stats stay exactly as
+  // they are (see setBroadcastActive's doc comment on the backend).
+  const toggleActiveMutation = useMutation({
+    mutationFn: ({ id, active }: { id: string; active: boolean }) => setBroadcastActive(id, active),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["broadcasts", "admin", "all"] })
+      toast.success(res.active ? "Broadcast re-activated" : "Broadcast withdrawn — pending users will no longer see the popup")
+    },
+    onError: (err: unknown) => {
+      const parsed = err as { response?: { data?: { message?: string } } }
+      toast.error(parsed.response?.data?.message || "Failed to update broadcast")
     },
   })
 
@@ -216,24 +234,29 @@ export default function SuperAdminBroadcastsPage() {
             ) : (
               <div className="space-y-3">
                 {broadcasts.map((b) => (
-                  <button
+                  <div
                     key={b.id}
-                    type="button"
-                    onClick={() => setStatsFor(b)}
-                    className="w-full text-left flex items-center justify-between gap-3 p-4 rounded-xl border border-border hover:bg-muted/30 transition-colors"
+                    className="w-full flex items-center justify-between gap-3 p-4 rounded-xl border border-border hover:bg-muted/30 transition-colors"
                   >
-                    <div className="min-w-0 flex-1">
+                    <button
+                      type="button"
+                      onClick={() => setStatsFor(b)}
+                      className="min-w-0 flex-1 text-left"
+                    >
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="font-semibold text-foreground truncate">{b.title}</p>
                         <Badge className={SEVERITY_STYLES[b.severity]}>{b.severity}</Badge>
+                        {!b.active && (
+                          <Badge className="bg-muted text-muted-foreground">Withdrawn</Badge>
+                        )}
                       </div>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-muted-foreground">
                         <span>{AUDIENCE_LABEL[b.audience]}</span>
                         <span>{formatDistanceToNow(new Date(b.createdAt), { addSuffix: true })}</span>
                         {b.createdBy && <span>by {b.createdBy}</span>}
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0 text-xs">
+                    </button>
+                    <div className="flex items-center gap-4 shrink-0 text-xs">
                       <span className="flex items-center gap-1 text-emerald-600 font-medium">
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         {b.readCount}
@@ -242,9 +265,21 @@ export default function SuperAdminBroadcastsPage() {
                         <Clock className="h-3.5 w-3.5" />
                         {b.pendingCount} pending
                       </span>
-                      <ChevronDown className="h-4 w-4 text-muted-foreground -rotate-90" />
+                      <div
+                        className="flex items-center gap-1.5"
+                        title={b.active ? "Showing to pending users — toggle off to withdraw" : "Withdrawn — no longer shown to pending users"}
+                      >
+                        <Switch
+                          checked={b.active}
+                          disabled={toggleActiveMutation.isPending}
+                          onCheckedChange={(checked) => toggleActiveMutation.mutate({ id: b.id, active: checked })}
+                        />
+                      </div>
+                      <button type="button" onClick={() => setStatsFor(b)}>
+                        <ChevronDown className="h-4 w-4 text-muted-foreground -rotate-90" />
+                      </button>
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             )}

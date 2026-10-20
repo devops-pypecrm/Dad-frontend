@@ -39,7 +39,7 @@ import { toast } from "sonner"
 import { Plus, Pencil, Mail, Shield, Search, Building, LayoutList, Network, ChevronRight, ChevronDown, User as UserIcon, MoreVertical, UserX, UserCheck, Download, FileSpreadsheet, Trash2, Key } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { isSuperAdmin, getUserInfo, isAdmin } from "@/lib/utils"
+import { isSuperAdmin, getUserInfo, isAdmin, formatRoleName } from "@/lib/utils"
 
 interface TeamMember {
   id: string
@@ -143,8 +143,8 @@ function HierarchyNode({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-medium text-sm text-foreground truncate">{m.firstName} {m.lastName}</span>
-            <Badge variant="outline" className="text-[10px] capitalize font-normal">
-              {m.role.name.replace('_', ' ')}
+            <Badge variant="outline" className="text-[10px] font-normal">
+              {formatRoleName(m.role)}
             </Badge>
             {m.branch && (
               <Badge variant="secondary" className="text-[10px] font-normal gap-1">
@@ -535,7 +535,7 @@ export default function TeamSettings() {
         `"${m.lastName || ''}"`,
         `"${m.email || ''}"`,
         `"${m.phone || ''}"`,
-        `"${m.role?.name?.replace('_', ' ') || ''}"`,
+        `"${formatRoleName(m.role)}"`,
         `"${m.position || ''}"`,
         `"${m.branch?.name || ''}"`,
         `"${m.reportsTo ? `${m.reportsTo.firstName} ${m.reportsTo.lastName}` : ''}"`,
@@ -678,7 +678,7 @@ export default function TeamSettings() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Shield className="h-4 w-4 text-muted-foreground" />
-                        <span className="capitalize">{member.role.name.replace('_', ' ')}</span>
+                        <span className="font-medium text-sm">{formatRoleName(member.role)}</span>
                       </div>
                     </TableCell>
                     <TableCell>

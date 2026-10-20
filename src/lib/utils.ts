@@ -204,14 +204,58 @@ export function checkRole(user: any, targetRoles: string | string[]): boolean {
 
     // Normalize user role to a lowercase string, replacing spaces and hyphens with underscores
     const userRoleStr = (typeof user.role === 'object'
-        ? (user.role.roleKey || user.role.name || '')
+        ? (user.role.name || user.role.roleKey || user.role.id || '')
         : String(user.role)).toLowerCase().replace(/[\s-]/g, '_');
 
+    const roleName = (user.roleName || (typeof user.role === 'object' ? user.role.name : '') || '').toLowerCase();
+
     const targets = Array.isArray(targetRoles) ? targetRoles : [targetRoles];
-    return targets.some(target => {
+    const directMatch = targets.some(target => {
         const normalizedTarget = target.toLowerCase().replace(/[\s-]/g, '_');
-        return normalizedTarget === userRoleStr;
+        return normalizedTarget === userRoleStr || (roleName && normalizedTarget === roleName);
     });
+
+    if (directMatch) return true;
+
+    // If checking for 'manager', treat any custom manager/ASM role as a manager
+    if (targets.some(t => t.toLowerCase() === 'manager')) {
+        if (
+            userRoleStr.includes('manager') ||
+            userRoleStr === 'asm' ||
+            userRoleStr.includes('asm') ||
+            userRoleStr === 'custom_1774677200913' ||
+            roleName.includes('manager') ||
+            roleName === 'asm' ||
+            roleName.includes('asm')
+        ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Formats a role key or role object into a human-friendly display name.
+ * e.g. "custom_1774677200913" -> "ASM"
+ *      "sales_rep" -> "Sales Rep"
+ */
+export function formatRoleName(role: any, fallbackName?: string): string {
+    if (!role) return fallbackName || '';
+    if (typeof role === 'object') {
+        return role.name || role.roleKey || fallbackName || '';
+    }
+    const r = String(role);
+    if (r === 'custom_1774677200913' || r.toLowerCase() === 'asm') return 'ASM';
+    if (fallbackName && fallbackName !== r) return fallbackName;
+    if (r === 'super_admin') return 'Super Admin';
+    if (r === 'admin') return 'Admin';
+    if (r === 'manager') return 'Manager';
+    if (r === 'sales_manager') return 'Sales Manager';
+    if (r === 'sales_rep') return 'Sales Rep';
+    if (r === 'operation_executive') return 'Operation Executive';
+    if (r.startsWith('custom_')) return fallbackName || 'Custom Role';
+    return r.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
 /**
@@ -243,10 +287,10 @@ export function isBranchManager(user: any): boolean {
 }
 
 /**
- * Checks if a user has manager privileges (Manager, Admin, or Super Admin)
+ * Checks if a user has manager privileges (Manager, Admin, or Super Admin, or custom ASM/manager roles)
  */
 export function isManager(user: any): boolean {
-    return checkRole(user, ['manager', 'admin', 'super_admin']);
+    return checkRole(user, ['manager', 'admin', 'super_admin', 'sales_manager', 'branch_manager', 'asm']);
 }
 
 /**

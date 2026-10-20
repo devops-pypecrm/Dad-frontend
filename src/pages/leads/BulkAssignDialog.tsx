@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { cn } from "@/lib/utils"
+import { cn, formatRoleName } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { getUsers } from "@/services/userService"
 import { bulkLeadAction } from "@/services/leadService"
@@ -159,7 +159,7 @@ export function BulkAssignDialog({
                           <div className="flex flex-col min-w-0">
                             <span className="font-medium truncate">{user.firstName} {user.lastName}</span>
                             <span className="text-[10px] text-muted-foreground truncate">
-                              {user.email} • {user.role?.name || user.role}
+                              {user.email} • {formatRoleName(user.role)}
                             </span>
                           </div>
                           {selectedUserId === user.id && (

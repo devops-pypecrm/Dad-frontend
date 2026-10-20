@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { getHierarchy, getProfile } from "@/services/settingsService"
+import { formatRoleName } from "@/lib/utils"
 import type { User } from "@/services/settingsService"
 import { api } from "@/services/api"
 import { Badge } from "@/components/ui/badge"
@@ -158,7 +159,7 @@ export function AssignLeadDialog({ lead, open, onOpenChange, trigger }: AssignLe
                     <div className="flex items-center gap-2">
                       <span>{user.firstName} {user.lastName}</span>
                       <Badge variant="outline" className="text-[10px] px-1 py-0 h-5">
-                        {user.role}
+                        {formatRoleName(user.role)}
                       </Badge>
                       {typeof lead.assignedTo === 'object' && lead.assignedTo?.id === user.id && <Check className="h-3 w-3 ml-auto opacity-50" />}
                     </div>

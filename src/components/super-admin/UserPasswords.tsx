@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, EyeOff, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { formatRoleName } from '@/lib/utils';
 
 export function UserPasswords() {
   const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
@@ -103,8 +104,8 @@ export function UserPasswords() {
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.phone || '-'}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="capitalize">
-                        {user.role.replace('_', ' ')}
+                      <Badge variant="outline">
+                        {formatRoleName(user.role)}
                       </Badge>
                     </TableCell>
                     <TableCell>

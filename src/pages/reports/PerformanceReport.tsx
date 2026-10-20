@@ -21,7 +21,7 @@ import {
   ChevronDown,
   Loader2,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatRoleName } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -676,7 +676,7 @@ export default function UserPerformanceReport() {
                           </Avatar>
                           <div className="flex flex-col">
                             <span className="font-semibold text-sm font-poppins">{user.name}</span>
-                            <span className="text-[10px] text-muted-foreground uppercase font-medium">{user.role}</span>
+                            <span className="text-[10px] text-muted-foreground uppercase font-medium">{formatRoleName(user.role)}</span>
                           </div>
                         </div>
                       </TableCell>

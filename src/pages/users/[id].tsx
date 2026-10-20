@@ -11,12 +11,13 @@ import { getLeads } from "@/services/leadService"
 import { DataTable } from "@/components/ui/data-table"
 import { columns } from "@/pages/leads/columns"
 import { api } from "@/services/api"
+import { formatRoleName } from "@/lib/utils"
 
 // Helper to determine if a role can manage others
-const canHaveSubordinates = (role?: string) => {
+const canHaveSubordinates = (role?: any) => {
   if (!role) return false;
-  const r = role.toLowerCase();
-  return r.includes('admin') || r.includes('manager') || r.includes('director') || r.includes('head');
+  const r = (typeof role === 'object' ? (role.name || role.roleKey || '') : String(role)).toLowerCase();
+  return r.includes('admin') || r.includes('manager') || r.includes('director') || r.includes('head') || r === 'asm' || r.includes('asm') || r === 'custom_1774677200913';
 };
 
 // Component to list subordinates
@@ -47,7 +48,7 @@ const SubordinatesList = ({ parentId }: { parentId: string }) => {
                 <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
                   {member.firstName} {member.lastName}
                 </p>
-                <p className="text-xs text-muted-foreground truncate capitalize">{member.role}</p>
+                <p className="text-xs text-muted-foreground truncate font-medium">{formatRoleName(member.role)}</p>
               </div>
               <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
             </CardContent>
@@ -109,7 +110,7 @@ export default function UserProfilePage() {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
             {user.firstName} {user.lastName}
-            <Badge variant="outline">{user.role}</Badge>
+            <Badge variant="outline">{formatRoleName(user.role)}</Badge>
           </h1>
           <div className="flex items-center gap-4 text-muted-foreground mt-1">
             <div className="flex items-center gap-1"><Mail className="h-4 w-4" /> {user.email}</div>

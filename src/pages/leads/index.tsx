@@ -49,7 +49,7 @@ import { BulkScheduleFollowUpDialog } from "./BulkScheduleFollowUpDialog"
 import { BulkSendEmailDialog } from "./BulkSendEmailDialog"
 import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog"
 import { bulkLeadAction } from "@/services/leadService"
-import { isOrgAdmin as checkIsOrgAdmin } from "@/lib/utils"
+import { isOrgAdmin as checkIsOrgAdmin, isManager } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Select,
@@ -502,9 +502,8 @@ export default function LeadsPage() {
   }, [currentView, dateFilter]);
 
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-  const userRole = typeof userInfo.role === 'object' ? userInfo.role.id : userInfo.role;
-  const isAdminOrManager = ['admin', 'manager', 'organisation_admin', 'super_admin'].includes(userRole?.toLowerCase());
   const isOrgAdmin = checkIsOrgAdmin(userInfo);
+  const isAdminOrManager = isOrgAdmin || isManager(userInfo);
 
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -1555,7 +1554,7 @@ export default function LeadsPage() {
         isDeleting={isDeleting}
       />
 
-      {isOrgAdmin && Object.keys(rowSelection).length > 0 && (
+      {(isOrgAdmin || isAdminOrManager) && Object.keys(rowSelection).length > 0 && (
         <BulkStatusDialog
           open={isBulkStatusDialogOpen}
           onOpenChange={setIsBulkStatusDialogOpen}

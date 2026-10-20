@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { cn, isAdmin, isOrgAdmin, isSuperAdmin, canAccessSettings } from "@/lib/utils";
+import { cn, isAdmin, isOrgAdmin, isSuperAdmin, isManager, canAccessSettings, formatRoleName } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
@@ -199,7 +199,7 @@ const TeamMemberItem = ({ member, level = 0 }: { member: any, level?: number }) 
           <p className="text-xs font-semibold text-sidebar-text truncate group-hover:text-sidebar-active transition-colors">
             {member.firstName} {member.lastName}
           </p>
-          <p className="text-[10px] text-sidebar-text/60 truncate capitalize">{member.role}</p>
+          <p className="text-[10px] text-sidebar-text/60 truncate font-medium">{formatRoleName(member.role)}</p>
         </div>
         {member.hasSubordinates && (
           <button
@@ -290,6 +290,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
       if (item.title === 'Settings') return canAccessSettings(user);
       if (item.role === 'admin' && !isAdmin(user)) return false;
       if (item.role === 'org_admin' && !isOrgAdmin(user)) return false;
+      if (item.role === 'manager' && !isManager(user)) return false;
       return true;
     })
   })).filter(group => group.items.length > 0);
@@ -583,7 +584,14 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
           {!isCollapsed && (
             <>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold truncate text-sidebar-text">{user?.firstName} {user?.lastName}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm font-bold truncate text-sidebar-text">{user?.firstName} {user?.lastName}</p>
+                  {user?.role && (
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-sidebar-hover text-sidebar-text/80 font-medium shrink-0 border border-sidebar-border">
+                      {formatRoleName(user.role, user.roleName)}
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-sidebar-text/80 truncate">{user?.email}</p>
               </div>
               <Button

@@ -198,6 +198,18 @@ export default function Layout() {
 
     socketService.on('lead_deleted', () => handleRealtimeSync('lead_deleted'));
 
+    // Follow-ups had no real-time signal at all - a newly created/reassigned
+    // follow-up could sit invisible in a stale cached ['follow-ups'] list or
+    // Overdue count for up to this app's 5-minute TanStack Query staleTime.
+    socketService.on('followup_created', () => {
+      queryClient.invalidateQueries({ queryKey: ['follow-ups'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    });
+    socketService.on('followup_updated', () => {
+      queryClient.invalidateQueries({ queryKey: ['follow-ups'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    });
+
     // Initial sync on mount if on Android
     const userInfo = localStorage.getItem('userInfo');
     if (userInfo) {
@@ -211,6 +223,8 @@ export default function Layout() {
       socketService.off('lead_created');
       socketService.off('lead_updated');
       socketService.off('lead_deleted');
+      socketService.off('followup_created');
+      socketService.off('followup_updated');
     };
   }, []);
 

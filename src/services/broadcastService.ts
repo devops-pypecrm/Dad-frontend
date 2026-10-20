@@ -9,6 +9,7 @@ export interface Broadcast {
     message: string;
     severity: BroadcastSeverity;
     audience: BroadcastAudience;
+    active: boolean;
     createdAt: string;
     createdBy: string | null;
     recipientCount: number;
@@ -52,4 +53,9 @@ export const sendBroadcast = async (payload: {
 }) => {
     const res = await api.post('/super-admin/broadcasts', payload);
     return res.data as { success: boolean; broadcastId: string; count: number; message: string };
+};
+
+export const setBroadcastActive = async (id: string, active: boolean) => {
+    const res = await api.patch(`/super-admin/broadcasts/${id}/active`, { active });
+    return res.data as { success: boolean; id: string; active: boolean };
 };
