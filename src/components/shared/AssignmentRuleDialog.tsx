@@ -1,9 +1,9 @@
 
-import { useState, useEffect } from "react"
-import { isAdmin, getUserInfo } from "@/lib/utils"
+import { useState, useEffect, useMemo } from "react"
+import { cn, isAdmin, getUserInfo } from "@/lib/utils"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useForm, useFieldArray, type Control, type UseFormWatch } from "react-hook-form"
-import { Loader2, Plus, Trash2 } from "lucide-react"
+import { Loader2, Plus, Trash2, Search, ChevronDown, Check } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -25,10 +25,18 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createAssignmentRule, updateAssignmentRule, type CreateAssignmentRuleData, type AssignmentRule } from "@/services/assignmentRuleService"
 import { useQuery } from "@tanstack/react-query"
 import { getUsers, getBranches } from "@/services/settingsService"
+
+type RuleUser = { id: string; firstName: string; lastName: string; branchId?: string; isActive?: boolean; dailyLeadQuota?: number }
+
+function userInitials(u: RuleUser) {
+  return `${u.firstName?.[0] || ''}${u.lastName?.[0] || ''}`.toUpperCase()
+}
 
 interface AssignmentRuleDialogProps {
   children?: React.ReactNode
@@ -286,20 +294,9 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Select User</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select user" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {users?.map((user: { id: string, firstName: string, lastName: string }) => (
-                            <SelectItem key={user.id} value={user.id}>
-                              {user.firstName} {user.lastName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <SingleUserCombobox users={users} value={field.value} onChange={field.onChange} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -379,33 +376,11 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
             {form.watch('distributionType') === 'campaign_users' && (
               <div className="space-y-2">
                 <FormLabel>Select Users for Round Robin Distribution</FormLabel>
-                <div className="border rounded-lg p-3 max-h-[150px] overflow-y-auto space-y-2">
-                  {users?.map((user: { id: string, firstName: string, lastName: string, dailyLeadQuota?: number }) => {
-                    const currentUsers = form.watch('assignTo.users') || [];
-                    const isSelected = currentUsers.includes(user.id);
-                    return (
-                      <label key={user.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted p-1 rounded">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={(e) => {
-                            const prev = form.getValues('assignTo.users') || [];
-                            if (e.target.checked) {
-                              form.setValue('assignTo.users', [...prev, user.id]);
-                            } else {
-                              form.setValue('assignTo.users', prev.filter((id: string) => id !== user.id));
-                            }
-                          }}
-                          className="rounded border-input"
-                        />
-                        <span className="text-sm">{user.firstName} {user.lastName}</span>
-                        {user.dailyLeadQuota && (
-                          <span className="text-xs text-muted-foreground">({user.dailyLeadQuota}/day)</span>
-                        )}
-                      </label>
-                    );
-                  })}
-                </div>
+                <MultiUserSelect
+                  users={users}
+                  value={form.watch('assignTo.users') || []}
+                  onChange={(ids) => form.setValue('assignTo.users', ids)}
+                />
                 <p className="text-xs text-muted-foreground">Leads will be distributed round-robin among selected users</p>
               </div>
             )}
@@ -505,4 +480,141 @@ function CriteriaRow({ index, control, remove, watch }: { index: number; control
       </Button>
     </div>
   );
+}
+
+function SingleUserCombobox({ users, value, onChange }: { users: RuleUser[]; value?: string; onChange: (id: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState("")
+
+  const selectedUser = users.find((u) => u.id === value)
+  const filteredUsers = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return users
+    return users.filter((u) => `${u.firstName} ${u.lastName || ''}`.toLowerCase().includes(q))
+  }, [users, search])
+
+  return (
+    <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) setSearch("") }}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs hover:bg-muted/40 transition-colors"
+        >
+          {selectedUser ? (
+            <span className="flex items-center gap-2 truncate">
+              <span className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
+                {userInitials(selectedUser)}
+              </span>
+              <span className="truncate">{selectedUser.firstName} {selectedUser.lastName}</span>
+            </span>
+          ) : (
+            <span className="text-muted-foreground">Select user</span>
+          )}
+          <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0 rounded-xl shadow-2xl border-border/50" align="start">
+        <div className="p-2 border-b border-border">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              autoFocus
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search users..."
+              className="pl-8 h-8 text-sm"
+            />
+          </div>
+        </div>
+        <div className="max-h-60 overflow-y-auto p-1">
+          {filteredUsers.length === 0 ? (
+            <p className="px-2 py-4 text-xs text-muted-foreground text-center">No users found.</p>
+          ) : (
+            filteredUsers.map((user) => {
+              const checked = user.id === value
+              return (
+                <button
+                  key={user.id}
+                  type="button"
+                  onClick={() => { onChange(user.id); setOpen(false) }}
+                  className={cn(
+                    "w-full flex items-center gap-2 rounded-lg px-2 py-2 text-sm hover:bg-muted/60 text-left",
+                    checked && "bg-muted"
+                  )}
+                >
+                  <span className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
+                    {userInitials(user)}
+                  </span>
+                  <span className="truncate flex-1">{user.firstName} {user.lastName || ''}</span>
+                  {checked && <Check className="h-4 w-4 text-primary shrink-0" />}
+                </button>
+              )
+            })
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+function MultiUserSelect({ users, value, onChange }: { users: RuleUser[]; value: string[]; onChange: (ids: string[]) => void }) {
+  const [search, setSearch] = useState("")
+
+  const filteredUsers = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return users
+    return users.filter((u) => `${u.firstName} ${u.lastName || ''}`.toLowerCase().includes(q))
+  }, [users, search])
+
+  const toggle = (id: string) => {
+    onChange(value.includes(id) ? value.filter((v) => v !== id) : [...value, id])
+  }
+
+  return (
+    <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
+      <div className="p-2 border-b border-border/60 bg-muted/30">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search users..."
+            className="pl-8 h-8 text-sm bg-background"
+          />
+        </div>
+      </div>
+      <div className="max-h-[180px] overflow-y-auto p-1.5 space-y-0.5">
+        {filteredUsers.length === 0 ? (
+          <p className="px-2 py-4 text-xs text-muted-foreground text-center">No users found.</p>
+        ) : (
+          filteredUsers.map((user) => {
+            const checked = value.includes(user.id)
+            return (
+              <label
+                key={user.id}
+                className={cn(
+                  "flex items-center gap-2 cursor-pointer hover:bg-muted/60 p-1.5 rounded-lg transition-colors",
+                  checked && "bg-primary/5"
+                )}
+              >
+                <Checkbox checked={checked} onCheckedChange={() => toggle(user.id)} />
+                <span className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
+                  {userInitials(user)}
+                </span>
+                <span className="text-sm truncate flex-1">{user.firstName} {user.lastName || ''}</span>
+                {user.dailyLeadQuota && (
+                  <span className="text-xs text-muted-foreground shrink-0">({user.dailyLeadQuota}/day)</span>
+                )}
+              </label>
+            )
+          })
+        )}
+      </div>
+      {value.length > 0 && (
+        <div className="px-3 py-1.5 border-t border-border/60 bg-muted/20 text-[11px] text-muted-foreground">
+          {value.length} user{value.length === 1 ? '' : 's'} selected
+        </div>
+      )}
+    </div>
+  )
 }
