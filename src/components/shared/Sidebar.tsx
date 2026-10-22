@@ -51,7 +51,8 @@ import {
   Sprout,
   ToggleRight,
   Instagram as InstagramIcon,
-  UserPlus as UserPlusIcon
+  UserPlus as UserPlusIcon,
+  History
 } from "lucide-react";
 import { WhatsAppLogo } from "@/components/icons/BrandLogos";
 import Logo from "./Logo";
@@ -73,6 +74,7 @@ const menuGroups = [
     items: [
       { title: "Leads", href: "/leads", icon: Users },
       { title: "Lead Transfers", href: "/leads/transfers", icon: ArrowLeftRight },
+      { title: "Transfer Log", href: "/leads/transfer-log", icon: History, role: "admin" },
       { title: "Re-Enquiries", href: "/re-enquiries", icon: RefreshCw, role: "admin" },
       { title: "Duplicates", href: "/duplicates", icon: Copy, role: "admin" },
       { title: "Accounts", href: "/accounts", icon: Building },

@@ -183,6 +183,19 @@ export const getLeadHistory = async (id: string) => {
     return response.data;
 };
 
+export interface LeadTransferLogParams {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+}
+
+export const getLeadTransferLog = async (params?: LeadTransferLogParams) => {
+    const response = await api.get('/leads/transfer-log', { params });
+    return response.data;
+};
+
 export const getReEnquiryLeads = async () => {
     const response = await api.get('/leads/re-enquiries');
     return response.data;
