@@ -661,13 +661,19 @@ export default function LeadsPage() {
       });
     }
     
-    if (currentOwner !== 'all') {
-      const found = users.find((u: any) => u.id === currentOwner);
-      const label = found ? `Assigned to: ${found.firstName} ${found.lastName || ''}` : `Owner: ${currentOwner}`;
+    if (currentOwner !== 'all' && currentOwner) {
+      const ids = currentOwner.split(',').filter(Boolean);
+      const names = ids.map((id) => {
+        const found = users.find((u: any) => u.id === id);
+        return found ? `${found.firstName} ${found.lastName || ''}`.trim() : id;
+      });
+      const label = names.length === 1
+        ? `Assigned to: ${names[0]}`
+        : `Assigned to: ${names[0]} +${names.length - 1} more`;
       list.push({
         key: 'owner',
         label,
-        clear: () => updateSearchParams({ owner: 'all' })
+        clear: () => updateSearchParams({ owner: undefined })
       });
     }
     
@@ -863,8 +869,25 @@ export default function LeadsPage() {
     updateSearchParams({ sort });
   };
 
-  const handleOwnerChange = (owner: string) => {
-    updateSearchParams({ owner });
+  // Multi-select "Assigned To" filter - `currentOwner` stays a single raw
+  // string (now possibly comma-separated, e.g. "id1,id2"), matching what
+  // the backend's `assignedTo` query param already accepts (see
+  // leadController.ts's getLeads - extended for the export-by-users dialog,
+  // reused here since it's the same comma-separated-IDs shape).
+  const selectedOwnerIds = useMemo(
+    () => (currentOwner === 'all' || !currentOwner ? [] : currentOwner.split(',').filter(Boolean)),
+    [currentOwner]
+  );
+
+  const toggleOwnerFilter = (userId: string) => {
+    const next = selectedOwnerIds.includes(userId)
+      ? selectedOwnerIds.filter((id) => id !== userId)
+      : [...selectedOwnerIds, userId];
+    updateSearchParams({ owner: next.length > 0 ? next.join(',') : undefined });
+  };
+
+  const clearOwnerFilter = () => {
+    updateSearchParams({ owner: undefined });
   };
 
   const handleBranchChange = (branch: string) => {
@@ -1137,12 +1160,14 @@ export default function LeadsPage() {
                   <PopoverTrigger asChild>
                     <button type="button" className={cn(FILTER_TRIGGER_CLASS, "flex items-center")}>
                       <span className="truncate">
-                        {currentOwner === 'all'
+                        {selectedOwnerIds.length === 0
                           ? 'General Pool (All)'
-                          : (() => {
-                              const owner = users.find((u: any) => u.id === currentOwner);
+                          : selectedOwnerIds.length === 1
+                          ? (() => {
+                              const owner = users.find((u: any) => u.id === selectedOwnerIds[0]);
                               return owner ? `${owner.firstName} ${owner.lastName || ''}` : 'All Owners';
-                            })()}
+                            })()
+                          : `${selectedOwnerIds.length} users selected`}
                       </span>
                     </button>
                   </PopoverTrigger>
@@ -1162,10 +1187,10 @@ export default function LeadsPage() {
                     <div className="max-h-60 overflow-y-auto p-1">
                       <button
                         type="button"
-                        onClick={() => { handleOwnerChange('all'); setOwnerFilterOpen(false); }}
+                        onClick={() => { clearOwnerFilter(); setOwnerFilterOpen(false); }}
                         className={cn(
                           "w-full flex items-center gap-2 rounded-lg px-2 py-2 text-sm italic font-medium hover:bg-muted/60 text-left",
-                          currentOwner === 'all' && "bg-muted"
+                          selectedOwnerIds.length === 0 && "bg-muted"
                         )}
                       >
                         General Pool (All)
@@ -1173,24 +1198,42 @@ export default function LeadsPage() {
                       {ownerFilterUsers.length === 0 ? (
                         <p className="px-2 py-4 text-xs text-muted-foreground text-center">No users found.</p>
                       ) : (
-                        ownerFilterUsers.map((user: any) => (
-                          <button
-                            key={user.id}
-                            type="button"
-                            onClick={() => { handleOwnerChange(user.id); setOwnerFilterOpen(false); }}
-                            className={cn(
-                              "w-full flex items-center gap-2 rounded-lg px-2 py-2 text-sm hover:bg-muted/60 text-left",
-                              currentOwner === user.id && "bg-muted"
-                            )}
-                          >
-                            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
-                              {user.firstName[0]}{user.lastName?.[0] || ''}
-                            </div>
-                            <span className="truncate">{user.firstName} {user.lastName || ''}</span>
-                          </button>
-                        ))
+                        ownerFilterUsers.map((user: any) => {
+                          const checked = selectedOwnerIds.includes(user.id);
+                          return (
+                            <label
+                              key={user.id}
+                              htmlFor={`owner-filter-${user.id}`}
+                              className={cn(
+                                "w-full flex items-center gap-2 rounded-lg px-2 py-2 text-sm hover:bg-muted/60 text-left cursor-pointer",
+                                checked && "bg-muted"
+                              )}
+                            >
+                              <Checkbox
+                                id={`owner-filter-${user.id}`}
+                                checked={checked}
+                                onCheckedChange={() => toggleOwnerFilter(user.id)}
+                              />
+                              <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
+                                {user.firstName[0]}{user.lastName?.[0] || ''}
+                              </div>
+                              <span className="truncate">{user.firstName} {user.lastName || ''}</span>
+                            </label>
+                          );
+                        })
                       )}
                     </div>
+                    {selectedOwnerIds.length > 0 && (
+                      <div className="p-2 border-t border-border">
+                        <Button
+                          size="sm"
+                          className="w-full h-8 rounded-lg"
+                          onClick={() => setOwnerFilterOpen(false)}
+                        >
+                          Done ({selectedOwnerIds.length} selected)
+                        </Button>
+                      </div>
+                    )}
                   </PopoverContent>
                 </Popover>
                 </div>
