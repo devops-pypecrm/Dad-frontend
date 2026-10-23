@@ -144,8 +144,8 @@ const menuGroups = [
     title: "System",
     items: [
       { title: "Training", href: "/training", icon: BookOpen },
-      { title: "Workflows", href: "/workflows", icon: GitBranch },
-      { title: "Automation", href: "/automation", icon: Zap },
+      { title: "Workflows", href: "/workflows", icon: GitBranch, feature: "workflow_automation" },
+      { title: "Automation", href: "/automation", icon: Zap, feature: "workflow_automation" },
       { title: "Hierarchy", href: "/organisation/hierarchy", icon: Network, role: "admin" },
       { title: "Trash", href: "/trash", icon: Trash2, role: "org_admin" },
       { title: "Settings", href: "/settings", icon: Settings },
@@ -286,10 +286,13 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
   const instagramEnabled = Array.isArray(user?.organisation?.enabledFeatures) && user.organisation.enabledFeatures.includes('instagram');
 
+  const orgEnabledFeatures: string[] = Array.isArray(user?.organisation?.enabledFeatures) ? user.organisation.enabledFeatures : [];
+
   const filteredGroups = userIsSuperAdmin ? [] : menuGroups.filter(g => (g.title !== 'WhatsApp' || whatsAppEnabled) && (g.title !== 'Instagram' || instagramEnabled)).map(group => ({
     ...group,
     items: group.items.filter(item => {
       if (item.title === 'Settings') return canAccessSettings(user);
+      if ((item as any).feature && !orgEnabledFeatures.includes((item as any).feature)) return false;
       if (item.role === 'admin' && !isAdmin(user)) return false;
       if (item.role === 'org_admin' && !isOrgAdmin(user)) return false;
       if (item.role === 'manager' && !isManager(user)) return false;
