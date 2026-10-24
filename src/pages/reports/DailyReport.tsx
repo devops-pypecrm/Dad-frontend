@@ -5,7 +5,7 @@ import { getBranches, getOrganisation } from '@/services/settingsService';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { FileDown, RefreshCw, Printer, Building, Calendar } from 'lucide-react';
+import { FileDown, RefreshCw, Printer, Building, Calendar, BarChart3 as BarChart3Icon } from 'lucide-react';
 import { PageLoader } from '@/components/ui/page-loader';
 import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
@@ -185,17 +185,22 @@ export default function DailyReportPage() {
   const dateLabel = getPeriodLabel();
 
   return (
-    <div className="p-4 sm:p-8 space-y-6 max-w-7xl mx-auto min-h-screen animate-in fade-in duration-500">
+    <div className="bg-white p-4 sm:p-8 space-y-6 max-w-7xl mx-auto min-h-screen animate-in fade-in duration-300 font-poppins">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 no-print">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Daily Performance Report</h1>
-          <p className="text-muted-foreground flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-border/40 no-print">
+        <div>
+          <div className="flex items-center gap-2">
+            <div className="h-9 w-9 rounded-[10px] bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+              <BarChart3Icon className="h-5 w-5" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">Daily Performance Report</h1>
+          </div>
+          <p className="text-gray-500 text-xs sm:text-sm mt-1 ml-11 flex items-center gap-2">
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             Performance metrics for {dateLabel}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           {(selectedBranchId !== "all" || period !== "today") && (
             <Button
               onClick={() => {
@@ -204,17 +209,17 @@ export default function DailyReportPage() {
               }}
               variant="ghost"
               size="sm"
-              className="text-muted-foreground hover:text-foreground h-10 px-3 border border-border/40 hover:bg-muted/50 rounded-lg"
+              className="text-muted-foreground hover:text-foreground h-9 px-3 border border-border/60 hover:bg-muted/50 rounded-[10px] text-xs"
             >
               Clear Filters
             </Button>
           )}
 
-          <div className="w-[180px]">
+          <div className="w-[160px]">
             <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="bg-background border-primary/20 h-10 px-4">
+              <SelectTrigger className="bg-background border-border/60 h-9 text-xs rounded-[10px]">
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-primary/60" />
+                  <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
                   <SelectValue placeholder="Select period" />
                 </div>
               </SelectTrigger>
@@ -231,11 +236,11 @@ export default function DailyReportPage() {
           </div>
 
           {isAdmin && branches && branches.length > 0 && (
-            <div className="w-[200px]">
+            <div className="w-[180px]">
               <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
-                <SelectTrigger className="bg-background border-primary/20 h-10 px-4">
+                <SelectTrigger className="bg-background border-border/60 h-9 text-xs rounded-[10px]">
                   <div className="flex items-center gap-2">
-                    <Building className="h-4 w-4 text-primary/60" />
+                    <Building className="h-3.5 w-3.5 text-muted-foreground" />
                     <SelectValue placeholder="All Branches" />
                   </div>
                 </SelectTrigger>
@@ -248,38 +253,38 @@ export default function DailyReportPage() {
               </Select>
             </div>
           )}
-          <Button 
-            onClick={() => refetch()} 
-            variant="outline" 
+          <Button
+            onClick={() => refetch()}
+            variant="outline"
             size="sm"
             disabled={isFetching}
-            className="gap-2 border-primary/20 hover:bg-primary/5 h-10 px-4"
+            className="gap-1.5 border-border/60 hover:bg-muted/50 h-9 px-3 rounded-[10px] text-xs"
           >
-            <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin text-primary' : ''}`} />
+            <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin text-primary' : ''}`} />
             {isFetching ? 'Refreshing...' : 'Refresh'}
           </Button>
-          <Button 
-            onClick={handlePrint} 
-            variant="outline" 
+          <Button
+            onClick={handlePrint}
+            variant="outline"
             size="sm"
-            className="gap-2 border-primary/20 hover:bg-primary/5 h-10 px-4"
+            className="gap-1.5 border-border/60 hover:bg-muted/50 h-9 px-3 rounded-[10px] text-xs"
           >
-            <Printer className="h-4 w-4" />
+            <Printer className="h-3.5 w-3.5" />
             Print
           </Button>
-          <Button 
-            onClick={handleDownloadPDF} 
+          <Button
+            onClick={handleDownloadPDF}
             size="sm"
-            className="gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 h-10 px-4"
+            className="gap-1.5 bg-primary hover:bg-primary/90 h-9 px-3 rounded-[10px] text-xs"
           >
-            <FileDown className="h-4 w-4" />
+            <FileDown className="h-3.5 w-3.5" />
             Export PDF
           </Button>
         </div>
       </div>
 
       {/* Report Content Area (Captured in PDF) */}
-      <div ref={reportRef} className="space-y-8 bg-background p-6 rounded-xl border border-border/50">
+      <div ref={reportRef} className="space-y-6 bg-card p-5 sm:p-6 rounded-[14px] border border-border/60">
         {/* Branding & Header Section */}
         <div className="flex flex-col gap-6 border-b border-border/50 pb-8">
           <div className="flex items-center justify-between">
@@ -313,29 +318,29 @@ export default function DailyReportPage() {
         </div>
 
         {/* Table Card */}
-        <Card className="border-none shadow-none overflow-hidden rounded-xl bg-background">
+        <Card className="border border-border/60 shadow-none overflow-hidden rounded-[14px] bg-card">
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-[#6B3BA8] hover:bg-[#6B3BA8] transition-none border-none">
+              <TableHeader className="bg-primary hover:bg-primary transition-none border-none">
                 <TableRow className="hover:bg-transparent border-none">
-                  <TableHead className="text-white font-bold py-6 px-4 text-[11px] uppercase tracking-wider border-r border-white/10 first:rounded-tl-xl w-[220px]">User Name</TableHead>
-                  <TableHead className="text-white font-bold py-6 px-2 text-[11px] uppercase tracking-wider border-r border-white/10 text-center w-[100px]">Branch</TableHead>
-                  <TableHead className="text-white font-bold py-6 px-2 text-center text-[11px] uppercase tracking-wider border-r border-white/10">Calls</TableHead>
-                  <TableHead className="text-white font-bold py-6 px-2 text-center text-[11px] uppercase tracking-wider border-r border-white/10">Connected</TableHead>
-                  <TableHead className="text-white font-bold py-6 px-2 text-center text-[11px] uppercase tracking-wider border-r border-white/10">Unconnected</TableHead>
-                  <TableHead className="text-white font-bold py-6 px-2 text-center text-[11px] uppercase tracking-wider border-r border-white/10">Converted</TableHead>
-                  <TableHead className="text-white font-bold py-6 px-2 text-center text-[11px] uppercase tracking-wider last:rounded-tr-xl">Lost</TableHead>
+                  <TableHead className="text-primary-foreground font-bold py-4 px-4 text-[11px] uppercase tracking-wider border-r border-white/10 w-[220px]">User Name</TableHead>
+                  <TableHead className="text-primary-foreground font-bold py-4 px-2 text-[11px] uppercase tracking-wider border-r border-white/10 text-center w-[100px]">Branch</TableHead>
+                  <TableHead className="text-primary-foreground font-bold py-4 px-2 text-center text-[11px] uppercase tracking-wider border-r border-white/10">Calls</TableHead>
+                  <TableHead className="text-primary-foreground font-bold py-4 px-2 text-center text-[11px] uppercase tracking-wider border-r border-white/10">Connected</TableHead>
+                  <TableHead className="text-primary-foreground font-bold py-4 px-2 text-center text-[11px] uppercase tracking-wider border-r border-white/10">Unconnected</TableHead>
+                  <TableHead className="text-primary-foreground font-bold py-4 px-2 text-center text-[11px] uppercase tracking-wider border-r border-white/10">Converted</TableHead>
+                  <TableHead className="text-primary-foreground font-bold py-4 px-2 text-center text-[11px] uppercase tracking-wider">Lost</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {tableData.length > 0 ? (
                   tableData.map((row: any, idx: number) => (
-                    <TableRow 
-                      key={row.id} 
+                    <TableRow
+                      key={row.id}
                       className={`
-                        border-b border-border/50 transition-colors
-                        ${idx % 2 === 0 ? 'bg-background' : 'bg-muted/10'}
-                        hover:bg-purple-500/5
+                        border-b border-border/40 transition-colors
+                        ${idx % 2 === 0 ? 'bg-card' : 'bg-muted/10'}
+                        hover:bg-primary/5
                       `}
                     >
                       <TableCell className="py-5 px-4 font-bold text-foreground text-[12px] uppercase">
@@ -352,7 +357,7 @@ export default function DailyReportPage() {
                       <TableCell className="text-center py-5">
                         <span className={`
                           inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-full text-xs font-semibold
-                          ${row.totalConnected > 0 ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}
+                          ${row.totalConnected > 0 ? 'bg-emerald-500/10 text-emerald-700' : 'bg-muted text-muted-foreground'}
                         `}>
                           {row.totalConnected}
                         </span>
@@ -363,7 +368,7 @@ export default function DailyReportPage() {
                       <TableCell className="text-center py-5">
                         <span className={`
                           inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-full text-xs font-semibold
-                          ${row.totalConverted > 0 ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-500'}
+                          ${row.totalConverted > 0 ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}
                         `}>
                           {row.totalConverted}
                         </span>
@@ -371,7 +376,7 @@ export default function DailyReportPage() {
                       <TableCell className="text-center py-5">
                         <span className={`
                           inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-full text-xs font-semibold
-                          ${row.totalLost > 0 ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500'}
+                          ${row.totalLost > 0 ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'}
                         `}>
                           {row.totalLost}
                         </span>
@@ -396,14 +401,14 @@ export default function DailyReportPage() {
         {/* Summary Cards Section */}
         {summary && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <SummaryCard title="Total Phone Calls" value={summary.totalCalls} subValue={formatDuration(summary.totalDuration)} color="bg-blue-500" />
-            <SummaryCard title="Incoming Calls" value={summary.incoming} subValue={formatDuration(summary.incomingDuration)} color="bg-emerald-500" />
-            <SummaryCard title="Outgoing Calls" value={summary.outgoing} subValue={formatDuration(summary.outgoingDuration)} color="bg-indigo-500" />
-            <SummaryCard title="Missed Calls" value={summary.missed} color="bg-rose-500" />
-            <SummaryCard title="Rejected Calls" value={summary.rejected} color="bg-orange-500" />
-            <SummaryCard title="Never Attended Calls" value={summary.neverAttended} color="bg-slate-500" />
-            <SummaryCard title="Not Pickup by Client" value={summary.notPickedUp} color="bg-amber-500" />
-            <SummaryCard title="Unique Calls" value={summary.unique} color="bg-purple-500" />
+            <SummaryCard title="Total Phone Calls" value={summary.totalCalls} subValue={formatDuration(summary.totalDuration)} accent="primary" />
+            <SummaryCard title="Incoming Calls" value={summary.incoming} subValue={formatDuration(summary.incomingDuration)} accent="emerald" />
+            <SummaryCard title="Outgoing Calls" value={summary.outgoing} subValue={formatDuration(summary.outgoingDuration)} accent="primary" />
+            <SummaryCard title="Missed Calls" value={summary.missed} accent="destructive" />
+            <SummaryCard title="Rejected Calls" value={summary.rejected} accent="amber" />
+            <SummaryCard title="Never Attended Calls" value={summary.neverAttended} accent="muted" />
+            <SummaryCard title="Not Pickup by Client" value={summary.notPickedUp} accent="amber" />
+            <SummaryCard title="Unique Calls" value={summary.unique} accent="emerald" />
           </div>
         )}
       </div>
@@ -421,28 +426,35 @@ export default function DailyReportPage() {
   );
 }
 
-function SummaryCard({ title, value, subValue, color }: { title: string; value: number; subValue?: string; color: string }) {
+const SUMMARY_ACCENTS: Record<string, { bar: string; text: string }> = {
+  primary: { bar: "bg-primary", text: "group-hover:text-primary" },
+  emerald: { bar: "bg-emerald-500", text: "group-hover:text-emerald-600" },
+  amber: { bar: "bg-amber-500", text: "group-hover:text-amber-600" },
+  destructive: { bar: "bg-destructive", text: "group-hover:text-destructive" },
+  muted: { bar: "bg-muted-foreground/40", text: "" },
+};
+
+function SummaryCard({ title, value, subValue, accent }: { title: string; value: number; subValue?: string; accent: keyof typeof SUMMARY_ACCENTS }) {
+  const classes = SUMMARY_ACCENTS[accent];
   return (
-    <Card className="border-none shadow-lg shadow-black/5 overflow-hidden rounded-2xl bg-background group hover:scale-[1.02] transition-all">
-      <div className="p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className={`w-2 h-10 rounded-full ${color}`} />
-          {subValue && (
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted px-2 py-1 rounded-lg">
-              {subValue}
-            </span>
-          )}
-        </div>
-        <div className="space-y-1">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70">
-            {title}
-          </p>
-          <p className="text-3xl font-black text-foreground tabular-nums group-hover:text-primary transition-colors">
-            {value}
-          </p>
-        </div>
+    <div className="rounded-[14px] border border-border/60 bg-card p-4 sm:p-5 shadow-xs transition-all hover:border-border group">
+      <div className="flex items-center justify-between">
+        <div className={`w-2 h-10 rounded-full ${classes.bar}`} />
+        {subValue && (
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted px-2 py-1 rounded-[8px]">
+            {subValue}
+          </span>
+        )}
       </div>
-    </Card>
+      <div className="mt-3 space-y-1">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {title}
+        </p>
+        <p className={`text-2xl sm:text-3xl font-bold text-foreground tabular-nums transition-colors ${classes.text}`}>
+          {value}
+        </p>
+      </div>
+    </div>
   );
 }
 

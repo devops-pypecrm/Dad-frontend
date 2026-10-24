@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getLeadDistributionReport } from '@/services/analyticsService';
 import { getBranches } from '@/services/settingsService';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Building, Filter, ArrowLeft, Loader2, Calendar, User as UserIcon, List, Download, ChevronLeft, ChevronRight, X } from 'lucide-react';
@@ -141,19 +140,22 @@ export default function LeadDistributionPage() {
     if (isLoading) return <PageLoader text="Loading distribution report..." />;
 
     return (
-        <div className="p-8 space-y-6">
+        <div className="bg-white min-h-screen p-4 sm:p-8 space-y-6 animate-in fade-in duration-300 font-poppins">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-border/40">
                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => navigate('/reports')}>
+                    <Button variant="ghost" size="icon" onClick={() => navigate('/reports')} className="rounded-[10px]">
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
-                    <h1 className="text-3xl font-bold tracking-tight">Lead Distribution Report</h1>
+                    <div className="h-9 w-9 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        <UserIcon className="h-5 w-5" />
+                    </div>
+                    <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">Lead Distribution Report</h1>
                 </div>
-                <div className="flex flex-wrap items-end gap-4">
+                <div className="flex flex-wrap items-end gap-3">
                     <div className="flex flex-col gap-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">DATE RANGE</span>
-                        <PremiumDateRangePicker 
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground ml-1">Date Range</span>
+                        <PremiumDateRangePicker
                             startDate={startDate}
                             endDate={endDate}
                             onUpdate={(start, end) => {
@@ -165,12 +167,12 @@ export default function LeadDistributionPage() {
 
                     {isAdmin && branches && branches.length > 0 && (
                         <div className="flex flex-col gap-1">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">BRANCH</span>
-                            <div className="w-[200px]">
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground ml-1">Branch</span>
+                            <div className="w-[180px]">
                                 <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
-                                    <SelectTrigger className="bg-background h-10 px-4">
+                                    <SelectTrigger className="bg-background border-border/60 h-9 text-xs rounded-[10px]">
                                         <div className="flex items-center gap-2">
-                                            <Building className="h-4 w-4 text-primary/60" />
+                                            <Building className="h-3.5 w-3.5 text-muted-foreground" />
                                             <SelectValue placeholder="All Branches" />
                                         </div>
                                     </SelectTrigger>
@@ -185,55 +187,51 @@ export default function LeadDistributionPage() {
                         </div>
                     )}
 
-                    <div className="flex flex-col gap-1">
-                        <Button 
-                            variant="outline" 
-                            onClick={handleExportExcel} 
-                            disabled={isExporting}
-                            className="gap-2 h-10"
-                        >
-                            {isExporting ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <Download className="h-4 w-4" />
-                            )}
-                            Download Excel
-                        </Button>
-                    </div>
+                    <Button
+                        variant="outline"
+                        onClick={handleExportExcel}
+                        disabled={isExporting}
+                        className="gap-1.5 h-9 rounded-[10px] text-xs"
+                    >
+                        {isExporting ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                            <Download className="h-3.5 w-3.5" />
+                        )}
+                        Download Excel
+                    </Button>
 
-                    <div className="flex flex-col gap-1">
-                        <Button 
-                            variant="outline" 
-                            onClick={handleClearAllFilters} 
-                            disabled={!hasActiveFilters}
-                            className={`gap-2 h-10 transition-all font-semibold text-xs rounded-lg ${
-                                hasActiveFilters 
-                                    ? 'text-destructive border-destructive/50 hover:bg-destructive/10 bg-destructive/5' 
-                                    : 'text-muted-foreground/40 border-border/30 opacity-60 cursor-not-allowed bg-background/50'
-                            }`}
-                            title="Clear All Active Filters"
-                        >
-                            <X className="h-4 w-4" />
-                            Clear Filters
-                        </Button>
-                    </div>
+                    <Button
+                        variant="outline"
+                        onClick={handleClearAllFilters}
+                        disabled={!hasActiveFilters}
+                        className={`gap-1.5 h-9 rounded-[10px] transition-all font-semibold text-xs ${
+                            hasActiveFilters
+                                ? 'text-destructive border-destructive/40 hover:bg-destructive/10 bg-destructive/5'
+                                : 'text-muted-foreground/40 border-border/30 opacity-60 cursor-not-allowed bg-background/50'
+                        }`}
+                        title="Clear All Active Filters"
+                    >
+                        <X className="h-3.5 w-3.5" />
+                        Clear Filters
+                    </Button>
                 </div>
             </div>
 
             {/* Active Filters Row */}
             {activeFiltersList.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2 bg-background/40 backdrop-blur-sm rounded-xl border border-border/40 p-2.5 shadow-sm">
-                    <span className="text-xs font-bold text-muted-foreground/80 flex items-center gap-1.5 mr-1 pl-1">
+                <div className="flex flex-wrap items-center gap-2 rounded-[14px] border border-border/60 bg-card p-2.5 shadow-xs">
+                    <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 mr-1 pl-1">
                         <Filter className="h-3.5 w-3.5 text-primary/60" />
-                        ACTIVE FILTERS:
+                        Active Filters:
                     </span>
                     {activeFiltersList.map((filter) => (
-                        <div 
+                        <div
                             key={filter.key}
-                            className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold border border-primary/20 hover:bg-primary/15 transition-all shadow-sm"
+                            className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold border border-primary/20 hover:bg-primary/15 transition-all"
                         >
                             <span>{filter.label}</span>
-                            <button 
+                            <button
                                 onClick={filter.clear}
                                 className="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
                                 title={`Clear ${filter.key} filter`}
@@ -246,7 +244,7 @@ export default function LeadDistributionPage() {
                         variant="ghost"
                         size="sm"
                         onClick={handleClearAllFilters}
-                        className="h-8 px-3 text-xs text-destructive hover:bg-destructive/10 rounded-full font-bold gap-1 shrink-0 ml-auto border border-destructive/20 bg-destructive/5 hover:border-destructive/30 shadow-sm transition-all"
+                        className="h-7 px-2.5 text-xs text-destructive hover:bg-destructive/10 rounded-full font-semibold gap-1 shrink-0 ml-auto border border-destructive/20 bg-destructive/5"
                         title="Clear All Filters"
                     >
                         <X className="h-3.5 w-3.5" />
@@ -255,14 +253,13 @@ export default function LeadDistributionPage() {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 {/* Summary Table */}
-                <Card className="lg:col-span-2">
-                    <CardHeader>
-                        <CardTitle>User-wise Distribution</CardTitle>
-                        <CardDescription>Total leads distributed to each user in the selected period.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
+                <div className="lg:col-span-2 rounded-[14px] border border-border/70 bg-card overflow-hidden shadow-xs">
+                    <div className="px-4 py-3.5 border-b border-border/60 bg-muted/40">
+                        <span className="text-sm font-semibold text-foreground">User-wise Distribution</span>
+                        <p className="text-xs text-muted-foreground mt-0.5">Total leads distributed to each user in the selected period.</p>
+                    </div>
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -282,7 +279,7 @@ export default function LeadDistributionPage() {
                                             </TableCell>
                                             <TableCell>{row.branch}</TableCell>
                                             <TableCell className="text-center">
-                                                <Badge variant="secondary" className="px-3 py-1 text-sm font-bold">
+                                                <Badge variant="outline" className="px-3 py-1 text-sm font-bold bg-primary/10 text-primary border-primary/20">
                                                     {row.count}
                                                 </Badge>
                                             </TableCell>
@@ -343,19 +340,17 @@ export default function LeadDistributionPage() {
                                 )}
                             </TableBody>
                         </Table>
-                    </CardContent>
-                </Card>
+                </div>
 
                 {/* Date-wise Breakdown */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Daily Breakdown</CardTitle>
-                        <CardDescription>Total distributions per day.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
+                <div className="rounded-[14px] border border-border/70 bg-card overflow-hidden shadow-xs">
+                    <div className="px-4 py-3.5 border-b border-border/60 bg-muted/40">
+                        <span className="text-sm font-semibold text-foreground">Daily Breakdown</span>
+                        <p className="text-xs text-muted-foreground mt-0.5">Total distributions per day.</p>
+                    </div>
                         <Table>
                             <TableHeader>
-                                <TableRow>
+                                <TableRow className="hover:bg-transparent">
                                     <TableHead>Date</TableHead>
                                     <TableHead className="text-right">Count</TableHead>
                                 </TableRow>
@@ -363,7 +358,7 @@ export default function LeadDistributionPage() {
                             <TableBody>
                                 {summaryByDate.length > 0 ? (
                                     summaryByDate.map((row: any) => (
-                                        <TableRow key={row.date}>
+                                        <TableRow key={row.date} className="hover:bg-muted/20">
                                             <TableCell className="font-medium">{formatIST(row.date, 'MMM d, yyyy')}</TableCell>
                                             <TableCell className="text-right font-bold">{row.count}</TableCell>
                                         </TableRow>
@@ -377,8 +372,7 @@ export default function LeadDistributionPage() {
                                 )}
                             </TableBody>
                         </Table>
-                    </CardContent>
-                </Card>
+                </div>
             </div>
         </div>
     );

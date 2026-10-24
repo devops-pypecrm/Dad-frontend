@@ -40,7 +40,8 @@ import {
   Calendar,
   Filter,
   Globe,
-  Megaphone
+  Megaphone,
+  PieChart as PieChartIcon
 } from "lucide-react"
 import { BulkActionsToolbar } from "@/components/shared/BulkActionsToolbar"
 import { BulkAssignDialog } from "./BulkAssignDialog"
@@ -84,6 +85,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { ResponsiveContainer, PieChart as RechartsPie, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts'
+import { CHART_COLORS } from "@/components/dashboard-v2/chartColors"
 import { LeadTableRow } from "./LeadTableRow"
 import { FILTER_CARD_CLASS, FILTER_ICON_CLASS, FILTER_LABEL_CLASS, FILTER_TRIGGER_CLASS } from "./filterStyles"
 import { useLeadStatuses } from "@/hooks/useLeadStatuses"
@@ -108,7 +110,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 
 // --- Helper Components & Logiccc ---
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
 // Task Table Component (Simple version for Follow Ups view)
 function TaskTable({ tasks }: { tasks: Task[] }) {
@@ -156,26 +157,68 @@ function TaskTable({ tasks }: { tasks: Task[] }) {
 }
 
 // Chart Components
-const StatusPieChart = React.memo(({ data }: { data: { name: string; value: number }[] }) => (
-  <ResponsiveContainer minWidth={1} minHeight={1}  width="100%" height={400} >
-    <RechartsPie>
-      <Pie data={data} cx="50%" cy="50%" labelLine={false} label={({ name, percent }: { name?: string; percent?: number }) => `${name || ''} ${((percent || 0) * 100).toFixed(0)}%`} outerRadius={80} fill="#8884d8" dataKey="value">
-        {data.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
-      </Pie>
-      <Tooltip />
-      <Legend />
-    </RechartsPie>
-  </ResponsiveContainer>
-));
+const StatusPieChart = React.memo(({ data }: { data: { name: string; value: number }[] }) => {
+  const total = data.reduce((sum, d) => sum + d.value, 0);
+  return (
+    <ResponsiveContainer minWidth={1} minHeight={1} width="100%" height={340}>
+      <RechartsPie>
+        <Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          innerRadius={55}
+          outerRadius={90}
+          paddingAngle={3}
+          dataKey="value"
+          nameKey="name"
+          labelLine={false}
+          label={({ cx, cy, midAngle = 0, outerRadius: r, value }) => {
+            const RADIAN = Math.PI / 180;
+            const radius = r + 16;
+            const x = cx + radius * Math.cos(-midAngle * RADIAN);
+            const y = cy + radius * Math.sin(-midAngle * RADIAN);
+            return (
+              <text
+                x={x}
+                y={y}
+                textAnchor={x > cx ? "start" : "end"}
+                dominantBaseline="central"
+                fontFamily="Poppins, sans-serif"
+                fontSize={12}
+                fill="hsl(var(--foreground))"
+              >
+                {total ? `${Math.round((value / total) * 100)}%` : "0%"}
+              </text>
+            );
+          }}
+        >
+          {data.map((entry, index) => <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />)}
+        </Pie>
+        <Tooltip
+          contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", borderRadius: "8px", fontFamily: "Poppins, sans-serif" }}
+          itemStyle={{ color: "hsl(var(--foreground))" }}
+          formatter={(value?: number, name?: string) => [`${value ?? 0} leads`, name ?? ""]}
+        />
+        <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: 12, fontFamily: "Poppins, sans-serif" }} />
+      </RechartsPie>
+    </ResponsiveContainer>
+  );
+});
 
 const VerticalBarChart = React.memo(({ data }: { data: { name: string; value: number }[] }) => (
-  <ResponsiveContainer minWidth={1} minHeight={1}  width="100%" height={400} >
+  <ResponsiveContainer minWidth={1} minHeight={1} width="100%" height={Math.max(340, data.length * 44)}>
     <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis type="number" />
-      <YAxis dataKey="name" type="category" width={100} />
-      <Tooltip />
-      <Bar dataKey="value" fill="#8884d8" />
+      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+      <XAxis type="number" tick={{ fontSize: 12, fontFamily: "Poppins, sans-serif", fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+      <YAxis dataKey="name" type="category" width={140} tick={{ fontSize: 12, fontFamily: "Poppins, sans-serif", fill: "hsl(var(--foreground))" }} axisLine={false} tickLine={false} />
+      <Tooltip
+        cursor={{ fill: "hsl(var(--muted))" }}
+        contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", borderRadius: "8px", fontFamily: "Poppins, sans-serif" }}
+        itemStyle={{ color: "hsl(var(--foreground))" }}
+      />
+      <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 6, 6, 0]} barSize={22}>
+        {data.map((entry, index) => <Cell key={`bar-cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />)}
+      </Bar>
     </BarChart>
   </ResponsiveContainer>
 ));
@@ -1487,13 +1530,16 @@ export default function LeadsPage() {
             <div className="flex-1">
               {isChartView ? (
                 <div className="p-2 sm:p-6">
-                  <Card className="border-0 sm:border shadow-sm">
-                    <CardHeader className="p-4 sm:p-6"><CardTitle className="text-lg capitalize">{currentView.replace(/-/g, ' ')}</CardTitle></CardHeader>
-                    <CardContent className="p-2 sm:p-6 sm:pt-0">
-                      {currentView === 'leads-by-status' && <StatusPieChart data={getChartData()} />}
-                      {currentView !== 'leads-by-status' && <VerticalBarChart data={getChartData()} />}
-                    </CardContent>
-                  </Card>
+                  <div className="rounded-[14px] border border-border/60 bg-card shadow-xs p-4 sm:p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="h-8 w-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        <PieChartIcon className="h-4 w-4" />
+                      </div>
+                      <h3 className="text-sm sm:text-base font-semibold text-foreground capitalize">{currentView.replace(/-/g, ' ')}</h3>
+                    </div>
+                    {currentView === 'leads-by-status' && <StatusPieChart data={getChartData()} />}
+                    {currentView !== 'leads-by-status' && <VerticalBarChart data={getChartData()} />}
+                  </div>
                 </div>
               ) : isTaskView ? (
                 <div className="p-2 sm:p-4">

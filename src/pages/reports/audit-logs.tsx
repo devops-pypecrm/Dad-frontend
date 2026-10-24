@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -208,184 +207,183 @@ export default function AuditLogsReport() {
   };
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="bg-white min-h-screen p-4 sm:p-8 space-y-6 animate-in fade-in duration-300 font-poppins">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/40">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Audit Logs Report</h1>
-          <p className="text-muted-foreground mt-2">View and download system activity logs</p>
+          <div className="flex items-center gap-2">
+            <div className="h-9 w-9 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <FileText className="h-5 w-5" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">Audit Logs Report</h1>
+          </div>
+          <p className="text-gray-500 text-xs sm:text-sm mt-1 ml-11">View and download system activity logs.</p>
         </div>
-        <Button onClick={downloadCSV} disabled={isDownloading || !logs?.logs?.length}>
-          <Download className="mr-2 h-4 w-4" />
+        <Button onClick={downloadCSV} disabled={isDownloading || !logs?.logs?.length} className="h-9 rounded-[10px] text-xs">
+          <Download className="mr-1.5 h-3.5 w-3.5" />
           {isDownloading ? "Downloading..." : "Download CSV"}
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="startDate">Start Date</Label>
-              <Input
-                id="startDate"
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-            </div>
+      <div className="rounded-[14px] border border-border/60 bg-card shadow-xs p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <FileText className="h-4 w-4 text-primary" />
+          <h2 className="text-sm font-semibold text-foreground">Filters</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="startDate" className="text-xs">Start Date</Label>
+            <Input
+              id="startDate"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="h-9 text-xs rounded-[10px] border-border/60"
+            />
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="endDate">End Date</Label>
-              <Input
-                id="endDate"
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="endDate" className="text-xs">End Date</Label>
+            <Input
+              id="endDate"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="h-9 text-xs rounded-[10px] border-border/60"
+            />
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="entity">Entity Type</Label>
-              <Select value={entity} onValueChange={setEntity}>
-                <SelectTrigger id="entity">
-                  <SelectValue placeholder="All entities" />
+          <div className="space-y-1.5">
+            <Label htmlFor="entity" className="text-xs">Entity Type</Label>
+            <Select value={entity} onValueChange={setEntity}>
+              <SelectTrigger id="entity" className="h-9 text-xs rounded-[10px] border-border/60">
+                <SelectValue placeholder="All entities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All entities</SelectItem>
+                <SelectItem value="Lead">Lead</SelectItem>
+                <SelectItem value="User">User</SelectItem>
+                <SelectItem value="Opportunity">Opportunity</SelectItem>
+                <SelectItem value="Quote">Quote</SelectItem>
+                <SelectItem value="Task">Task</SelectItem>
+                <SelectItem value="License">License</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="action" className="text-xs">Action</Label>
+            <Select value={action} onValueChange={setAction}>
+              <SelectTrigger id="action" className="h-9 text-xs rounded-[10px] border-border/60">
+                <SelectValue placeholder="All actions" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All actions</SelectItem>
+                <SelectItem value="created">Created</SelectItem>
+                <SelectItem value="updated">Updated</SelectItem>
+                <SelectItem value="deleted">Deleted</SelectItem>
+                <SelectItem value="logged in">Logged In</SelectItem>
+                <SelectItem value="logged out">Logged Out</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="user" className="text-xs">User</Label>
+            <Select value={userId} onValueChange={setUserId}>
+              <SelectTrigger id="user" className="h-9 text-xs rounded-[10px] border-border/60">
+                <SelectValue placeholder="All users" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All users</SelectItem>
+                {userData?.map((u: any) => (
+                  <SelectItem key={u.id} value={u.id}>
+                    {u.firstName} {u.lastName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {isAdmin && branches && (
+            <div className="space-y-1.5">
+              <Label htmlFor="branch" className="text-xs">Branch</Label>
+              <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                <SelectTrigger id="branch" className="h-9 text-xs rounded-[10px] border-border/60">
+                  <SelectValue placeholder="All branches" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All entities</SelectItem>
-                  <SelectItem value="Lead">Lead</SelectItem>
-                  <SelectItem value="User">User</SelectItem>
-                  <SelectItem value="Opportunity">Opportunity</SelectItem>
-                  <SelectItem value="Quote">Quote</SelectItem>
-                  <SelectItem value="Task">Task</SelectItem>
-                  <SelectItem value="License">License</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="action">Action</Label>
-              <Select value={action} onValueChange={setAction}>
-                <SelectTrigger id="action">
-                  <SelectValue placeholder="All actions" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All actions</SelectItem>
-                  <SelectItem value="created">Created</SelectItem>
-                  <SelectItem value="updated">Updated</SelectItem>
-                  <SelectItem value="deleted">Deleted</SelectItem>
-                  <SelectItem value="logged in">Logged In</SelectItem>
-                  <SelectItem value="logged out">Logged Out</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="user">User</Label>
-              <Select value={userId} onValueChange={setUserId}>
-                <SelectTrigger id="user">
-                  <SelectValue placeholder="All users" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All users</SelectItem>
-                  {userData?.map((u: any) => (
-                    <SelectItem key={u.id} value={u.id}>
-                      {u.firstName} {u.lastName}
+                  <SelectItem value="all">All branches</SelectItem>
+                  {branches.map((b: any) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-
-            {isAdmin && branches && (
-              <div className="space-y-2">
-                <Label htmlFor="branch">Branch</Label>
-                <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
-                  <SelectTrigger id="branch">
-                    <SelectValue placeholder="All branches" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All branches</SelectItem>
-                    {branches.map((b: any) => (
-                      <SelectItem key={b.id} value={b.id}>
-                        {b.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Recent Activity
-            </span>
-            <span className="text-sm font-normal text-muted-foreground">
-              {logs?.logs?.length || 0} records
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading...</div>
-          ) : !logs?.logs || logs.logs.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">No audit logs found</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-3 font-medium">Date & Time</th>
-                    <th className="text-left p-3 font-medium">User</th>
-                    <th className="text-left p-3 font-medium">Branch</th>
-                    <th className="text-left p-3 font-medium">Action</th>
-                    <th className="text-left p-3 font-medium">Entity</th>
-                    <th className="text-left p-3 font-medium">Details</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {logs.logs.map((log: any) => {
-                    const detailsText = formatAuditDetail(log);
-                    
-                    return (
-                      <tr key={log.id} className="border-b hover:bg-muted/50">
-                        <td className="p-3 text-sm">
-                          {formatIST(log.createdAt, "MMM dd, yyyy HH:mm")}
-                        </td>
-                        <td className="p-3 text-sm">
-                          {log.actor ? `${log.actor.firstName} ${log.actor.lastName}` : "System"}
-                        </td>
-                        <td className="p-3 text-sm">
-                          <span className="text-[10px] font-bold uppercase tracking-tighter bg-muted/50 px-2 py-0.5 rounded border border-border/50">
-                            {log.actor?.branch?.name || '-'}
-                          </span>
-                        </td>
-                        <td className="p-3 text-sm">{getReadableAction(log.action)}</td>
-                        <td className="p-3 text-sm">{log.entity}</td>
-                        <td className="p-3 text-sm text-muted-foreground max-w-md">
-                          <div className="line-clamp-2" title={detailsText}>
-                            {detailsText}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      <div className="rounded-[14px] border border-border/70 bg-card overflow-hidden shadow-xs">
+        <div className="flex items-center justify-between px-4 py-3.5 border-b border-border/60 bg-muted/40">
+          <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Calendar className="h-4 w-4 text-primary" />
+            Recent Activity
+          </span>
+          <span className="text-xs font-medium text-muted-foreground">
+            {logs?.logs?.length || 0} records
+          </span>
+        </div>
+        {isLoading ? (
+          <div className="text-center py-12 text-sm text-muted-foreground">Loading...</div>
+        ) : !logs?.logs || logs.logs.length === 0 ? (
+          <div className="text-center py-12 text-sm text-muted-foreground">No audit logs found</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-muted/40 border-b border-border/60 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                <tr>
+                  <th className="py-3 px-4">Date & Time</th>
+                  <th className="py-3 px-4">User</th>
+                  <th className="py-3 px-4">Branch</th>
+                  <th className="py-3 px-4">Action</th>
+                  <th className="py-3 px-4">Entity</th>
+                  <th className="py-3 px-4">Details</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/40">
+                {logs.logs.map((log: any) => {
+                  const detailsText = formatAuditDetail(log);
+
+                  return (
+                    <tr key={log.id} className="hover:bg-muted/20 transition-colors">
+                      <td className="py-3 px-4 whitespace-nowrap text-foreground">
+                        {formatIST(log.createdAt, "MMM dd, yyyy HH:mm")}
+                      </td>
+                      <td className="py-3 px-4 text-foreground">
+                        {log.actor ? `${log.actor.firstName} ${log.actor.lastName}` : "System"}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="text-[10px] font-semibold uppercase tracking-wide bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">
+                          {log.actor?.branch?.name || '-'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-foreground">{getReadableAction(log.action)}</td>
+                      <td className="py-3 px-4 text-muted-foreground">{log.entity}</td>
+                      <td className="py-3 px-4 text-muted-foreground max-w-md">
+                        <div className="line-clamp-2" title={detailsText}>
+                          {detailsText}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

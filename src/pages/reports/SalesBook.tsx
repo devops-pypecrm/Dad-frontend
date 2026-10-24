@@ -2,13 +2,11 @@ import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getSalesBook } from "@/services/analyticsService";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Download } from "lucide-react";
+import { Download, CalendarCheck } from "lucide-react";
 import { formatIST, toISTDateString } from "@/lib/dateUtils";
-import PageHeader from "../../components/shared/PageHeader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getBranches } from "@/services/settingsService";
 import { isAdmin as checkIsAdmin } from "@/lib/utils";
@@ -77,47 +75,53 @@ export default function SalesBookPage() {
   };
 
   return (
-    <div className="p-8 space-y-8">
-      <PageHeader
-        title="Sales Book"
-        description="Detailed record of all closed sales."
-        actions={
-          <Button
-            variant="outline"
-            onClick={async () => {
-              try {
-                const params = new URLSearchParams();
-                if (startDate) params.append('startDate', startDate);
-                if (endDate) params.append('endDate', endDate);
-                if (selectedBranchId) params.append('branchId', selectedBranchId);
+    <div className="bg-white min-h-screen p-4 sm:p-8 space-y-6 animate-in fade-in duration-300 font-poppins">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/40">
+        <div>
+          <div className="flex items-center gap-2">
+            <div className="h-9 w-9 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <CalendarCheck className="h-5 w-5" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">Sales Book</h1>
+          </div>
+          <p className="text-gray-500 text-xs sm:text-sm mt-1 ml-11">Detailed record of all closed sales.</p>
+        </div>
+        <Button
+          variant="outline"
+          className="h-9 rounded-[10px] text-xs"
+          onClick={async () => {
+            try {
+              const params = new URLSearchParams();
+              if (startDate) params.append('startDate', startDate);
+              if (endDate) params.append('endDate', endDate);
+              if (selectedBranchId) params.append('branchId', selectedBranchId);
 
-                const response = await api.get(`/reports/export/sales?${params.toString()}`, {
-                  responseType: 'blob'
-                });
+              const response = await api.get(`/reports/export/sales?${params.toString()}`, {
+                responseType: 'blob'
+              });
 
-                const url = window.URL.createObjectURL(new Blob([response.data]));
-                const link = document.createElement('a');
-                link.href = url;
-                link.setAttribute('download', `sales_book_${toISTDateString()}.xlsx`);
-                document.body.appendChild(link);
-                link.click();
-                link.remove();
-                window.URL.revokeObjectURL(url);
-              } catch (error) {
-                toast.error("Failed to download report");
-                console.error("Download error:", error);
-              }
-            }}
-            disabled={!sales || sales.length === 0}
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Download Excel
-          </Button>
-        }
-      />
+              const url = window.URL.createObjectURL(new Blob([response.data]));
+              const link = document.createElement('a');
+              link.href = url;
+              link.setAttribute('download', `sales_book_${toISTDateString()}.xlsx`);
+              document.body.appendChild(link);
+              link.click();
+              link.remove();
+              window.URL.revokeObjectURL(url);
+            } catch (error) {
+              toast.error("Failed to download report");
+              console.error("Download error:", error);
+            }
+          }}
+          disabled={!sales || sales.length === 0}
+        >
+          <Download className="mr-1.5 h-3.5 w-3.5" />
+          Download Excel
+        </Button>
+      </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-4 items-center bg-card p-4 rounded-lg border shadow-sm">
+      <div className="flex flex-wrap gap-3 items-center rounded-[14px] border border-border/60 bg-card p-4 shadow-xs">
 
         {/* Date Range Picker (Native) */}
         <div className="flex items-center gap-2">
@@ -125,14 +129,14 @@ export default function SalesBookPage() {
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="w-auto"
+            className="w-auto h-9 text-xs rounded-[10px] border-border/60"
           />
-          <span className="text-muted-foreground">to</span>
+          <span className="text-xs text-muted-foreground">to</span>
           <Input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="w-auto"
+            className="w-auto h-9 text-xs rounded-[10px] border-border/60"
           />
         </div>
 
@@ -143,7 +147,7 @@ export default function SalesBookPage() {
               value={selectedBranchId || "all"}
               onValueChange={(val) => setSelectedBranchId(val === "all" ? null : val)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-9 text-xs rounded-[10px] border-border/60">
                 <SelectValue placeholder="All Branches" />
               </SelectTrigger>
               <SelectContent>
@@ -158,17 +162,14 @@ export default function SalesBookPage() {
       </div>
 
       {/* Data Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Transactions</CardTitle>
-          <CardDescription>
-            {sales ? `${sales.length} records found` : "Loading..."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div className="rounded-[14px] border border-border/70 bg-card overflow-hidden shadow-xs">
+        <div className="flex items-center justify-between px-4 py-3.5 border-b border-border/60 bg-muted/40">
+          <span className="text-sm font-semibold text-foreground">Transactions</span>
+          <span className="text-xs text-muted-foreground">{sales ? `${sales.length} records found` : "Loading..."}</span>
+        </div>
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="hover:bg-transparent">
                 <TableHead>Date</TableHead>
                 <TableHead>Branch</TableHead>
                 <TableHead>Opportunity</TableHead>
@@ -203,7 +204,7 @@ export default function SalesBookPage() {
                     status: string; 
                   } | null; 
                 }) => (
-                  <TableRow key={sale.id}>
+                  <TableRow key={sale.id} className="hover:bg-muted/20">
                     <TableCell>{formatIST(sale.closeDate, "MMM dd, yyyy")}</TableCell>
                     <TableCell>{sale.branchName || '-'}</TableCell>
                     <TableCell className="font-medium">{sale.opportunityName}</TableCell>
@@ -211,21 +212,21 @@ export default function SalesBookPage() {
                     <TableCell>{sale.ownerName}</TableCell>
                     <TableCell>
                       {sale.paymentStatus === 'paid' ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
                           Paid
                         </span>
                       ) : sale.paymentStatus === 'partial' ? (
                         sale.hasEmi ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
                             EMI ({sale.emiDetails?.status || 'active'})
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-700 border border-amber-500/20">
                             Partial
                           </span>
                         )
                       ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-muted text-muted-foreground border border-border/60">
                           Pending
                         </span>
                       )}
@@ -254,8 +255,7 @@ export default function SalesBookPage() {
               )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+      </div>
     </div>
   );
 }
