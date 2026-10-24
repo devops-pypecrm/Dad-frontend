@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -7,18 +7,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { bulkLeadAction } from "@/services/leadService"
 import { useLeadStatuses } from "@/hooks/useLeadStatuses"
 import { toast } from "sonner"
-import { Loader2, CheckCircle2 } from "lucide-react"
+import { Loader2, CheckCircle2, ChevronDown, Check } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface BulkStatusDialogProps {
   open: boolean
@@ -33,9 +28,12 @@ export function BulkStatusDialog({
   selectedLeads,
   onSuccess,
 }: BulkStatusDialogProps) {
-  const { statuses, selectableStatuses, isLoading: loadingStatuses } = useLeadStatuses()
+  const { selectableStatuses, isLoading: loadingStatuses } = useLeadStatuses()
   const [selectedStatus, setSelectedStatus] = useState<string>("")
+  const [statusPickerOpen, setStatusPickerOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+
+  const selectedStatusObj = selectableStatuses.find((s) => s.id === selectedStatus)
 
   const handleUpdateStatus = async () => {
     if (!selectedStatus) {
@@ -60,57 +58,85 @@ export function BulkStatusDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[420px] rounded-[14px] font-poppins">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-primary" />
+          <DialogTitle className="flex items-center gap-2 text-foreground">
+            <div className="h-8 w-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <CheckCircle2 className="h-4 w-4" />
+            </div>
             Update Lead Status
           </DialogTitle>
-          <DialogDescription>
-            Change the status of {selectedLeads.length} selected leads.
+          <DialogDescription className="text-xs text-muted-foreground pt-1">
+            Change the status of {selectedLeads.length} selected lead{selectedLeads.length === 1 ? '' : 's'}.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium leading-none">
-              New Status
-            </label>
-            <Select
-              value={selectedStatus}
-              onValueChange={setSelectedStatus}
-              disabled={loading || loadingStatuses}
+
+        <div className="py-2">
+          <label className="text-xs font-semibold text-foreground mb-1.5 block">
+            New Status
+          </label>
+          <Popover open={statusPickerOpen} onOpenChange={setStatusPickerOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                disabled={loading || loadingStatuses}
+                className="flex h-10 w-full items-center justify-between rounded-[10px] border border-border/60 bg-background px-3 text-sm disabled:cursor-not-allowed disabled:opacity-50 hover:bg-muted/40 transition-colors"
+              >
+                {selectedStatusObj ? (
+                  <span className="flex items-center gap-2 truncate">
+                    <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: selectedStatusObj.color }} />
+                    {selectedStatusObj.label}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">
+                    {loadingStatuses ? "Loading statuses..." : "Select a new status"}
+                  </span>
+                )}
+                <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="start"
+              collisionPadding={16}
+              className="w-[--radix-popover-trigger-width] p-1 rounded-[10px] shadow-2xl border-border/50"
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={loadingStatuses ? "Loading statuses..." : "Select a new status"} />
-              </SelectTrigger>
-              <SelectContent>
-                {selectableStatuses.map((status) => (
-                  <SelectItem key={status.id} value={status.id}>
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-2 h-2 rounded-full" 
-                        style={{ backgroundColor: status.color }}
-                      />
-                      {status.label}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              <div className="max-h-64 overflow-y-auto">
+                {selectableStatuses.map((status) => {
+                  const checked = status.id === selectedStatus
+                  return (
+                    <button
+                      key={status.id}
+                      type="button"
+                      onClick={() => { setSelectedStatus(status.id); setStatusPickerOpen(false) }}
+                      className={cn(
+                        "w-full flex items-center gap-2 rounded-[8px] px-2.5 py-2 text-sm text-left hover:bg-muted/60 transition-colors",
+                        checked && "bg-muted"
+                      )}
+                    >
+                      <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: status.color }} />
+                      <span className="truncate flex-1">{status.label}</span>
+                      {checked && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
+                    </button>
+                  )
+                })}
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
+
         <DialogFooter>
           <Button
             variant="ghost"
             onClick={() => onOpenChange(false)}
             disabled={loading}
+            className="rounded-[10px]"
           >
             Cancel
           </Button>
           <Button
             onClick={handleUpdateStatus}
             disabled={loading || !selectedStatus}
-            className="bg-primary text-primary-foreground"
+            className="bg-primary text-primary-foreground rounded-[10px]"
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Update Status

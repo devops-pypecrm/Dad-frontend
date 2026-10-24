@@ -94,98 +94,110 @@ export function BulkAssignDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[420px] rounded-[14px] font-poppins">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-primary" />
+          <DialogTitle className="flex items-center gap-2 text-foreground">
+            <div className="h-8 w-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Users className="h-4 w-4" />
+            </div>
             Bulk Assign Leads
           </DialogTitle>
-          <DialogDescription>
-            Reassign {selectedLeads.length} selected leads to a specific team member.
+          <DialogDescription className="text-xs text-muted-foreground pt-1">
+            Reassign {selectedLeads.length} selected lead{selectedLeads.length === 1 ? '' : 's'} to a specific team member.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              Select User
-            </label>
-            
-            <Popover open={openPopover} onOpenChange={setOpenPopover}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  className="w-full justify-between h-10 font-normal border-muted-foreground/20 hover:border-primary/50 transition-colors"
-                  disabled={fetchingUsers || loading}
-                >
-                  {selectedUser ? (
-                    <span className="truncate">{selectedUser.firstName} {selectedUser.lastName}</span>
-                  ) : (
-                    <span className="text-muted-foreground">Select a team member...</span>
-                  )}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]" align="start">
-                <div className="flex items-center border-b px-3 h-10 bg-muted/30">
-                  <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+        <div className="py-2">
+          <label className="text-xs font-semibold text-foreground mb-1.5 block">
+            Select User
+          </label>
+
+          <Popover open={openPopover} onOpenChange={setOpenPopover}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                disabled={fetchingUsers || loading}
+                className="flex h-10 w-full items-center justify-between rounded-[10px] border border-border/60 bg-background px-3 text-sm disabled:cursor-not-allowed disabled:opacity-50 hover:bg-muted/40 transition-colors"
+              >
+                {selectedUser ? (
+                  <span className="flex items-center gap-2 truncate">
+                    <span className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
+                      {selectedUser.firstName?.[0]}{selectedUser.lastName?.[0] || ''}
+                    </span>
+                    {selectedUser.firstName} {selectedUser.lastName}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">Select a team member...</span>
+                )}
+                <ChevronsUpDown className="h-4 w-4 text-muted-foreground shrink-0" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="p-0 w-[--radix-popover-trigger-width] rounded-[10px] shadow-2xl border-border/50" align="start" collisionPadding={16}>
+              <div className="p-2 border-b border-border">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                   <Input
                     placeholder="Search users..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="h-8 border-0 focus-visible:ring-0 px-0 bg-transparent text-sm placeholder:text-muted-foreground/60 w-full"
+                    className="pl-8 h-8 text-sm"
                     autoFocus
                   />
                 </div>
-                <ScrollArea className="h-64">
-                  <div className="p-1">
-                    {filteredUsers.length === 0 ? (
-                      <div className="py-6 text-center text-sm text-muted-foreground">
-                        No users found.
-                      </div>
-                    ) : (
-                      filteredUsers.map((user) => (
-                        <button
-                          key={user.id}
-                          onClick={() => {
-                            setSelectedUserId(user.id)
-                            setOpenPopover(false)
-                          }}
-                          className={cn(
-                            "flex w-full items-center justify-between px-2 py-2 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground text-left transition-colors",
-                            selectedUserId === user.id ? "bg-accent/50" : ""
-                          )}
-                        >
+              </div>
+              <ScrollArea className="h-64">
+                <div className="p-1">
+                  {filteredUsers.length === 0 ? (
+                    <div className="py-6 text-center text-sm text-muted-foreground">
+                      No users found.
+                    </div>
+                  ) : (
+                    filteredUsers.map((user) => (
+                      <button
+                        key={user.id}
+                        onClick={() => {
+                          setSelectedUserId(user.id)
+                          setOpenPopover(false)
+                        }}
+                        className={cn(
+                          "flex w-full items-center justify-between px-2 py-2 text-sm rounded-[8px] hover:bg-muted/60 text-left transition-colors",
+                          selectedUserId === user.id ? "bg-muted" : ""
+                        )}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
+                            {user.firstName?.[0]}{user.lastName?.[0] || ''}
+                          </span>
                           <div className="flex flex-col min-w-0">
                             <span className="font-medium truncate">{user.firstName} {user.lastName}</span>
                             <span className="text-[10px] text-muted-foreground truncate">
                               {user.email} • {formatRoleName(user.role)}
                             </span>
                           </div>
-                          {selectedUserId === user.id && (
-                            <Check className="h-4 w-4 text-primary ml-2 shrink-0" />
-                          )}
-                        </button>
-                      ))
-                    )}
-                  </div>
-                </ScrollArea>
-              </PopoverContent>
-            </Popover>
-          </div>
+                        </div>
+                        {selectedUserId === user.id && (
+                          <Check className="h-4 w-4 text-primary ml-2 shrink-0" />
+                        )}
+                      </button>
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+            </PopoverContent>
+          </Popover>
         </div>
         <DialogFooter>
           <Button
             variant="ghost"
             onClick={() => onOpenChange(false)}
             disabled={loading}
+            className="rounded-[10px]"
           >
             Cancel
           </Button>
           <Button
             onClick={handleAssign}
             disabled={loading || !selectedUserId}
-            className="bg-primary text-primary-foreground"
+            className="bg-primary text-primary-foreground rounded-[10px]"
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Assign Leads

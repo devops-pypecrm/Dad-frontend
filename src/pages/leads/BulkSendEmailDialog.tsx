@@ -61,13 +61,15 @@ export function BulkSendEmailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] sm:max-w-[500px] p-4 sm:p-6 rounded-xl sm:rounded-lg">
+      <DialogContent className="w-[95vw] sm:max-w-[500px] p-4 sm:p-6 rounded-[14px] font-poppins">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5 text-primary" />
+          <DialogTitle className="flex items-center gap-2 text-foreground">
+            <div className="h-8 w-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Mail className="h-4 w-4" />
+            </div>
             Send Email
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs text-muted-foreground pt-1">
             Send an email to {selectedLeads.length} selected lead{selectedLeads.length === 1 ? "" : "s"} with an email address on file.
             Use <code>{"{firstName}"}</code>, <code>{"{lastName}"}</code>, or <code>{"{fullName}"}</code> to personalize.
           </DialogDescription>
@@ -99,10 +101,10 @@ export function BulkSendEmailDialog({
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={loading}>
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={loading} className="rounded-[10px]">
             Cancel
           </Button>
-          <Button onClick={handleSend} disabled={loading || !subject.trim() || !content.trim()} className="bg-primary text-primary-foreground">
+          <Button onClick={handleSend} disabled={loading || !subject.trim() || !content.trim()} className="bg-primary text-primary-foreground rounded-[10px]">
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Send Email
           </Button>

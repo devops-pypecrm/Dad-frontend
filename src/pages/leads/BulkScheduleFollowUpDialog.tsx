@@ -90,13 +90,15 @@ export function BulkScheduleFollowUpDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] sm:max-w-[425px] p-4 sm:p-6 rounded-xl sm:rounded-lg">
+      <DialogContent className="w-[95vw] sm:max-w-[425px] p-4 sm:p-6 rounded-[14px] font-poppins">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CalendarClock className="h-5 w-5 text-primary" />
+          <DialogTitle className="flex items-center gap-2 text-foreground">
+            <div className="h-8 w-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <CalendarClock className="h-4 w-4" />
+            </div>
             Schedule Follow-up
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs text-muted-foreground pt-1">
             Create a follow-up reminder for {selectedLeads.length} selected lead{selectedLeads.length === 1 ? "" : "s"}.
           </DialogDescription>
         </DialogHeader>
@@ -151,10 +153,10 @@ export function BulkScheduleFollowUpDialog({
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={loading}>
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={loading} className="rounded-[10px]">
             Cancel
           </Button>
-          <Button onClick={handleSchedule} disabled={loading || !dueDate} className="bg-primary text-primary-foreground">
+          <Button onClick={handleSchedule} disabled={loading || !dueDate} className="bg-primary text-primary-foreground rounded-[10px]">
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Schedule Follow-up
           </Button>

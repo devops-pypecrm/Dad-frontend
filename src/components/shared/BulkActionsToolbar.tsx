@@ -15,7 +15,9 @@ import {
  Tag,
  Phone,
  Calendar,
- Archive
+ Archive,
+ X,
+ Layers
 } from 'lucide-react';
 
 interface BulkActionsToolbarProps {
@@ -85,18 +87,24 @@ export function BulkActionsToolbar({
  const actions = getEntityActions();
 
  return (
-  <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between bg-primary/5 border border-primary/10 rounded-lg p-3 gap-3 mb-4 ${className}`}>
+  <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-[14px] border border-primary/20 bg-primary/5 p-3 gap-3 shadow-xs font-poppins mb-4 ${className}`}>
    <div className="flex items-center justify-between w-full sm:w-auto gap-3">
-    <div className="text-sm font-medium text-primary whitespace-nowrap">
-     {selectedItems.length} {entityType} selected
+    <div className="flex items-center gap-2">
+     <div className="h-8 w-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+      <Layers className="h-4 w-4" />
+     </div>
+     <span className="text-sm font-semibold text-foreground whitespace-nowrap">
+      {selectedItems.length} {entityType} selected
+     </span>
     </div>
     <Button
      variant="ghost"
      size="sm"
      onClick={onClearSelection}
-     className="text-primary/70 hover:text-primary hover:bg-primary/10 h-8 px-2 text-xs"
+     className="text-muted-foreground hover:text-foreground hover:bg-muted h-8 px-2 text-xs rounded-[8px] gap-1"
     >
-     Clear selection
+     <X className="h-3.5 w-3.5" />
+     Clear
     </Button>
    </div>
 
@@ -106,13 +114,13 @@ export function BulkActionsToolbar({
       <Button
        variant="default"
        size="sm"
-       className="bg-primary hover:bg-primary/90 w-full sm:w-auto h-9"
+       className="bg-primary hover:bg-primary/90 w-full sm:w-auto h-9 rounded-[10px] text-xs gap-1.5"
       >
        Bulk Actions
-       <ChevronDown className="ml-2 h-4 w-4" />
+       <ChevronDown className="h-3.5 w-3.5" />
       </Button>
      </DropdownMenuTrigger>
-     <DropdownMenuContent align="end" className="w-56">
+     <DropdownMenuContent align="end" collisionPadding={16} className="w-56 rounded-[10px]">
       {actions.map((action) => {
        const Icon = action.icon;
        return (
@@ -121,9 +129,9 @@ export function BulkActionsToolbar({
          onSelect={() => {
           onBulkAction(action.action);
          }}
-         className="flex items-center gap-2 cursor-pointer"
+         className="flex items-center gap-2 cursor-pointer rounded-[8px] text-sm"
         >
-         <Icon className="h-4 w-4" />
+         <Icon className="h-3.5 w-3.5 text-muted-foreground" />
          {action.label}
         </DropdownMenuItem>
        );
@@ -133,9 +141,9 @@ export function BulkActionsToolbar({
        onSelect={() => {
         onBulkAction('delete');
        }}
-       className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+       className="flex items-center gap-2 cursor-pointer rounded-[8px] text-sm text-destructive focus:text-destructive focus:bg-destructive/10"
       >
-       <Trash2 className="h-4 w-4" />
+       <Trash2 className="h-3.5 w-3.5" />
        Delete Selected
       </DropdownMenuItem>
      </DropdownMenuContent>
