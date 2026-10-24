@@ -1,22 +1,54 @@
-import React, { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getDailyReport } from '@/services/analyticsService';
-import { getBranches, getOrganisation } from '@/services/settingsService';
-import { Card } from '@/components/ui/card';
+import { getBranches } from '@/services/settingsService';
+import { getUsers } from '@/services/userService';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { FileDown, RefreshCw, Printer, Building, Calendar, BarChart3 as BarChart3Icon } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  FileDown,
+  RefreshCw,
+  Printer,
+  Building,
+  Calendar,
+  BarChart3 as BarChart3Icon,
+  Phone,
+  Clock,
+  Search,
+  ChevronDown,
+  Users as UsersIcon,
+} from 'lucide-react';
 import { PageLoader } from '@/components/ui/page-loader';
 import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
 import { toPng } from 'html-to-image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { isAdmin as checkIsAdmin } from "@/lib/utils";
+import { cn, isAdmin as checkIsAdmin } from "@/lib/utils";
 import { subDays, format } from 'date-fns';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from 'recharts';
+import { CHART_COLORS } from '@/components/dashboard-v2/chartColors';
 
 export default function DailyReportPage() {
   const reportRef = useRef<HTMLDivElement>(null);
   const [selectedBranchId, setSelectedBranchId] = useState<string>("all");
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [userFilterOpen, setUserFilterOpen] = useState(false);
+  const [userSearch, setUserSearch] = useState("");
   const [period, setPeriod] = useState<string>("today");
   const [user] = useState<{ role: string } | null>(() => {
     const userInfo = localStorage.getItem('userInfo');
@@ -25,18 +57,27 @@ export default function DailyReportPage() {
 
   const isAdmin = checkIsAdmin(user);
 
-  // Fetch Organisation Info
-  const { data: organisation } = useQuery({
-    queryKey: ['organisation'],
-    queryFn: getOrganisation
-  });
-
-  // Fetch Branches
   const { data: branches } = useQuery({
     queryKey: ['branches'],
     queryFn: getBranches,
     enabled: !!isAdmin
   });
+
+  const { data: usersData } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => getUsers(),
+  });
+  const allUsers = usersData?.users || [];
+
+  const userFilterUsers = useMemo(() => {
+    const q = userSearch.trim().toLowerCase();
+    if (!q) return allUsers;
+    return allUsers.filter((u: any) => `${u.firstName} ${u.lastName || ''}`.toLowerCase().includes(q));
+  }, [allUsers, userSearch]);
+
+  const toggleUserFilter = (id: string) => {
+    setSelectedUserIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
 
   const getDateRange = (selectedPeriod: string) => {
     const today = new Date();
@@ -73,11 +114,12 @@ export default function DailyReportPage() {
   };
 
   const { data: reportData, isLoading, error, refetch, isFetching } = useQuery({
-    queryKey: ['dailyReport', selectedBranchId, period],
+    queryKey: ['dailyReport', selectedBranchId, period, selectedUserIds],
     queryFn: () => {
       const { startDate, endDate } = getDateRange(period);
       return getDailyReport({
         branchId: selectedBranchId === "all" ? undefined : selectedBranchId,
+        userIds: selectedUserIds.length > 0 ? selectedUserIds.join(',') : undefined,
         startDate,
         endDate
       });
@@ -90,17 +132,35 @@ export default function DailyReportPage() {
   const tableData = reportData?.table || [];
   const summary = reportData?.summary || null;
 
+  const hasActiveFilters = selectedBranchId !== "all" || period !== "today" || selectedUserIds.length > 0;
+
+  const topCallersChartData = useMemo(
+    () => [...tableData]
+      .sort((a: any, b: any) => b.totalCalls - a.totalCalls)
+      .slice(0, 8)
+      .map((row: any) => ({ name: row.userName, value: row.totalCalls })),
+    [tableData]
+  );
+
+  const outcomeChartData = useMemo(() => [
+      { name: 'Connected', value: tableData.reduce((s: number, r: any) => s + r.totalConnected, 0) },
+      { name: 'Unconnected', value: tableData.reduce((s: number, r: any) => s + r.totalUnconnected, 0) },
+      { name: 'Converted', value: tableData.reduce((s: number, r: any) => s + r.totalConverted, 0) },
+      { name: 'Lost', value: tableData.reduce((s: number, r: any) => s + r.totalLost, 0) },
+    ].filter(d => d.value > 0),
+    [tableData]
+  );
+
   const handleDownloadPDF = async () => {
     if (!reportRef.current) return;
 
     try {
       toast.loading('Preparing Report...', { id: 'pdf-export' });
-      
+
       const element = reportRef.current;
-      
-      // Capture the entire element
-      const dataUrl = await toPng(element, { 
-        backgroundColor: '#fff', 
+
+      const dataUrl = await toPng(element, {
+        backgroundColor: '#fff',
         cacheBust: true,
         pixelRatio: 2,
         width: element.scrollWidth,
@@ -113,48 +173,45 @@ export default function DailyReportPage() {
           padding: '20px'
         }
       });
-      
+
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      
+
       const img = new Image();
       img.src = dataUrl;
       await new Promise((resolve) => { img.onload = resolve; });
-      
-      // Calculate content dimensions (Full width, no vertical margin to avoid gaps)
-      const contentWidth = pageWidth;
+
       const pxWidth = img.width;
       const pxPageHeight = (pxWidth * pageHeight) / pageWidth;
-      
+
       let totalHeightLeft = img.height;
       let startY = 0;
       let firstPage = true;
 
       while (totalHeightLeft > 0) {
         if (!firstPage) pdf.addPage();
-        
+
         const canvas = document.createElement('canvas');
         const sliceHeight = Math.min(pxPageHeight, totalHeightLeft);
-        
+
         canvas.width = pxWidth;
         canvas.height = sliceHeight;
-        
+
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, startY, pxWidth, sliceHeight, 0, 0, pxWidth, sliceHeight);
           const sliceDataUrl = canvas.toDataURL('image/png', 1.0);
-          
+
           const displayHeight = (sliceHeight * pageWidth) / pxWidth;
-          // Use 0,0 to fill the page entirely and avoid gaps between slices
           pdf.addImage(sliceDataUrl, 'PNG', 0, 0, pageWidth, displayHeight);
         }
-        
+
         startY += sliceHeight;
         totalHeightLeft -= sliceHeight;
         firstPage = false;
       }
-      
+
       pdf.save(`Daily_Report_${getPeriodLabel().replace(/[\s,]+/g, '_')}.pdf`);
       toast.success('Report saved successfully', { id: 'pdf-export' });
     } catch (err) {
@@ -185,9 +242,9 @@ export default function DailyReportPage() {
   const dateLabel = getPeriodLabel();
 
   return (
-    <div className="bg-white p-4 sm:p-8 space-y-6 max-w-7xl mx-auto min-h-screen animate-in fade-in duration-300 font-poppins">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-border/40 no-print">
+    <div className="bg-white min-h-screen p-4 sm:p-8 space-y-6 animate-in fade-in duration-300 font-poppins">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-border/40 no-print">
         <div>
           <div className="flex items-center gap-2">
             <div className="h-9 w-9 rounded-[10px] bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
@@ -201,68 +258,6 @@ export default function DailyReportPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {(selectedBranchId !== "all" || period !== "today") && (
-            <Button
-              onClick={() => {
-                setSelectedBranchId("all");
-                setPeriod("today");
-              }}
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground h-9 px-3 border border-border/60 hover:bg-muted/50 rounded-[10px] text-xs"
-            >
-              Clear Filters
-            </Button>
-          )}
-
-          <div className="w-[160px]">
-            <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="bg-background border-border/60 h-9 text-xs rounded-[10px]">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                  <SelectValue placeholder="Select period" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="today">Today</SelectItem>
-                <SelectItem value="yesterday">Yesterday</SelectItem>
-                <SelectItem value="today-yesterday">Today & Yesterday</SelectItem>
-                <SelectItem value="last-7-days">Last 7 days</SelectItem>
-                <SelectItem value="last-14-days">Last 14 days</SelectItem>
-                <SelectItem value="last-28-days">Last 28 days</SelectItem>
-                <SelectItem value="last-30-days">Last 30 days</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {isAdmin && branches && branches.length > 0 && (
-            <div className="w-[180px]">
-              <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
-                <SelectTrigger className="bg-background border-border/60 h-9 text-xs rounded-[10px]">
-                  <div className="flex items-center gap-2">
-                    <Building className="h-3.5 w-3.5 text-muted-foreground" />
-                    <SelectValue placeholder="All Branches" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Branches</SelectItem>
-                  {branches.map((b: any) => (
-                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          <Button
-            onClick={() => refetch()}
-            variant="outline"
-            size="sm"
-            disabled={isFetching}
-            className="gap-1.5 border-border/60 hover:bg-muted/50 h-9 px-3 rounded-[10px] text-xs"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin text-primary' : ''}`} />
-            {isFetching ? 'Refreshing...' : 'Refresh'}
-          </Button>
           <Button
             onClick={handlePrint}
             variant="outline"
@@ -283,78 +278,243 @@ export default function DailyReportPage() {
         </div>
       </div>
 
-      {/* Report Content Area (Captured in PDF) */}
-      <div ref={reportRef} className="space-y-6 bg-card p-5 sm:p-6 rounded-[14px] border border-border/60">
-        {/* Branding & Header Section */}
-        <div className="flex flex-col gap-6 border-b border-border/50 pb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img src="/logo.png" alt="CRM Logo" className="h-12 w-12 object-contain" />
-              <div>
-                <h2 className="text-2xl font-black tracking-tighter text-primary">PYPE CRM</h2>
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">Professional Management Suite</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <h1 className="text-xl font-bold text-foreground">Daily Performance Report</h1>
-              <p className="text-sm font-medium text-muted-foreground">{dateLabel}</p>
-            </div>
+      {/* Filters */}
+      <div className="rounded-[14px] border border-border/60 bg-card shadow-xs p-4 no-print">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
+          <div className="w-full sm:w-[160px]">
+            <Select value={period} onValueChange={setPeriod}>
+              <SelectTrigger className="bg-background border-border/60 h-9 text-xs rounded-[10px] w-full">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                  <SelectValue placeholder="Select period" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="yesterday">Yesterday</SelectItem>
+                <SelectItem value="today-yesterday">Today & Yesterday</SelectItem>
+                <SelectItem value="last-7-days">Last 7 days</SelectItem>
+                <SelectItem value="last-14-days">Last 14 days</SelectItem>
+                <SelectItem value="last-28-days">Last 28 days</SelectItem>
+                <SelectItem value="last-30-days">Last 30 days</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="flex items-center justify-between bg-muted/30 p-4 rounded-lg border border-border/50">
-            <div className="space-y-1">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">Organisation</p>
-              <p className="text-lg font-black text-foreground capitalize">{organisation?.name || 'Loading...'}</p>
+          {isAdmin && branches && branches.length > 0 && (
+            <div className="w-full sm:w-[160px]">
+              <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                <SelectTrigger className="bg-background border-border/60 h-9 text-xs rounded-[10px] w-full">
+                  <div className="flex items-center gap-2">
+                    <Building className="h-3.5 w-3.5 text-muted-foreground" />
+                    <SelectValue placeholder="All Branches" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Branches</SelectItem>
+                  {branches.map((b: any) => (
+                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            {selectedBranchId !== "all" && branches && (
-              <div className="text-right space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">Branch Filter</p>
-                <p className="text-lg font-black text-primary uppercase">
-                  {branches.find((b: any) => b.id === selectedBranchId)?.name}
-                </p>
+          )}
+
+          {/* Multi-select searchable user filter */}
+          <Popover open={userFilterOpen} onOpenChange={(o) => { setUserFilterOpen(o); if (!o) setUserSearch(""); }}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="flex h-9 w-full sm:w-[200px] items-center justify-between rounded-[10px] border border-border/60 bg-background px-3 text-xs hover:bg-muted/40 transition-colors"
+              >
+                <span className="flex items-center gap-2 truncate">
+                  <UsersIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  {selectedUserIds.length === 0
+                    ? 'All Users'
+                    : selectedUserIds.length === 1
+                      ? (() => {
+                          const u = allUsers.find((x: any) => x.id === selectedUserIds[0]);
+                          return u ? `${u.firstName} ${u.lastName || ''}` : '1 user';
+                        })()
+                      : `${selectedUserIds.length} users selected`}
+                </span>
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-0 rounded-xl shadow-2xl border-border/50" align="start">
+              <div className="p-2 border-b border-border">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input
+                    autoFocus
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    placeholder="Search users..."
+                    className="pl-8 h-8 text-sm"
+                  />
+                </div>
               </div>
-            )}
-          </div>
+              <div className="max-h-60 overflow-y-auto p-1">
+                {userFilterUsers.length === 0 ? (
+                  <p className="px-2 py-4 text-xs text-muted-foreground text-center">No users found.</p>
+                ) : (
+                  userFilterUsers.map((u: any) => {
+                    const checked = selectedUserIds.includes(u.id);
+                    return (
+                      <label
+                        key={u.id}
+                        className={cn(
+                          "w-full flex items-center gap-2 rounded-lg px-2 py-2 text-sm hover:bg-muted/60 text-left cursor-pointer",
+                          checked && "bg-muted"
+                        )}
+                      >
+                        <Checkbox checked={checked} onCheckedChange={() => toggleUserFilter(u.id)} />
+                        <span className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
+                          {u.firstName?.[0]}{u.lastName?.[0] || ''}
+                        </span>
+                        <span className="truncate">{u.firstName} {u.lastName || ''}</span>
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+              {selectedUserIds.length > 0 && (
+                <div className="p-2 border-t border-border flex gap-1.5">
+                  <Button size="sm" variant="outline" className="h-8 flex-1 rounded-lg text-xs" onClick={() => setSelectedUserIds([])}>
+                    Clear
+                  </Button>
+                  <Button size="sm" className="h-8 flex-1 rounded-lg text-xs" onClick={() => setUserFilterOpen(false)}>
+                    Done ({selectedUserIds.length})
+                  </Button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
+
+          {hasActiveFilters && (
+            <Button
+              onClick={() => {
+                setSelectedBranchId("all");
+                setPeriod("today");
+                setSelectedUserIds([]);
+              }}
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10 h-9 px-3 border border-destructive/30 rounded-[10px] text-xs"
+            >
+              Clear Filters
+            </Button>
+          )}
+
+          <Button
+            onClick={() => refetch()}
+            variant="outline"
+            size="sm"
+            disabled={isFetching}
+            className="gap-1.5 border-border/60 hover:bg-muted/50 h-9 px-3 rounded-[10px] text-xs sm:ml-auto"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin text-primary' : ''}`} />
+            {isFetching ? 'Refreshing...' : 'Refresh'}
+          </Button>
         </div>
+      </div>
+
+      {/* Report Content Area (Captured in PDF) */}
+      <div ref={reportRef} className="space-y-6">
+        {/* KPI Stats */}
+        {summary && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <SummaryCard title="Total Phone Calls" value={summary.totalCalls} icon={Phone} accent="primary" />
+            <SummaryCard title="Total Call Duration" value={formatDuration(summary.totalDuration)} icon={Clock} accent="emerald" isText />
+            <SummaryCard title="Incoming Calls" value={summary.incoming} subValue={formatDuration(summary.incomingDuration)} icon={Phone} accent="primary" />
+            <SummaryCard title="Outgoing Calls" value={summary.outgoing} subValue={formatDuration(summary.outgoingDuration)} icon={Phone} accent="primary" />
+            <SummaryCard title="Missed Calls" value={summary.missed} icon={Phone} accent="destructive" />
+            <SummaryCard title="Rejected Calls" value={summary.rejected} icon={Phone} accent="amber" />
+            <SummaryCard title="Never Attended Calls" value={summary.neverAttended} icon={Phone} accent="muted" />
+            <SummaryCard title="Not Pickup by Client" value={summary.notPickedUp} icon={Phone} accent="amber" />
+            <SummaryCard title="Unique Numbers Called" value={summary.unique} icon={Phone} accent="emerald" />
+          </div>
+        )}
+
+        {/* Charts */}
+        {tableData.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="rounded-[14px] border border-border/60 bg-card shadow-xs p-4 sm:p-5">
+              <h3 className="text-sm font-semibold text-foreground mb-3">Top Callers</h3>
+              <ResponsiveContainer width="100%" height={Math.max(220, topCallersChartData.length * 36)}>
+                <BarChart data={topCallersChartData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 11, fontFamily: 'Poppins, sans-serif', fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <YAxis dataKey="name" type="category" width={110} tick={{ fontSize: 11, fontFamily: 'Poppins, sans-serif', fill: 'hsl(var(--foreground))' }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    cursor={{ fill: 'hsl(var(--muted))' }}
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px', fontFamily: 'Poppins, sans-serif' }}
+                  />
+                  <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={18}>
+                    {topCallersChartData.map((_, index) => <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="rounded-[14px] border border-border/60 bg-card shadow-xs p-4 sm:p-5">
+              <h3 className="text-sm font-semibold text-foreground mb-3">Call Outcomes</h3>
+              {outcomeChartData.length === 0 ? (
+                <div className="h-[220px] flex items-center justify-center text-sm text-muted-foreground">No data yet</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={260}>
+                  <PieChart>
+                    <Pie data={outcomeChartData} cx="50%" cy="50%" innerRadius={50} outerRadius={85} paddingAngle={3} dataKey="value" nameKey="name">
+                      {outcomeChartData.map((_, index) => <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px', fontFamily: 'Poppins, sans-serif' }}
+                      formatter={(value?: number, name?: string) => [`${value ?? 0} calls`, name ?? '']}
+                    />
+                    <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: 12, fontFamily: 'Poppins, sans-serif' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Table Card */}
-        <Card className="border border-border/60 shadow-none overflow-hidden rounded-[14px] bg-card">
+        <div className="rounded-[14px] border border-border/70 bg-card overflow-hidden shadow-xs">
+          <div className="px-4 py-3.5 border-b border-border/60 bg-muted/40">
+            <span className="text-sm font-semibold text-foreground">User-wise Breakdown</span>
+            <p className="text-xs text-muted-foreground mt-0.5">{dateLabel}</p>
+          </div>
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-primary hover:bg-primary transition-none border-none">
-                <TableRow className="hover:bg-transparent border-none">
-                  <TableHead className="text-primary-foreground font-bold py-4 px-4 text-[11px] uppercase tracking-wider border-r border-white/10 w-[220px]">User Name</TableHead>
-                  <TableHead className="text-primary-foreground font-bold py-4 px-2 text-[11px] uppercase tracking-wider border-r border-white/10 text-center w-[100px]">Branch</TableHead>
-                  <TableHead className="text-primary-foreground font-bold py-4 px-2 text-center text-[11px] uppercase tracking-wider border-r border-white/10">Calls</TableHead>
-                  <TableHead className="text-primary-foreground font-bold py-4 px-2 text-center text-[11px] uppercase tracking-wider border-r border-white/10">Connected</TableHead>
-                  <TableHead className="text-primary-foreground font-bold py-4 px-2 text-center text-[11px] uppercase tracking-wider border-r border-white/10">Unconnected</TableHead>
-                  <TableHead className="text-primary-foreground font-bold py-4 px-2 text-center text-[11px] uppercase tracking-wider border-r border-white/10">Converted</TableHead>
-                  <TableHead className="text-primary-foreground font-bold py-4 px-2 text-center text-[11px] uppercase tracking-wider">Lost</TableHead>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent border-b border-border/60">
+                  <TableHead className="text-[11px] uppercase tracking-wider">User Name</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-center">Branch</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-center">Calls</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-center">Connected</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-center">Unconnected</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-center">Duration</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-center">Converted</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-center">Lost</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {tableData.length > 0 ? (
-                  tableData.map((row: any, idx: number) => (
-                    <TableRow
-                      key={row.id}
-                      className={`
-                        border-b border-border/40 transition-colors
-                        ${idx % 2 === 0 ? 'bg-card' : 'bg-muted/10'}
-                        hover:bg-primary/5
-                      `}
-                    >
-                      <TableCell className="py-5 px-4 font-bold text-foreground text-[12px] uppercase">
+                  tableData.map((row: any) => (
+                    <TableRow key={row.id} className="hover:bg-muted/20">
+                      <TableCell className="font-medium text-foreground text-xs">
                         {row.userName}
                       </TableCell>
-                      <TableCell className="text-center py-5">
-                        <span className="text-[10px] font-bold uppercase tracking-tighter bg-muted/50 px-2 py-0.5 rounded border border-border/50">
+                      <TableCell className="text-center">
+                        <span className="text-[10px] font-semibold uppercase tracking-wide bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">
                           {row.branch || '-'}
                         </span>
                       </TableCell>
-                      <TableCell className="text-center py-5 font-medium text-muted-foreground tabular-nums">
+                      <TableCell className="text-center font-medium text-muted-foreground tabular-nums">
                         {row.totalCalls}
                       </TableCell>
-                      <TableCell className="text-center py-5">
+                      <TableCell className="text-center">
                         <span className={`
                           inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-full text-xs font-semibold
                           ${row.totalConnected > 0 ? 'bg-emerald-500/10 text-emerald-700' : 'bg-muted text-muted-foreground'}
@@ -362,10 +522,13 @@ export default function DailyReportPage() {
                           {row.totalConnected}
                         </span>
                       </TableCell>
-                      <TableCell className="text-center py-5 font-medium text-muted-foreground tabular-nums">
+                      <TableCell className="text-center font-medium text-muted-foreground tabular-nums">
                         {row.totalUnconnected}
                       </TableCell>
-                      <TableCell className="text-center py-5">
+                      <TableCell className="text-center font-medium text-muted-foreground tabular-nums">
+                        {formatDuration(row.totalDuration || 0)}
+                      </TableCell>
+                      <TableCell className="text-center">
                         <span className={`
                           inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-full text-xs font-semibold
                           ${row.totalConverted > 0 ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}
@@ -373,7 +536,7 @@ export default function DailyReportPage() {
                           {row.totalConverted}
                         </span>
                       </TableCell>
-                      <TableCell className="text-center py-5">
+                      <TableCell className="text-center">
                         <span className={`
                           inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-full text-xs font-semibold
                           ${row.totalLost > 0 ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'}
@@ -385,10 +548,10 @@ export default function DailyReportPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-48 text-center text-muted-foreground italic">
+                    <TableCell colSpan={8} className="h-48 text-center text-muted-foreground italic">
                       <div className="flex flex-col items-center justify-center gap-2">
-                        <p className="text-lg font-medium opacity-50">No activity recorded for today yet.</p>
-                        <p className="text-sm opacity-30">Data will appear here as users make calls and update leads.</p>
+                        <p className="text-base font-medium opacity-60">No activity recorded for this period yet.</p>
+                        <p className="text-sm opacity-40">Data will appear here as users make calls and update leads.</p>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -396,29 +559,14 @@ export default function DailyReportPage() {
               </TableBody>
             </Table>
           </div>
-        </Card>
-
-        {/* Summary Cards Section */}
-        {summary && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <SummaryCard title="Total Phone Calls" value={summary.totalCalls} subValue={formatDuration(summary.totalDuration)} accent="primary" />
-            <SummaryCard title="Incoming Calls" value={summary.incoming} subValue={formatDuration(summary.incomingDuration)} accent="emerald" />
-            <SummaryCard title="Outgoing Calls" value={summary.outgoing} subValue={formatDuration(summary.outgoingDuration)} accent="primary" />
-            <SummaryCard title="Missed Calls" value={summary.missed} accent="destructive" />
-            <SummaryCard title="Rejected Calls" value={summary.rejected} accent="amber" />
-            <SummaryCard title="Never Attended Calls" value={summary.neverAttended} accent="muted" />
-            <SummaryCard title="Not Pickup by Client" value={summary.notPickedUp} accent="amber" />
-            <SummaryCard title="Unique Calls" value={summary.unique} accent="emerald" />
-          </div>
-        )}
+        </div>
       </div>
 
       <style>{`
         @media print {
           .no-print { display: none !important; }
           body { background: white !important; margin: 0 !important; padding: 0 !important; }
-          .Card, .card, table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
-          .Table { width: 100% !important; border-collapse: collapse !important; }
+          table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
           @page { size: auto; margin: 10mm; }
         }
       `}</style>
@@ -426,34 +574,46 @@ export default function DailyReportPage() {
   );
 }
 
-const SUMMARY_ACCENTS: Record<string, { bar: string; text: string }> = {
-  primary: { bar: "bg-primary", text: "group-hover:text-primary" },
-  emerald: { bar: "bg-emerald-500", text: "group-hover:text-emerald-600" },
-  amber: { bar: "bg-amber-500", text: "group-hover:text-amber-600" },
-  destructive: { bar: "bg-destructive", text: "group-hover:text-destructive" },
-  muted: { bar: "bg-muted-foreground/40", text: "" },
+const SUMMARY_ACCENTS: Record<string, { bar: string; text: string; icon: string }> = {
+  primary: { bar: "bg-primary", text: "group-hover:text-primary", icon: "bg-primary/10 text-primary" },
+  emerald: { bar: "bg-emerald-500", text: "group-hover:text-emerald-600", icon: "bg-emerald-500/10 text-emerald-600" },
+  amber: { bar: "bg-amber-500", text: "group-hover:text-amber-600", icon: "bg-amber-500/10 text-amber-600" },
+  destructive: { bar: "bg-destructive", text: "group-hover:text-destructive", icon: "bg-destructive/10 text-destructive" },
+  muted: { bar: "bg-muted-foreground/40", text: "", icon: "bg-muted text-muted-foreground" },
 };
 
-function SummaryCard({ title, value, subValue, accent }: { title: string; value: number; subValue?: string; accent: keyof typeof SUMMARY_ACCENTS }) {
+function SummaryCard({
+  title,
+  value,
+  subValue,
+  accent,
+  icon: Icon,
+  isText = false,
+}: {
+  title: string;
+  value: number | string;
+  subValue?: string;
+  accent: keyof typeof SUMMARY_ACCENTS;
+  icon: typeof Phone;
+  isText?: boolean;
+}) {
   const classes = SUMMARY_ACCENTS[accent];
   return (
     <div className="rounded-[14px] border border-border/60 bg-card p-4 sm:p-5 shadow-xs transition-all hover:border-border group">
       <div className="flex items-center justify-between">
-        <div className={`w-2 h-10 rounded-full ${classes.bar}`} />
-        {subValue && (
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted px-2 py-1 rounded-[8px]">
-            {subValue}
-          </span>
-        )}
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{title}</span>
+        <div className={`h-8 w-8 rounded-[10px] flex items-center justify-center shrink-0 ${classes.icon}`}>
+          <Icon className="h-4 w-4" />
+        </div>
       </div>
-      <div className="mt-3 space-y-1">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-          {title}
-        </p>
-        <p className={`text-2xl sm:text-3xl font-bold text-foreground tabular-nums transition-colors ${classes.text}`}>
+      <div className="mt-3 flex items-baseline gap-2">
+        <span className={cn("font-bold text-foreground tabular-nums transition-colors", isText ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl", classes.text)}>
           {value}
-        </p>
+        </span>
       </div>
+      {subValue && (
+        <p className="text-[11px] text-muted-foreground mt-1">{subValue}</p>
+      )}
     </div>
   );
 }

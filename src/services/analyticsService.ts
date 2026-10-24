@@ -281,7 +281,7 @@ export const getUserPerformanceDetails = async (filters?: { startDate?: string; 
     }
 };
 
-export const getDailyReport = async (filters?: { branchId?: string; startDate?: string; endDate?: string }) => {
+export const getDailyReport = async (filters?: { branchId?: string; startDate?: string; endDate?: string; userIds?: string }) => {
     try {
         const response = await api.get('/reports/daily-report', { params: filters });
         return response.data || { table: [], summary: null };
