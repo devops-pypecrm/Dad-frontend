@@ -9,7 +9,6 @@ import { getFollowUps } from "@/services/followUpService";
 import { getBranches } from "@/services/settingsService";
 import { getUsers } from "@/services/userService";
 import { Calendar, Clock, X, Filter, Search } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -310,14 +309,19 @@ export default function FollowUpsPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="bg-white min-h-screen p-4 sm:p-8 space-y-6 animate-in fade-in duration-300 font-poppins">
       {/* ── Page Header ── */}
-      <div className="flex items-start justify-between gap-3 px-0 sm:px-0 pt-2 sm:pt-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border/40">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-            Follow-ups
-          </h1>
-          <p className="text-muted-foreground mt-0.5 text-sm hidden sm:block">
+          <div className="flex items-center gap-2">
+            <div className="h-9 w-9 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Calendar className="h-5 w-5" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+              Follow-ups
+            </h1>
+          </div>
+          <p className="text-gray-500 text-xs sm:text-sm mt-1 ml-11 hidden sm:block">
             Track and manage all your follow-up tasks and your team's.
           </p>
         </div>
@@ -327,7 +331,7 @@ export default function FollowUpsPage() {
             type="button"
             variant="outline"
             onClick={handleClearAllFilters}
-            className="h-9 px-3 rounded-lg border-dashed text-destructive border-destructive/40
+            className="h-9 px-3 rounded-[10px] border-dashed text-destructive border-destructive/40
                        hover:bg-destructive/10 gap-1.5 font-semibold text-xs shrink-0 transition-all"
             title="Clear All Active Filters"
           >
@@ -339,110 +343,95 @@ export default function FollowUpsPage() {
       </div>
 
       {/* ── Stats Cards: 2×2 on mobile, 4×1 on desktop ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-0 sm:px-0">
-        <Card
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div
           className={cn(
-            "cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 active:scale-95",
-            !filterParam && "ring-2 ring-primary bg-primary/5",
+            "cursor-pointer rounded-[14px] border border-border/60 bg-card p-4 sm:p-5 shadow-xs transition-all hover:border-border hover:-translate-y-0.5 active:scale-95",
+            !filterParam && "ring-2 ring-primary/60",
           )}
           onClick={() => navigate("/follow-ups")}
         >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5 pt-3 px-3 sm:px-4 sm:pb-2 sm:pt-4">
-            <CardTitle className="text-xs sm:text-sm font-medium leading-tight">
-              Active
-            </CardTitle>
-            <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
-          </CardHeader>
-          <CardContent className="px-3 pb-3 sm:px-4 sm:pb-4">
-            <div className="text-2xl font-bold">{activeCount}</div>
-            <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 truncate">
-              All pending
-            </p>
-          </CardContent>
-        </Card>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Active</span>
+            <div className="h-8 w-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center">
+              <Calendar className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            {activeCount}
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-1">All pending</p>
+        </div>
 
-        <Card
+        <div
           className={cn(
-            "cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 active:scale-95 border-red-200 bg-red-50/50",
-            filterParam === "overdue" && "ring-2 ring-red-500 bg-red-100/50",
+            "cursor-pointer rounded-[14px] border border-destructive/20 bg-destructive/5 p-4 sm:p-5 shadow-xs transition-all hover:border-destructive/30 hover:-translate-y-0.5 active:scale-95",
+            filterParam === "overdue" && "ring-2 ring-destructive/60",
           )}
           onClick={() => navigate("/follow-ups?filter=overdue")}
         >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5 pt-3 px-3 sm:px-4 sm:pb-2 sm:pt-4">
-            <CardTitle className="text-xs sm:text-sm font-medium text-red-700 leading-tight">
-              Overdue
-            </CardTitle>
-            <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600 shrink-0" />
-          </CardHeader>
-          <CardContent className="px-3 pb-3 sm:px-4 sm:pb-4">
-            <div className="text-2xl font-bold text-red-700">
-              {overdueCount}
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-destructive uppercase tracking-wider">Overdue</span>
+            <div className="h-8 w-8 rounded-[10px] bg-destructive/15 text-destructive flex items-center justify-center">
+              <Clock className="h-4 w-4" />
             </div>
-            <p className="text-[11px] sm:text-xs text-red-600 mt-0.5 truncate">
-              Past due date
-            </p>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight text-destructive">
+            {overdueCount}
+          </div>
+          <p className="text-[11px] text-destructive/80 mt-1">Past due date</p>
+        </div>
 
-        <Card
+        <div
           className={cn(
-            "cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 active:scale-95 border-orange-200 bg-orange-50/50",
-            filterParam === "today" &&
-              "ring-2 ring-orange-500 bg-orange-100/50",
+            "cursor-pointer rounded-[14px] border border-amber-500/20 bg-amber-500/5 p-4 sm:p-5 shadow-xs transition-all hover:border-amber-500/30 hover:-translate-y-0.5 active:scale-95",
+            filterParam === "today" && "ring-2 ring-amber-500/60",
           )}
           onClick={() => navigate("/follow-ups?filter=today")}
         >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5 pt-3 px-3 sm:px-4 sm:pb-2 sm:pt-4">
-            <CardTitle className="text-xs sm:text-sm font-medium text-orange-700 leading-tight">
-              Today
-            </CardTitle>
-            <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-600 shrink-0" />
-          </CardHeader>
-          <CardContent className="px-3 pb-3 sm:px-4 sm:pb-4">
-            <div className="text-2xl font-bold text-orange-700">
-              {todayCount}
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-amber-700 dark:text-amber-400 uppercase tracking-wider">Today</span>
+            <div className="h-8 w-8 rounded-[10px] bg-amber-500/15 text-amber-600 flex items-center justify-center">
+              <Calendar className="h-4 w-4" />
             </div>
-            <p className="text-[11px] sm:text-xs text-orange-600 mt-0.5 truncate">
-              Due today
-            </p>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight text-amber-700 dark:text-amber-400">
+            {todayCount}
+          </div>
+          <p className="text-[11px] text-amber-600/80 mt-1">Due today</p>
+        </div>
 
-        <Card
+        <div
           className={cn(
-            "cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 active:scale-95 border-blue-200 bg-blue-50/50",
-            filterParam === "upcoming" && "ring-2 ring-blue-500 bg-blue-100/50",
+            "cursor-pointer rounded-[14px] border border-emerald-500/20 bg-emerald-500/5 p-4 sm:p-5 shadow-xs transition-all hover:border-emerald-500/30 hover:-translate-y-0.5 active:scale-95",
+            filterParam === "upcoming" && "ring-2 ring-emerald-500/60",
           )}
           onClick={() => navigate("/follow-ups?filter=upcoming")}
         >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5 pt-3 px-3 sm:px-4 sm:pb-2 sm:pt-4">
-            <CardTitle className="text-xs sm:text-sm font-medium text-blue-700 leading-tight">
-              Upcoming
-            </CardTitle>
-            <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0" />
-          </CardHeader>
-          <CardContent className="px-3 pb-3 sm:px-4 sm:pb-4">
-            <div className="text-2xl font-bold text-blue-700">
-              {upcomingCount}
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Upcoming</span>
+            <div className="h-8 w-8 rounded-[10px] bg-emerald-500/15 text-emerald-600 flex items-center justify-center">
+              <Calendar className="h-4 w-4" />
             </div>
-            <p className="text-[11px] sm:text-xs text-blue-600 mt-0.5 truncate">
-              Future
-            </p>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight text-emerald-700 dark:text-emerald-400">
+            {upcomingCount}
+          </div>
+          <p className="text-[11px] text-emerald-600/80 mt-1">Future</p>
+        </div>
       </div>
 
       {/* ── Filters Panel ── */}
-      <div className="bg-card border border-border rounded-xl shadow-sm mx-0 sm:mx-0">
+      <div className="rounded-[14px] border border-border/60 bg-card shadow-xs">
         {/* Search row */}
         <div className="p-3 border-b border-border/60">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
             <Input
               placeholder="Search follow-ups..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-10 w-full bg-background text-sm"
+              className="pl-9 h-10 sm:h-9 w-full bg-background text-sm sm:text-xs rounded-[10px] border-border/60 focus-visible:ring-1"
             />
           </div>
         </div>
@@ -454,7 +443,7 @@ export default function FollowUpsPage() {
             value={sortBy}
             onValueChange={(val) => updateSearchParams({ sort: val })}
           >
-            <SelectTrigger className="h-10 sm:h-9 w-full sm:w-[172px] bg-background text-sm sm:text-xs">
+            <SelectTrigger className="h-10 sm:h-9 w-full sm:w-[172px] bg-background text-sm sm:text-xs rounded-[10px] border-border/60">
               <SelectValue placeholder="Sort: Due Date" />
             </SelectTrigger>
             <SelectContent>
@@ -474,7 +463,7 @@ export default function FollowUpsPage() {
             value={statusFilter}
             onValueChange={(val) => updateSearchParams({ status: val })}
           >
-            <SelectTrigger className="h-10 sm:h-9 w-full sm:w-[145px] bg-background text-sm sm:text-xs">
+            <SelectTrigger className="h-10 sm:h-9 w-full sm:w-[145px] bg-background text-sm sm:text-xs rounded-[10px] border-border/60">
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
             <SelectContent>
@@ -492,7 +481,7 @@ export default function FollowUpsPage() {
               value={branchFilter}
               onValueChange={(val) => updateSearchParams({ branch: val })}
             >
-              <SelectTrigger className="h-10 sm:h-9 w-full sm:w-[145px] bg-background text-sm sm:text-xs">
+              <SelectTrigger className="h-10 sm:h-9 w-full sm:w-[145px] bg-background text-sm sm:text-xs rounded-[10px] border-border/60">
                 <SelectValue placeholder="All Branches" />
               </SelectTrigger>
               <SelectContent>
@@ -512,7 +501,7 @@ export default function FollowUpsPage() {
               value={userFilter}
               onValueChange={(val) => updateSearchParams({ user: val })}
             >
-              <SelectTrigger className="h-10 sm:h-9 w-full sm:w-[145px] bg-background text-sm sm:text-xs">
+              <SelectTrigger className="h-10 sm:h-9 w-full sm:w-[145px] bg-background text-sm sm:text-xs rounded-[10px] border-border/60">
                 <SelectValue placeholder="All Users" />
               </SelectTrigger>
               <SelectContent>
@@ -535,7 +524,7 @@ export default function FollowUpsPage() {
         <div
           className="
       mx-0 sm:mx-0
-      rounded-xl border border-border/40 bg-background/40
+      rounded-[14px] border border-border/60 bg-card
       p-3
       sm:p-2.5
     "
@@ -650,7 +639,7 @@ export default function FollowUpsPage() {
           <div className="h-7 w-7 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
       ) : (
-        <div className="px-2 sm:px-0 pb-20 sm:pb-4">
+        <div className="rounded-[14px] border border-border/70 bg-card overflow-hidden shadow-xs pb-20 sm:pb-0">
           <DataTable
             columns={columns}
             data={filteredFollowUps}

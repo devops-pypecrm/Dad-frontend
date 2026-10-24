@@ -51,7 +51,7 @@ export const columns: ColumnDef<FollowUpTask>[] = [
       return (
         <Link
           to={`/leads/${leadId}`}
-          className="font-medium text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+          className="font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
         >
           {name}
         </Link>
@@ -65,7 +65,7 @@ export const columns: ColumnDef<FollowUpTask>[] = [
       const branch = row.original.branch
       return (
         <div className="flex items-center gap-1.5">
-          <Badge variant="outline" className="bg-blue-50/50 text-blue-700 border-blue-200 font-medium">
+          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-medium">
             {branch?.name || "Main Branch"}
           </Badge>
         </div>
@@ -96,13 +96,13 @@ export const columns: ColumnDef<FollowUpTask>[] = [
       return (
         <div className={cn(
           "flex items-center gap-2",
-          isOverdue && "text-red-600 font-semibold",
-          isDueToday && "text-orange-600 font-semibold"
+          isOverdue && "text-destructive font-semibold",
+          isDueToday && "text-amber-700 dark:text-amber-400 font-semibold"
         )}>
           {(isOverdue || isDueToday) && <Clock className="h-3 w-3" />}
           {format(dueDate, "MMM d, yyyy, h:mm a")}
-          {isOverdue && <Badge variant="destructive" className="text-xs">Overdue</Badge>}
-          {isDueToday && <Badge className="text-xs bg-orange-500">Today</Badge>}
+          {isOverdue && <Badge variant="outline" className="text-[10px] bg-destructive/10 text-destructive border-destructive/20">Overdue</Badge>}
+          {isDueToday && <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-700 border-amber-500/20">Today</Badge>}
         </div>
       )
     }
@@ -122,16 +122,18 @@ export const columns: ColumnDef<FollowUpTask>[] = [
     },
     cell: ({ row }) => {
       const status = row.getValue("status") as string
-      let variant: "default" | "secondary" | "destructive" | "outline" = "outline"
-
-      switch (status) {
-        case 'completed': variant = "default"; break;
-        case 'in_progress': variant = "secondary"; break;
-        case 'not_started': variant = "outline"; break;
-        case 'deferred': variant = "destructive"; break;
+      const STATUS_CLASSES: Record<string, string> = {
+        completed: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+        in_progress: "bg-primary/10 text-primary border-primary/20",
+        not_started: "bg-muted text-muted-foreground border-border/60",
+        deferred: "bg-destructive/10 text-destructive border-destructive/20",
       }
 
-      return <Badge variant={variant} className="capitalize">{status.replace('_', ' ')}</Badge>
+      return (
+        <Badge variant="outline" className={cn("capitalize text-[10px]", STATUS_CLASSES[status] || "")}>
+          {status.replace('_', ' ')}
+        </Badge>
+      )
     }
   },
   {
@@ -149,13 +151,12 @@ export const columns: ColumnDef<FollowUpTask>[] = [
     },
     cell: ({ row }) => {
       const priority = row.getValue("priority") as string
-      let colorClass = "";
-      switch (priority) {
-        case 'high': colorClass = "text-red-500 font-bold"; break;
-        case 'medium': colorClass = "text-yellow-600"; break;
-        case 'low': colorClass = "text-green-600"; break;
+      const PRIORITY_CLASSES: Record<string, string> = {
+        high: "text-destructive font-bold",
+        medium: "text-amber-700 dark:text-amber-400 font-medium",
+        low: "text-emerald-700 dark:text-emerald-400",
       }
-      return <span className={`capitalize ${colorClass}`}>{priority}</span>
+      return <span className={cn("capitalize", PRIORITY_CLASSES[priority] || "")}>{priority}</span>
     }
   },
   {
@@ -253,7 +254,7 @@ export const columns: ColumnDef<FollowUpTask>[] = [
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+              className="h-8 w-8 rounded-[8px] text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
               onClick={() => setShowCallDialog(true)}
               title="Call Lead"
             >
@@ -261,11 +262,10 @@ export const columns: ColumnDef<FollowUpTask>[] = [
             </Button>
           )}
 
-          
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            className="h-8 w-8 rounded-[8px] text-primary hover:text-primary/80 hover:bg-primary/10"
             onClick={() => setShowUpdateDialog(true)}
             title="Update Follow-up"
           >

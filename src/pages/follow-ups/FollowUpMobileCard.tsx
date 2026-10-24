@@ -63,29 +63,28 @@ export function FollowUpMobileCard({ task }: { task: FollowUpTask }) {
     }
   }
 
-  let statusVariant: "default" | "secondary" | "destructive" | "outline" = "outline"
-  switch (task.status) {
-    case 'completed': statusVariant = "default"; break
-    case 'in_progress': statusVariant = "secondary"; break
-    case 'not_started': statusVariant = "outline"; break
-    case 'deferred': statusVariant = "destructive"; break
+  const STATUS_CLASSES: Record<string, string> = {
+    completed: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+    in_progress: "bg-primary/10 text-primary border-primary/20",
+    not_started: "bg-muted text-muted-foreground border-border/60",
+    deferred: "bg-destructive/10 text-destructive border-destructive/20",
   }
 
   let priorityColor = ""
   switch (task.priority) {
-    case 'high': priorityColor = "text-red-600 bg-red-50 border-red-200"; break
-    case 'medium': priorityColor = "text-yellow-700 bg-yellow-50 border-yellow-200"; break
-    case 'low': priorityColor = "text-green-700 bg-green-50 border-green-200"; break
+    case 'high': priorityColor = "text-destructive bg-destructive/10 border-destructive/20"; break
+    case 'medium': priorityColor = "text-amber-700 dark:text-amber-400 bg-amber-500/10 border-amber-500/20"; break
+    case 'low': priorityColor = "text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20"; break
   }
 
   return (
-    <Card className="border-border/60 shadow-sm overflow-hidden rounded-xl bg-card">
+    <Card className="border-border/60 shadow-xs overflow-hidden rounded-[14px] bg-card">
       <CardContent className="p-0">
         {/* Colored left accent for overdue/today */}
         {(isOverdue || isDueToday) && (
           <div className={cn(
             "h-1 w-full",
-            isOverdue ? "bg-destructive" : "bg-orange-400"
+            isOverdue ? "bg-destructive" : "bg-amber-500"
           )} />
         )}
 
@@ -93,8 +92,8 @@ export function FollowUpMobileCard({ task }: { task: FollowUpTask }) {
           {/* Row 1: Status badge + Priority badge */}
           <div className="flex items-center justify-between gap-2">
             <Badge
-              variant={statusVariant}
-              className="capitalize text-[11px] font-semibold px-2.5 py-0.5 rounded-full"
+              variant="outline"
+              className={cn("capitalize text-[11px] font-semibold px-2.5 py-0.5 rounded-full", STATUS_CLASSES[task.status] || "")}
             >
               {task.status.replace('_', ' ')}
             </Badge>
@@ -132,11 +131,11 @@ export function FollowUpMobileCard({ task }: { task: FollowUpTask }) {
               <div className="flex items-center gap-1.5 min-w-0">
                 <Clock className={cn(
                   "h-3.5 w-3.5 shrink-0",
-                  isOverdue ? "text-destructive" : isDueToday ? "text-orange-500" : "text-muted-foreground"
+                  isOverdue ? "text-destructive" : isDueToday ? "text-amber-600" : "text-muted-foreground"
                 )} />
                 <span className={cn(
                   "font-medium truncate",
-                  isOverdue ? "text-destructive" : isDueToday ? "text-orange-600" : "text-foreground/80"
+                  isOverdue ? "text-destructive" : isDueToday ? "text-amber-700 dark:text-amber-400" : "text-foreground/80"
                 )}>
                   {dueDate ? format(dueDate, "MMM d, yyyy · h:mm a") : "No due date"}
                 </span>
@@ -147,7 +146,7 @@ export function FollowUpMobileCard({ task }: { task: FollowUpTask }) {
                 </span>
               )}
               {isDueToday && (
-                <span className="shrink-0 text-[10px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full font-bold">
+                <span className="shrink-0 text-[10px] bg-amber-500/10 text-amber-700 px-1.5 py-0.5 rounded-full font-bold">
                   TODAY
                 </span>
               )}
