@@ -145,7 +145,7 @@ export default function DailyReportPage() {
   const outcomeChartData = useMemo(() => [
       { name: 'Connected', value: tableData.reduce((s: number, r: any) => s + r.totalConnected, 0) },
       { name: 'Unconnected', value: tableData.reduce((s: number, r: any) => s + r.totalUnconnected, 0) },
-      { name: 'Converted', value: tableData.reduce((s: number, r: any) => s + r.totalConverted, 0) },
+      { name: 'Won', value: tableData.reduce((s: number, r: any) => s + r.totalConverted, 0) },
       { name: 'Lost', value: tableData.reduce((s: number, r: any) => s + r.totalLost, 0) },
     ].filter(d => d.value > 0),
     [tableData]
@@ -495,7 +495,7 @@ export default function DailyReportPage() {
                   <TableHead className="text-[11px] uppercase tracking-wider text-center">Connected</TableHead>
                   <TableHead className="text-[11px] uppercase tracking-wider text-center">Unconnected</TableHead>
                   <TableHead className="text-[11px] uppercase tracking-wider text-center">Duration</TableHead>
-                  <TableHead className="text-[11px] uppercase tracking-wider text-center">Converted</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-center">Won</TableHead>
                   <TableHead className="text-[11px] uppercase tracking-wider text-center">Lost</TableHead>
                 </TableRow>
               </TableHeader>
