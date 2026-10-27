@@ -11,6 +11,7 @@ export default function GetStartedBanner() {
           {/* Green glow matching our logo's brand green, in place of ClickUp's pink */}
           <div className="pointer-events-none absolute -right-1/4 -bottom-1/2 w-[70%] aspect-square rounded-full bg-gradient-to-br from-[#69a63a] via-[#79be45] to-transparent blur-3xl opacity-70" />
           <div className="pointer-events-none absolute right-0 top-0 w-1/2 h-full bg-gradient-to-bl from-[#69a63a]/40 via-[#79be45]/10 to-transparent blur-2xl" />
+          <div className="pointer-events-none absolute -left-1/4 -top-1/2 w-[60%] aspect-square rounded-full bg-gradient-to-br from-plum-500 via-plum-400/40 to-transparent blur-3xl opacity-40" />
           {/* Fine grain over the green glow's top edge, matching ClickUp-style noise texture */}
           <div
             className="pointer-events-none absolute right-0 top-0 w-full h-full"

@@ -216,16 +216,16 @@ function AskAI({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "flex flex-col overflow-hidden rounded-[28px] border border-blue-100 bg-gradient-to-b from-blue-50 to-white dark:border-blue-900/40 dark:from-blue-950/40 dark:to-neutral-900",
+        "flex flex-col overflow-hidden rounded-[28px] border border-plum-100 bg-gradient-to-b from-plum-50 to-white dark:border-plum-900/40 dark:from-plum-950/40 dark:to-neutral-900",
         className
       )}
     >
       <div className="flex items-center gap-3 px-5 pt-5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/30">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-plum-600 to-brand-500 text-white shadow-lg shadow-plum-600/30">
           <Bot className="h-5 w-5" />
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-plum-600 dark:text-plum-400">
             Not here? Ask our AI
           </p>
           <p className="flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
@@ -246,7 +246,7 @@ function AskAI({ className }: { className?: string }) {
               className={cn(
                 "max-w-[90%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed",
                 m.role === "user"
-                  ? "rounded-br-md bg-blue-600 text-white"
+                  ? "rounded-br-md bg-plum-600 text-white"
                   : "rounded-bl-md border border-neutral-200 bg-white text-neutral-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
               )}
             >
@@ -267,7 +267,7 @@ function AskAI({ className }: { className?: string }) {
               <button
                 key={s}
                 onClick={() => send(s)}
-                className="rounded-full border border-blue-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-50 dark:border-blue-800 dark:bg-neutral-800 dark:text-blue-300"
+                className="rounded-full border border-plum-200 bg-white px-3 py-1.5 text-xs font-semibold text-plum-700 transition-colors hover:bg-plum-50 dark:border-plum-800 dark:bg-neutral-800 dark:text-plum-300"
               >
                 {s}
               </button>
@@ -293,7 +293,7 @@ function AskAI({ className }: { className?: string }) {
         <button
           type="submit"
           disabled={!input.trim() || typing}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white transition-all hover:bg-blue-700 disabled:opacity-40"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-plum-600 text-white transition-all hover:bg-plum-700 disabled:opacity-40"
           aria-label="Send"
         >
           <Send className="h-4 w-4" />
@@ -335,13 +335,13 @@ export default function FAQSection() {
     <section id="faq" className="overflow-hidden bg-gray-50 py-24 dark:bg-neutral-900/30">
       <div className="container mx-auto px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28">
         <div className="mx-auto mb-14 max-w-3xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-brand-500/20 bg-brand-500/10 px-4 py-2 text-xs font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">
             <HelpCircle className="h-4 w-4" />
             Common Questions
           </div>
           <h2 className="mb-6 text-4xl font-black tracking-tight text-neutral-900 dark:text-white md:text-5xl">
             Everything you need to{" "}
-            <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">know.</span>
+            <span className="bg-gradient-to-r from-brand-600 to-plum-600 bg-clip-text text-transparent">know.</span>
           </h2>
           <p className="text-lg text-neutral-600 dark:text-neutral-400">
             Can't find the answer you're looking for? Ask our AI, or reach out to our customer success team 24/7.
@@ -357,7 +357,7 @@ export default function FAQSection() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search questions…"
-                className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 py-2.5 pl-10 pr-3 text-sm text-neutral-900 outline-none focus:border-blue-400 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 py-2.5 pl-10 pr-3 text-sm text-neutral-900 outline-none focus:border-brand-400 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
               />
             </div>
             <div className="-mr-1 flex-1 space-y-1 overflow-y-auto pr-1 [scrollbar-width:thin]">
@@ -371,14 +371,14 @@ export default function FAQSection() {
                   className={cn(
                     "flex w-full items-center gap-3 rounded-2xl border p-3 text-left text-[14px] font-semibold transition-all",
                     active === index
-                      ? "border-blue-200 bg-blue-50 text-blue-700 shadow-sm dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300"
+                      ? "border-brand-200 bg-brand-50 text-brand-700 shadow-sm dark:border-brand-800 dark:bg-brand-950/50 dark:text-brand-300"
                       : "border-transparent text-neutral-600 hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800"
                   )}
                 >
                   <span
                     className={cn(
                       "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold",
-                      active === index ? "bg-blue-600 text-white" : "bg-neutral-100 text-neutral-500 dark:bg-neutral-800"
+                      active === index ? "bg-brand-600 text-white" : "bg-neutral-100 text-neutral-500 dark:bg-neutral-800"
                     )}
                   >
                     {index + 1}
@@ -411,7 +411,7 @@ export default function FAQSection() {
                         key={p.title}
                         className="flex items-center gap-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-800/50"
                       >
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-sm font-extrabold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-sm font-extrabold text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">
                           {i + 1}
                         </span>
                         <div>
@@ -435,7 +435,7 @@ export default function FAQSection() {
                     className="group flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
                   >
                     {r.question}
-                    <ArrowRight className="h-4 w-4 text-neutral-400 transition-transform group-hover:translate-x-0.5 group-hover:text-blue-600" />
+                    <ArrowRight className="h-4 w-4 text-neutral-400 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-600" />
                   </button>
                 ))}
               </div>
@@ -447,7 +447,7 @@ export default function FAQSection() {
         </div>
 
         <p className="mt-8 flex items-center justify-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
-          <Sparkles className="h-4 w-4 text-blue-500" />
+          <Sparkles className="h-4 w-4 text-brand-500" />
           Prefer a human? Our customer success team is online 24/7.
         </p>
       </div>

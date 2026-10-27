@@ -31,6 +31,15 @@ export default {
                 jakarta: ["'Plus Jakarta Sans'", "sans-serif"],
             },
             colors: {
+                // Brand palette sampled from the logo: green #54B947, purple #8C5FA8.
+                brand: {
+                    50: "#f0faee", 100: "#dff3da", 200: "#bfe6b6", 300: "#94d58a", 400: "#6ec562",
+                    500: "#54b947", 600: "#3f9a34", 700: "#327b2a", 800: "#2a6224", 900: "#234f1f", 950: "#112c10",
+                },
+                plum: {
+                    50: "#f7f2fa", 100: "#eee3f4", 200: "#ddc9e9", 300: "#c4a3d7", 400: "#a97dc0",
+                    500: "#8c5fa8", 600: "#744b8e", 700: "#5e3c73", 800: "#4d325e", 900: "#3f2a4d", 950: "#251730",
+                },
                 border: "hsl(var(--border))",
                 input: "hsl(var(--input))",
                 ring: "hsl(var(--ring))",

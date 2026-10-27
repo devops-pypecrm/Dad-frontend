@@ -19,34 +19,34 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-gray-900 dark:text-white mb-4">Product</h4>
             <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-              <li><Link to="/#features" className="hover:text-blue-600">Features</Link></li>
-              <li><Link to="/#pricing" className="hover:text-blue-600">Pricing</Link></li>
-              <li><Link to="/login" className="hover:text-blue-600">Login</Link></li>
-              <li><Link to="/enquire" className="hover:text-blue-600">Enquire</Link></li>
+              <li><Link to="/#features" className="hover:text-brand-600">Features</Link></li>
+              <li><Link to="/#pricing" className="hover:text-brand-600">Pricing</Link></li>
+              <li><Link to="/login" className="hover:text-brand-600">Login</Link></li>
+              <li><Link to="/enquire" className="hover:text-brand-600">Enquire</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-bold text-gray-900 dark:text-white mb-4">Resources</h4>
             <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-              <li><Link to="/help" className="hover:text-blue-600">Documentation</Link></li>
-              <li><a href="#" className="hover:text-blue-600">API Reference</a></li>
-              <li><Link to="/blog" className="hover:text-blue-600">Blog</Link></li>
-              <li><Link to="/download" className="hover:text-blue-600">Download App</Link></li>
-              <li><a href="#" className="hover:text-blue-600">Community</a></li>
+              <li><Link to="/help" className="hover:text-brand-600">Documentation</Link></li>
+              <li><a href="#" className="hover:text-brand-600">API Reference</a></li>
+              <li><Link to="/blog" className="hover:text-brand-600">Blog</Link></li>
+              <li><Link to="/download" className="hover:text-brand-600">Download App</Link></li>
+              <li><a href="#" className="hover:text-brand-600">Community</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-bold text-gray-900 dark:text-white mb-4">Connect</h4>
             <div className="flex gap-4">
-              <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors">
+              <a href="#" className="text-gray-400 hover:text-brand-600 transition-colors">
                 <Twitter className="h-5 w-5" />
               </a>
               <a href="#" className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                 <Github className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-blue-700 transition-colors">
+              <a href="#" className="text-gray-400 hover:text-brand-700 transition-colors">
                 <Linkedin className="h-5 w-5" />
               </a>
             </div>
@@ -54,7 +54,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-100 dark:border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="mt-12 pt-8 border-t border-indigo-500/10 text-center text-indigo-400/60 text-sm">
+          <div className="mt-12 pt-8 border-t border-plum-500/10 text-center text-plum-400/60 text-sm">
             <p>&copy; {new Date().getFullYear()} PYPE. All rights reserved.</p>
           </div>
           <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-500 dark:text-gray-400">

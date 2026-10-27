@@ -4,7 +4,7 @@ import { ArrowRight, Check } from "lucide-react";
 
 export default function CTASection() {
   return (
-    <section className="py-24 bg-blue-600 dark:bg-blue-700 relative overflow-hidden">
+    <section className="py-24 bg-gradient-to-br from-brand-600 via-brand-700 to-plum-700 dark:from-brand-700 dark:to-plum-800 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10 pattern-grid-lg" />
 
@@ -12,13 +12,13 @@ export default function CTASection() {
         <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
           Ready to transform your sales?
         </h2>
-        <p className="text-blue-100 text-xl mb-10 max-w-2xl mx-auto">
+        <p className="text-brand-100 text-xl mb-10 max-w-2xl mx-auto">
           Join thousands of teams who are closing more deals with less effort. Start your 14-day free trial today.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
           <Link to="/enquire">
-            <Button size="lg" className="h-14 px-8 text-lg rounded-full bg-white text-blue-600 hover:bg-gray-100 shadow-xl transition-all hover:scale-105 font-bold">
+            <Button size="lg" className="h-14 px-8 text-lg rounded-full bg-white text-brand-600 hover:bg-gray-100 shadow-xl transition-all hover:scale-105 font-bold">
               Get Started Now <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
@@ -29,12 +29,12 @@ export default function CTASection() {
           </Link>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-6 text-sm font-medium text-blue-100">
+        <div className="flex flex-wrap items-center justify-center gap-6 text-sm font-medium text-brand-100">
           <div className="flex items-center gap-2">
-            <Check className="h-5 w-5 bg-blue-500 rounded-full p-1" /> No credit card needed
+            <Check className="h-5 w-5 bg-brand-500 rounded-full p-1" /> No credit card needed
           </div>
           <div className="flex items-center gap-2">
-            <Check className="h-5 w-5 bg-blue-500 rounded-full p-1" /> Instant setup
+            <Check className="h-5 w-5 bg-brand-500 rounded-full p-1" /> Instant setup
           </div>
         </div>
       </div>

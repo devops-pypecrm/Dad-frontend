@@ -102,6 +102,7 @@ const bottomRow = [
 const allSmallItems = [...gridItems, ...bottomRow];
 
 const heroCards = [
+  // Greens sit on one diagonal (top-left / bottom-right), purples on the other.
   {
     key: "pipeline",
     title: "Sales Pipeline",
@@ -117,16 +118,16 @@ const heroCards = [
     gridRow: "2 / span 2",
   },
   {
-    key: "inbox",
-    title: "Omnichannel Inbox",
-    image: "/All-in-One4.png",
+    key: "automation",
+    title: "Automation Engine",
+    image: "/All-in-One1.png",
     gridColumn: "3 / span 3",
     gridRow: "4 / span 2",
   },
   {
-    key: "automation",
-    title: "Automation Engine",
-    image: "/All-in-One1.png",
+    key: "inbox",
+    title: "Omnichannel Inbox",
+    image: "/All-in-One4.png",
     gridColumn: "6 / span 3",
     gridRow: "4 / span 2",
   },
@@ -141,7 +142,7 @@ function GridCell({
 }) {
   return (
     <div className="relative flex flex-col items-center justify-center gap-2 border-r border-b border-gray-100 px-2 py-4 h-28 hover:z-10 hover:border-gray-300 hover:bg-gray-50/80 hover:shadow-[0_8px_14px_-6px_rgba(0,0,0,0.15)] transition-all group">
-      <Icon className="w-5 h-5 text-gray-400 group-hover:text-green-600 transition-colors" strokeWidth={1.5} />
+      <Icon className="w-5 h-5 text-gray-400 group-hover:text-brand-600 transition-colors" strokeWidth={1.5} />
       <span className="text-[11px] leading-tight text-gray-500 text-center">{label}</span>
     </div>
   );
@@ -168,13 +169,13 @@ export default function FeatureSection() {
       <div className="container mx-auto max-w-7xl">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-gray-200 bg-white text-xs font-medium text-gray-600">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-500" />
             All-in-One CRM
           </div>
           <h2 className="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
             Everything your sales team
             <br />
-            needs, <span className="text-green-600">in one place.</span>
+            needs, <span className="text-brand-600">in one place.</span>
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
             A complete CRM workspace for leads, conversations, automation, AI and revenue operations.

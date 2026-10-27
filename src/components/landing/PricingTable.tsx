@@ -62,7 +62,7 @@ export default function PricingTable() {
   return (
     <section id="pricing" className="py-24 bg-gray-50 dark:bg-gray-900/50 relative overflow-hidden">
       {/* Background Decoration */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-500/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="container mx-auto px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-12">
@@ -80,7 +80,7 @@ export default function PricingTable() {
               onCheckedChange={setIsYearly}
             />
             <span className={`text-sm font-medium ${isYearly ? 'text-gray-900 dark:text-white' : 'text-gray-500'}`}>
-              Yearly <span className="text-green-600 font-bold ml-1">(Save ~17%)</span>
+              Yearly <span className="text-brand-600 font-bold ml-1">(Save ~17%)</span>
             </span>
           </div>
         </div>
@@ -95,9 +95,9 @@ export default function PricingTable() {
               transition={{ delay: index * 0.1 }}
               className="h-full"
             >
-              <Card className={`relative h-full flex flex-col border-2 transition-all duration-300 ${plan.popular ? 'border-blue-600 shadow-2xl scale-105 z-10' : 'border-gray-200 dark:border-gray-800 hover:border-blue-300'}`}>
+              <Card className={`relative h-full flex flex-col border-2 transition-all duration-300 ${plan.popular ? 'border-brand-600 shadow-2xl scale-105 z-10' : 'border-gray-200 dark:border-gray-800 hover:border-brand-300'}`}>
                 {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-1 rounded-full text-sm font-bold flex items-center gap-1 shadow-lg">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-brand-600 to-plum-600 text-white px-4 py-1 rounded-full text-sm font-bold flex items-center gap-1 shadow-lg">
                     <Star className="w-3 h-3 fill-current" /> Most Popular
                   </div>
                 )}
@@ -105,7 +105,7 @@ export default function PricingTable() {
                   <h3 className="text-xl font-bold">{plan.name}</h3>
                   <p className="text-gray-500 text-sm mt-2">{plan.description}</p>
                   {plan.discount && plan.discount > 0 && (
-                    <div className="mt-2 inline-block bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 px-3 py-1 rounded-full text-xs font-bold">
+                    <div className="mt-2 inline-block bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-400 px-3 py-1 rounded-full text-xs font-bold">
                       {plan.discount}% OFF
                     </div>
                   )}
@@ -118,14 +118,14 @@ export default function PricingTable() {
                   {plan.discount && plan.discount > 0 && plan.originalPrice && (
                     <p className="text-sm text-gray-400 line-through mt-1">₹{isYearly ? Math.round(plan.originalPrice * 10 / 12) : plan.originalPrice}/month</p>
                   )}
-                  {isYearly && <p className="text-xs text-green-600 mt-2 font-medium">Billed ₹{plan.yearlyPrice} yearly</p>}
+                  {isYearly && <p className="text-xs text-brand-600 mt-2 font-medium">Billed ₹{plan.yearlyPrice} yearly</p>}
                 </CardHeader>
                 <CardContent className="flex-1">
                   <ul className="space-y-3 mt-4">
                     {plan.features?.map((feature: string, i: number) => (
                       <li key={i} className="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-300">
-                        <div className="mt-0.5 bg-green-100 dark:bg-green-900/30 rounded-full p-1">
-                          <Check className="h-3 w-3 text-green-600" />
+                        <div className="mt-0.5 bg-brand-100 dark:bg-brand-900/30 rounded-full p-1">
+                          <Check className="h-3 w-3 text-brand-600" />
                         </div>
                         {feature}
                       </li>
@@ -135,7 +135,7 @@ export default function PricingTable() {
                 <CardFooter>
                   <Link to={`/enquire?plan=${plan.id}`} className="w-full">
                     <Button
-                      className={`w-full font-bold ${plan.popular ? 'bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25' : ''}`}
+                      className={`w-full font-bold ${plan.popular ? 'bg-brand-600 hover:bg-brand-700 shadow-lg shadow-brand-500/25' : ''}`}
                       variant={plan.popular ? 'default' : 'outline'}
                       size="lg"
                     >

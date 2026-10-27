@@ -364,7 +364,7 @@ export default function Testimonials() {
             {done && (
               <button
                 onClick={() => setRun((r) => r + 1)}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400"
               >
                 <RotateCcw className="h-3.5 w-3.5" /> Replay
               </button>

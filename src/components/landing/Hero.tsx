@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,6 +26,10 @@ import {
   Filter,
   ChevronDown,
   MoreHorizontal,
+  Phone,
+  Lock,
+  RefreshCw,
+  Facebook,
 } from "lucide-react";
 import Logo from "../shared/Logo";
 import { Switch } from "@/components/ui/switch";
@@ -80,17 +84,41 @@ const navGroups: { title: string; items: NavItem[] }[] = [
 ];
 
 const leadRows = [
-  { name: "Priya Sharma", status: "Won", color: "bg-emerald-100 text-emerald-700", avatar: "bg-rose-200", value: "₹48,000" },
-  { name: "Arjun Mehta", status: "Interested", color: "bg-blue-100 text-blue-700", avatar: "bg-sky-200", value: "₹22,500" },
-  { name: "Kavya Nair", status: "Qualified", color: "bg-amber-100 text-amber-700", avatar: "bg-amber-200", value: "₹35,000" },
-  { name: "Rohit Verma", status: "New", color: "bg-indigo-100 text-indigo-700", avatar: "bg-indigo-200", value: "₹12,000" },
-  { name: "Sneha Iyer", status: "Contacted", color: "bg-sky-100 text-sky-700", avatar: "bg-emerald-200", value: "₹28,000" },
+  { name: "Priya Sharma", phone: "+91 98765 43210", source: "Meta Ads", status: "Won", color: "bg-emerald-100 text-emerald-700", avatar: "bg-rose-200", owner: "RK", score: 92, value: "₹48,000" },
+  { name: "Arjun Mehta", phone: "+91 91234 56780", source: "WhatsApp", status: "Interested", color: "bg-brand-100 text-brand-700", avatar: "bg-sky-200", owner: "SP", score: 78, value: "₹22,500" },
+  { name: "Kavya Nair", phone: "+91 99887 76655", source: "Website", status: "Qualified", color: "bg-amber-100 text-amber-700", avatar: "bg-amber-200", owner: "AG", score: 65, value: "₹35,000" },
+  { name: "Rohit Verma", phone: "+91 90909 12121", source: "Meta Ads", status: "New", color: "bg-plum-100 text-plum-700", avatar: "bg-plum-200", owner: "RK", score: 54, value: "₹12,000" },
+  { name: "Sneha Iyer", phone: "+91 98450 11223", source: "Referral", status: "Contacted", color: "bg-sky-100 text-sky-700", avatar: "bg-emerald-200", owner: "PK", score: 71, value: "₹28,000" },
+  { name: "Karthik S.", phone: "+91 97000 45454", source: "WhatsApp", status: "New", color: "bg-plum-100 text-plum-700", avatar: "bg-orange-200", owner: "SP", score: 48, value: "₹9,500" },
 ];
+
+const leadStats = [
+  { label: "New today", value: "24", delta: "+12%", up: true },
+  { label: "Follow-ups due", value: "18", delta: "3 overdue", up: false },
+  { label: "Won this week", value: "9", delta: "+28%", up: true },
+  { label: "Avg. response", value: "4m", delta: "-40%", up: true },
+];
+
+const ownerColors: Record<string, string> = {
+  RK: "bg-brand-600",
+  SP: "bg-plum-500",
+  AG: "bg-sky-600",
+  PK: "bg-amber-500",
+};
+
+const sourceStyles: Record<string, string> = {
+  "Meta Ads": "bg-sky-50 text-sky-700 border-sky-100",
+  WhatsApp: "bg-emerald-50 text-emerald-700 border-emerald-100",
+  Website: "bg-gray-50 text-gray-600 border-gray-200",
+  Referral: "bg-plum-50 text-plum-700 border-plum-100",
+};
+
+const tabOrder: TabKey[] = ["leads", "dashboard", "pipeline", "whatsapp", "automation", "ai"];
 
 const statTiles = [
   { label: "Total Leads", value: "1,248", icon: Users, accent: "bg-[hsl(var(--chart-5))]" },
   { label: "Won This Month", value: "₹4.2L", icon: Wallet, accent: "bg-emerald-500" },
-  { label: "Pipeline Value", value: "₹18.6L", icon: TrendingUp, accent: "bg-indigo-500" },
+  { label: "Pipeline Value", value: "₹18.6L", icon: TrendingUp, accent: "bg-plum-500" },
   { label: "Conversion Rate", value: "32%", icon: Percent, accent: "bg-amber-500" },
 ];
 
@@ -113,7 +141,7 @@ const topPerformers = [
 const pipelineColumns = [
   { label: "New", color: "bg-gray-100 text-gray-600", cards: [{ title: "Rohit Verma", value: "₹12,000" }, { title: "Karthik S.", value: "₹9,500" }] },
   { label: "Contacted", color: "bg-sky-100 text-sky-700", cards: [{ title: "Sneha Iyer", value: "₹28,000" }] },
-  { label: "In Progress", color: "bg-blue-100 text-blue-700", cards: [{ title: "Kavya Nair", value: "₹35,000" }, { title: "Arjun Mehta", value: "₹22,500" }] },
+  { label: "In Progress", color: "bg-brand-100 text-brand-700", cards: [{ title: "Kavya Nair", value: "₹35,000" }, { title: "Arjun Mehta", value: "₹22,500" }] },
   { label: "Won", color: "bg-emerald-100 text-emerald-700", cards: [{ title: "Priya Sharma", value: "₹48,000" }] },
 ];
 
@@ -126,7 +154,7 @@ const funnelStages = [
 
 const whatsappContacts = [
   { name: "Kavya Nair", preview: "Is the weekend batch still open?", unread: true, avatar: "bg-amber-200" },
-  { name: "Rohit Verma", preview: "Thanks, see you Monday!", unread: false, avatar: "bg-indigo-200" },
+  { name: "Rohit Verma", preview: "Thanks, see you Monday!", unread: false, avatar: "bg-plum-200" },
   { name: "Sneha Iyer", preview: "Can you send the brochure?", unread: true, avatar: "bg-emerald-200" },
 ];
 
@@ -157,14 +185,29 @@ const aiScoreBars = [
 
 export default function Hero() {
   const [activeTab, setActiveTab] = useState<TabKey>("leads");
+  const [autoPlay, setAutoPlay] = useState(true);
+
+  // Cycle through the product tabs until the visitor takes over.
+  useEffect(() => {
+    if (!autoPlay) return;
+    const id = setInterval(() => {
+      setActiveTab((cur) => tabOrder[(tabOrder.indexOf(cur) + 1) % tabOrder.length]);
+    }, 6000);
+    return () => clearInterval(id);
+  }, [autoPlay]);
+
+  const selectTab = (key: TabKey) => {
+    setAutoPlay(false);
+    setActiveTab(key);
+  };
 
   return (
-    <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 overflow-hidden bg-white dark:bg-gray-950 selection:bg-blue-100 dark:selection:bg-blue-900">
+    <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 overflow-hidden bg-white dark:bg-gray-950 selection:bg-brand-100 dark:selection:bg-brand-900">
 
       {/* Background Gradients */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-        <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-blue-100/40 dark:bg-blue-900/10 rounded-full blur-3xl mix-blend-multiply dark:mix-blend-screen animate-blob" />
-        <div className="absolute top-[20%] left-[-10%] w-[400px] h-[400px] bg-indigo-100/40 dark:bg-indigo-900/10 rounded-full blur-3xl mix-blend-multiply dark:mix-blend-screen animate-blob animation-delay-2000" />
+        <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-brand-100/40 dark:bg-brand-900/10 rounded-full blur-3xl mix-blend-multiply dark:mix-blend-screen animate-blob" />
+        <div className="absolute top-[20%] left-[-10%] w-[400px] h-[400px] bg-plum-100/40 dark:bg-plum-900/10 rounded-full blur-3xl mix-blend-multiply dark:mix-blend-screen animate-blob animation-delay-2000" />
       </div>
 
       <div className="container mx-auto px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28 relative z-10">
@@ -177,7 +220,7 @@ export default function Hero() {
           >
             <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 pl-4 pr-3 py-1.5 text-sm font-semibold text-gray-700 dark:text-gray-200 shadow-sm mb-7">
               The Best CRM has
-              <span className="inline-flex items-center gap-1 text-primary">
+              <span className="inline-flex items-center gap-1 text-plum-600 dark:text-plum-400">
                 <Sparkles className="h-4 w-4" /> Pype AI
               </span>
               <ChevronRight className="h-4 w-4 text-gray-400" />
@@ -239,14 +282,71 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative mx-0 sm:mx-4 md:mx-8 lg:mx-12"
         >
+          {/* Floating product callouts (large screens only) */}
+          <motion.div
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            className="hidden lg:flex absolute -right-6 top-20 z-20 w-64 items-start gap-3 rounded-2xl border border-border bg-background/95 p-3.5 shadow-2xl backdrop-blur"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-700">
+              <Facebook className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold text-muted-foreground">New lead · Meta Ads</p>
+              <p className="text-sm font-bold text-foreground truncate">Rohit Verma</p>
+              <p className="text-[11px] text-muted-foreground">Auto-assigned to Riya K. · just now</p>
+            </div>
+          </motion.div>
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
+            className="hidden lg:block absolute -left-8 bottom-28 z-20 w-60 rounded-2xl border border-plum-200 bg-background/95 p-3.5 shadow-2xl backdrop-blur dark:border-plum-800"
+          >
+            <p className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-plum-600 dark:text-plum-400">
+              <Sparkles className="h-3.5 w-3.5" /> Pype AI
+            </p>
+            <p className="text-xs text-foreground/80">
+              <strong className="text-foreground">Priya Sharma</strong> is 92% likely to close. Suggested: send the quote today.
+            </p>
+            <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-plum-100 dark:bg-plum-900/40">
+              <div className="h-full w-[92%] rounded-full bg-gradient-to-r from-plum-500 to-brand-500" />
+            </div>
+          </motion.div>
+          <motion.div
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 1.6 }}
+            className="hidden xl:flex absolute -right-10 bottom-16 z-20 items-center gap-3 rounded-2xl border border-border bg-background/95 p-3 pr-5 shadow-2xl backdrop-blur"
+          >
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-white">
+              <Phone className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-foreground">Call recorded · 4:32</p>
+              <p className="text-[11px] text-muted-foreground">Synced to Kavya Nair's timeline</p>
+            </div>
+          </motion.div>
+
           <div
             className="relative z-10 rounded-2xl border border-border bg-background shadow-2xl overflow-hidden"
             style={{
-              maskImage: "linear-gradient(to bottom, black 80%, transparent 100%)",
-              WebkitMaskImage: "linear-gradient(to bottom, black 80%, transparent 100%)",
+              maskImage: "linear-gradient(to bottom, black 88%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to bottom, black 88%, transparent 100%)",
             }}
           >
-            <div className="flex h-[480px] sm:h-[560px]">
+            {/* Browser chrome */}
+            <div className="flex h-10 items-center gap-3 border-b border-border bg-muted/60 px-4">
+              <div className="flex gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+                <span className="h-2.5 w-2.5 rounded-full bg-brand-500" />
+              </div>
+              <div className="mx-auto flex h-6 w-full max-w-sm items-center justify-center gap-1.5 rounded-md bg-background px-3 text-[11px] text-muted-foreground">
+                <Lock className="h-3 w-3" />
+                app.pypecrm.com/{activeTab === "ai" ? "pype-ai" : activeTab}
+              </div>
+              <RefreshCw className="hidden h-3.5 w-3.5 text-muted-foreground sm:block" />
+            </div>
+            <div className="flex h-[520px] sm:h-[620px]">
               {/* Sidebar - exact chrome/classes from the real Sidebar.tsx: w-64,
                   h-20 logo header, px-4 py-3 text-sm font-bold nav items,
                   uppercase group labels, and a border-t divider between groups. */}
@@ -267,7 +367,7 @@ export default function Hero() {
                             <button
                               key={item.key}
                               type="button"
-                              onClick={() => setActiveTab(item.key)}
+                              onClick={() => selectTab(item.key)}
                               className={`group w-full flex items-center gap-3 rounded-[10px] px-4 py-3 text-sm font-bold cursor-pointer transition-all duration-200 text-left ${
                                 activeTab === item.key
                                   ? "bg-sidebar-active text-white"
@@ -392,38 +492,79 @@ export default function Hero() {
                       {activeTab === "leads" && (
                         <div>
                           <div className="flex items-center justify-between mb-3">
-                            <h3 className="font-poppins font-semibold text-foreground">Leads</h3>
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-poppins font-semibold text-foreground">All Leads</h3>
+                              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">1,248</span>
+                              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-medium text-brand-600">
+                                <span className="h-1.5 w-1.5 rounded-full bg-brand-500 animate-pulse" /> Real-time
+                              </span>
+                            </div>
                             <span className="inline-flex items-center gap-1.5 rounded-[10px] bg-[hsl(var(--chart-5))] text-white text-xs font-semibold px-3 py-1.5 cursor-pointer">
-                              <Plus className="h-3.5 w-3.5" /> Add Lead
+                              <Plus className="h-3.5 w-3.5" /> New Lead
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-2 mb-3">
-                            <span className="inline-flex items-center gap-1.5 rounded-[8px] border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                              <Filter className="h-3 w-3" /> Status: All <ChevronDown className="h-3 w-3" />
-                            </span>
-                            <span className="inline-flex items-center gap-1.5 rounded-[8px] border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                              This Month <ChevronDown className="h-3 w-3" />
-                            </span>
-                          </div>
-
-                          <div className="rounded-[10px] border border-border bg-card overflow-hidden">
-                            {leadRows.map((row) => (
-                              <div
-                                key={row.name}
-                                className="flex items-center gap-3 px-3 py-2.5 border-b border-border last:border-0 hover:bg-muted/40 transition-colors cursor-pointer"
-                              >
-                                <div className={`h-7 w-7 rounded-full shrink-0 ${row.avatar}`} />
-                                <span className="text-sm text-foreground truncate flex-1 min-w-0">{row.name}</span>
-                                <span className={`hidden sm:inline-flex text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${row.color}`}>
-                                  {row.status}
-                                </span>
-                                <span className="text-sm font-medium text-foreground shrink-0 w-20 text-right">{row.value}</span>
-                                <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground shrink-0 hidden sm:block" />
+                          <div className="hidden sm:grid grid-cols-4 gap-2 mb-3">
+                            {leadStats.map((st) => (
+                              <div key={st.label} className="rounded-[10px] border border-border bg-card px-3 py-2">
+                                <p className="text-[10px] text-muted-foreground">{st.label}</p>
+                                <div className="flex items-baseline justify-between gap-1">
+                                  <span className="text-base font-semibold text-foreground">{st.value}</span>
+                                  <span className={`text-[10px] font-semibold ${st.up ? "text-brand-600" : "text-rose-500"}`}>{st.delta}</span>
+                                </div>
                               </div>
                             ))}
                           </div>
-                          <p className="text-[11px] text-muted-foreground mt-2 text-right">Showing 5 of 1,248 leads</p>
+
+                          <div className="flex flex-wrap items-center gap-2 mb-3">
+                            {["Status: All", "All Owners", "All Sources", "This Month"].map((f) => (
+                              <span key={f} className="inline-flex items-center gap-1.5 rounded-[8px] border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                                {f === "Status: All" && <Filter className="h-3 w-3" />}
+                                {f} <ChevronDown className="h-3 w-3" />
+                              </span>
+                            ))}
+                          </div>
+
+                          <div className="rounded-[10px] border border-border bg-card overflow-hidden">
+                            <div className="hidden sm:grid grid-cols-[1.6fr_0.9fr_0.5fr_0.9fr_0.9fr_0.7fr_16px] gap-3 items-center border-b border-border bg-muted/50 px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                              <span>Name</span><span>Source</span><span>Owner</span><span>AI Score</span><span>Status</span><span className="text-right">Value</span><span />
+                            </div>
+                            {leadRows.map((row) => (
+                              <div
+                                key={row.name}
+                                className="grid grid-cols-[1fr_auto_auto] sm:grid-cols-[1.6fr_0.9fr_0.5fr_0.9fr_0.9fr_0.7fr_16px] items-center gap-3 px-3 py-2 border-b border-border last:border-0 hover:bg-muted/40 transition-colors cursor-pointer"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className={`h-7 w-7 rounded-full shrink-0 ${row.avatar}`} />
+                                  <div className="min-w-0">
+                                    <p className="text-[13px] font-medium text-foreground truncate leading-tight">{row.name}</p>
+                                    <p className="text-[10px] text-muted-foreground truncate">{row.phone}</p>
+                                  </div>
+                                </div>
+                                <span className={`hidden sm:inline-flex w-fit rounded-md border px-2 py-0.5 text-[10px] font-medium ${sourceStyles[row.source]}`}>
+                                  {row.source}
+                                </span>
+                                <div className={`hidden sm:flex h-6 w-6 items-center justify-center rounded-full text-[9px] font-bold text-white ${ownerColors[row.owner]}`}>
+                                  {row.owner}
+                                </div>
+                                <div className="hidden sm:flex items-center gap-1.5">
+                                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                                    <div
+                                      className={`h-full rounded-full ${row.score >= 75 ? "bg-brand-500" : row.score >= 55 ? "bg-amber-400" : "bg-rose-400"}`}
+                                      style={{ width: `${row.score}%` }}
+                                    />
+                                  </div>
+                                  <span className="w-5 text-right text-[10px] font-semibold text-foreground">{row.score}</span>
+                                </div>
+                                <span className={`inline-flex w-fit text-[11px] font-medium px-2.5 py-0.5 rounded-full shrink-0 ${row.color}`}>
+                                  {row.status}
+                                </span>
+                                <span className="text-[13px] font-medium text-foreground text-right">{row.value}</span>
+                                <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground hidden sm:block" />
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-[11px] text-muted-foreground mt-2 text-right">Showing 6 of 1,248 leads</p>
                         </div>
                       )}
 
@@ -547,12 +688,12 @@ export default function Hero() {
                       {activeTab === "ai" && (
                         <div>
                           <h3 className="font-poppins font-semibold text-foreground mb-3 flex items-center gap-1.5">
-                            <Sparkles className="h-4 w-4 text-[hsl(var(--chart-5))]" /> Pype AI Insights
+                            <Sparkles className="h-4 w-4 text-plum-500" /> Pype AI Insights
                           </h3>
                           <div className="space-y-2 mb-5">
                             {aiInsights.map((insight) => (
-                              <div key={insight} className="flex items-start gap-2 p-2.5 rounded-[10px] bg-[hsl(var(--chart-5))]/10 text-xs text-foreground/80">
-                                <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--chart-5))] shrink-0 mt-0.5" />
+                              <div key={insight} className="flex items-start gap-2 p-2.5 rounded-[10px] bg-plum-500/10 text-xs text-foreground/80">
+                                <Sparkles className="h-3.5 w-3.5 text-plum-500 shrink-0 mt-0.5" />
                                 {insight}
                               </div>
                             ))}
