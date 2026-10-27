@@ -5,7 +5,7 @@ import { getBranches, getUsers } from "@/services/settingsService"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Upload, FileText, AlertCircle, CheckCircle2 } from "lucide-react"
+import { Upload, FileText, AlertCircle, CheckCircle2, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -22,6 +22,53 @@ const IMPORT_BATCH_SIZE = 50
 
 type ImportOutcome = ImportLeadsResult & { failedRows: number }
 
+// A broken import (tab closed/refreshed, browser crash, network drop) used to
+// lose all progress - the batch loop lives entirely in this component's React
+// state, so a refresh forgets everything and re-uploading the same file from
+// row 0 either re-creates duplicates or, at best, logs thousands of needless
+// re-enquiry events for leads already in the CRM. Progress is now persisted
+// to localStorage (survives refresh) and keyed by a fingerprint of the exact
+// file re-selected, so re-uploading the same file offers to resume from
+// where it left off instead of starting over.
+const RESUME_STORAGE_KEY = 'bulk-import-resume-v1'
+
+interface ResumeState {
+  fingerprint: string
+  fileName: string
+  totalRows: number
+  completedRows: number
+  splitStartIndex: number
+  savedAt: number
+}
+
+const fileFingerprint = (file: File) => `${file.name}_${file.size}_${file.lastModified}`
+
+const loadResumeState = (): ResumeState | null => {
+  try {
+    const raw = localStorage.getItem(RESUME_STORAGE_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+const saveResumeState = (state: ResumeState) => {
+  try {
+    localStorage.setItem(RESUME_STORAGE_KEY, JSON.stringify(state))
+  } catch {
+    // Best-effort only - a lost resume checkpoint just means a fresh resend
+    // falls back to the server's own duplicate detection.
+  }
+}
+
+const clearResumeState = () => {
+  try {
+    localStorage.removeItem(RESUME_STORAGE_KEY)
+  } catch {
+    // ignore
+  }
+}
+
 export function BulkImportLeads() {
   const [file, setFile] = useState<File | null>(null)
   const [previewCount, setPreviewCount] = useState<number>(0)
@@ -32,6 +79,8 @@ export function BulkImportLeads() {
   const [applyRules, setApplyRules] = useState<boolean>(true)
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
+  const [pendingResume, setPendingResume] = useState<ResumeState | null>(null)
+  const [activeResume, setActiveResume] = useState<ResumeState | null>(null)
 
   const queryClient = useQueryClient()
   const user = getUserInfo();
@@ -75,6 +124,8 @@ export function BulkImportLeads() {
     setSelectedRuleId("default")
     setApplyRules(true)
     setSelectedUserIds([])
+    setPendingResume(null)
+    setActiveResume(null)
   }
 
   const importMutation = useMutation({
@@ -87,9 +138,14 @@ export function BulkImportLeads() {
           : (userBranchId || undefined)
       }));
 
+      const resume = activeResume
+      const totalRows = resume ? resume.totalRows : finalData.length
+      const alreadyDone = resume ? resume.completedRows : 0
+      const fingerprint = file ? fileFingerprint(file) : ''
+
       const totals: ImportOutcome = { created: 0, reEnquiries: 0, duplicates: 0, failedRows: 0 }
-      let splitStartIndex = 0
-      setProgress({ done: 0, total: finalData.length })
+      let splitStartIndex = resume?.splitStartIndex ?? 0
+      setProgress({ done: alreadyDone, total: totalRows })
 
       for (let start = 0; start < finalData.length; start += IMPORT_BATCH_SIZE) {
         const batch = finalData.slice(start, start + IMPORT_BATCH_SIZE)
@@ -99,23 +155,34 @@ export function BulkImportLeads() {
             assignmentRuleId: selectedRuleId === 'default' ? undefined : selectedRuleId,
             applyAssignmentRules: applyRules,
             splitUserIds: selectedUserIds.length > 0 ? selectedUserIds : undefined,
-            splitStartIndex
+            splitStartIndex,
+            // Resuming means every row in this first batch may already exist
+            // (the last batch before the interruption may or may not have
+            // landed) - skip duplicates silently instead of logging a
+            // re-enquiry for leads that were never actually re-contacted.
+            flagAsReEnquiry: resume && start === 0 ? false : undefined
           })
         } catch (err) {
-          // Keep only the rows that haven't been sent yet (this batch onward)
-          // so clicking Import again resumes rather than re-importing the
-          // rows that already landed as duplicates/re-enquiries.
-          const remaining = data.slice(start)
-          setParsedData(remaining)
-          setPreviewCount(remaining.length)
+          // Persist exactly how far we got (survives a refresh) so clicking
+          // Import again on the same file resumes instead of restarting.
+          if (fingerprint) {
+            saveResumeState({
+              fingerprint,
+              fileName: file?.name || '',
+              totalRows,
+              completedRows: alreadyDone + start,
+              splitStartIndex,
+              savedAt: Date.now()
+            })
+          }
           if (totals.created + totals.reEnquiries > 0) {
             queryClient.invalidateQueries({ queryKey: ['leads'] })
           }
           const reason = (err as { response?: { data?: { message?: string } }; message?: string })
           const detail = reason.response?.data?.message || reason.message || 'Unknown error'
           throw new Error(
-            `Import stopped after ${start} of ${finalData.length} rows (${totals.created} created, ${totals.reEnquiries} re-enquiries): ${detail}. ` +
-            `Click "Import Leads" to continue with the remaining ${remaining.length} rows.`
+            `Import stopped after ${alreadyDone + start} of ${totalRows} rows (${totals.created} created, ${totals.reEnquiries} re-enquiries): ${detail}. ` +
+            `Re-select the same file and click "Resume Import" to continue - already-imported leads won't be re-added.`
           )
         }
 
@@ -123,7 +190,22 @@ export function BulkImportLeads() {
         totals.reEnquiries += result.reEnquiries || 0
         totals.failedRows += result.errors?.length || 0
         if (typeof result.nextSplitIndex === 'number') splitStartIndex = result.nextSplitIndex
-        setProgress({ done: Math.min(start + batch.length, finalData.length), total: finalData.length })
+        const doneSoFar = Math.min(alreadyDone + start + batch.length, totalRows)
+        setProgress({ done: doneSoFar, total: totalRows })
+
+        // Checkpoint after every batch - if the tab closes/refreshes before
+        // the next batch's response comes back, we only ever re-send rows
+        // that are confirmed not yet sent.
+        if (fingerprint) {
+          saveResumeState({
+            fingerprint,
+            fileName: file?.name || '',
+            totalRows,
+            completedRows: doneSoFar,
+            splitStartIndex,
+            savedAt: Date.now()
+          })
+        }
       }
 
       return totals
@@ -135,6 +217,7 @@ export function BulkImportLeads() {
       if (data.failedRows > 0) {
         toast.warning(`${data.failedRows} rows could not be imported (invalid data). Check the file and try those rows again.`)
       }
+      clearResumeState()
       resetForm()
       // Invalidate all leads queries
       queryClient.invalidateQueries({ queryKey: ['leads'] })
@@ -162,6 +245,8 @@ export function BulkImportLeads() {
 
     setFile(selectedFile)
     setError(null)
+    setPendingResume(null)
+    setActiveResume(null)
 
     try {
       let data: CreateLeadData[]
@@ -180,6 +265,16 @@ export function BulkImportLeads() {
       }
       setParsedData(data)
       setPreviewCount(data.length)
+
+      // Same file re-selected with an unfinished checkpoint - offer to pick
+      // up where it left off instead of silently restarting from row 0.
+      const saved = loadResumeState()
+      if (saved && saved.fingerprint === fileFingerprint(selectedFile) && saved.completedRows < data.length) {
+        setPendingResume(saved)
+      } else if (saved && saved.fingerprint === fileFingerprint(selectedFile)) {
+        // Checkpoint says this exact file already fully completed - clear it.
+        clearResumeState()
+      }
     } catch (err) {
       setError(`Failed to parse file. Please ensure it is valid. ${(err as Error).message}`)
       console.error(err)
@@ -281,6 +376,21 @@ export function BulkImportLeads() {
     if (parsedData.length === 0) return
     setError(null)
     importMutation.mutate(parsedData)
+  }
+
+  const handleResumeImport = () => {
+    if (!pendingResume || parsedData.length === 0) return
+    setError(null)
+    setActiveResume(pendingResume)
+    const remaining = parsedData.slice(pendingResume.completedRows)
+    setPendingResume(null)
+    importMutation.mutate(remaining)
+  }
+
+  const handleStartOver = () => {
+    clearResumeState()
+    setPendingResume(null)
+    setActiveResume(null)
   }
 
   const handleDownloadTemplate = () => {
@@ -443,8 +553,32 @@ export function BulkImportLeads() {
           </Alert>
         )}
 
+        {pendingResume && (
+          <Alert className="bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-900">
+            <RotateCcw className="h-4 w-4" />
+            <AlertTitle>Unfinished Import Found</AlertTitle>
+            <AlertDescription>
+              <p className="mb-2">
+                {pendingResume.completedRows} of {pendingResume.totalRows} rows from this exact file were already imported before it stopped.
+                Resuming will skip those rows entirely - nothing gets re-added or duplicated.
+              </p>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleResumeImport}>
+                  Resume Import ({pendingResume.totalRows - pendingResume.completedRows} rows left)
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleStartOver}>
+                  Start Over From Scratch
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="flex justify-end pt-2">
-          <Button onClick={handleImport} disabled={!file || parsedData.length === 0 || importMutation.isPending}>
+          <Button
+            onClick={handleImport}
+            disabled={!file || parsedData.length === 0 || importMutation.isPending || !!pendingResume}
+          >
             {importMutation.isPending
               ? (progress ? `Importing ${progress.done} / ${progress.total}...` : "Importing...")
               : "Import Leads"}
