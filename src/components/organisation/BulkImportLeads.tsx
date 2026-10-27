@@ -81,6 +81,10 @@ export function BulkImportLeads() {
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
   const [pendingResume, setPendingResume] = useState<ResumeState | null>(null)
   const [activeResume, setActiveResume] = useState<ResumeState | null>(null)
+  // Manual fallback for an import that broke before this feature existed (no
+  // checkpoint was ever saved) - re-uploading the full file skips every row
+  // already in the CRM instead of logging it as a re-enquiry.
+  const [manualSkipDuplicates, setManualSkipDuplicates] = useState<boolean>(false)
 
   const queryClient = useQueryClient()
   const user = getUserInfo();
@@ -126,6 +130,7 @@ export function BulkImportLeads() {
     setSelectedUserIds([])
     setPendingResume(null)
     setActiveResume(null)
+    setManualSkipDuplicates(false)
   }
 
   const importMutation = useMutation({
@@ -160,7 +165,9 @@ export function BulkImportLeads() {
             // (the last batch before the interruption may or may not have
             // landed) - skip duplicates silently instead of logging a
             // re-enquiry for leads that were never actually re-contacted.
-            flagAsReEnquiry: resume && start === 0 ? false : undefined
+            // Same applies for the whole run when the user manually flags
+            // this as a resume of an import with no saved checkpoint.
+            flagAsReEnquiry: (resume && start === 0) || manualSkipDuplicates ? false : undefined
           })
         } catch (err) {
           // Persist exactly how far we got (survives a refresh) so clicking
@@ -551,6 +558,27 @@ export function BulkImportLeads() {
               {file.name} - {previewCount} records found
             </AlertDescription>
           </Alert>
+        )}
+
+        {!pendingResume && (
+          <div className="flex items-start space-x-2 py-2 border-t border-gray-100 dark:border-gray-800">
+            <Checkbox
+              id="manualSkipDuplicates"
+              checked={manualSkipDuplicates}
+              onCheckedChange={(checked) => setManualSkipDuplicates(!!checked)}
+            />
+            <div className="grid gap-1.5 leading-none">
+              <label
+                htmlFor="manualSkipDuplicates"
+                className="text-sm font-medium leading-none cursor-pointer"
+              >
+                This re-uploads a file from a previously broken import
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Skip any row that's already in the CRM instead of logging it as a re-enquiry. Use this when resuming an import that broke before a checkpoint existed (e.g. a large file uploaded before this feature shipped).
+              </p>
+            </div>
+          </div>
         )}
 
         {pendingResume && (
