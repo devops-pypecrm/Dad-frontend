@@ -20,6 +20,7 @@ export const countryCodes: CountryCode[] = [
     { name: 'Oman', code: 'OM', prefix: '+968', flag: '🇴🇲' },
     { name: 'Kuwait', code: 'KW', prefix: '+965', flag: '🇰🇼' },
     { name: 'Bahrain', code: 'BH', prefix: '+973', flag: '🇧🇭' },
+    { name: 'Israel', code: 'IL', prefix: '+972', flag: '🇮🇱' },
     { name: 'Malaysia', code: 'MY', prefix: '+60', flag: '🇲🇾' },
     { name: 'Sri Lanka', code: 'LK', prefix: '+94', flag: '🇱🇰' },
     { name: 'Pakistan', code: 'PK', prefix: '+92', flag: '🇵🇰' },
