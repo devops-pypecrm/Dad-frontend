@@ -4,6 +4,7 @@ import { deleteContact, blockContact, type Contact } from "@/services/contactSer
 import { toast } from "sonner"
 import { Trash2, MoreHorizontal, Ban } from "lucide-react"
 import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog"
+import { BlockContactDialog } from "@/components/shared/BlockContactDialog"
 import { EditContactDialog } from "@/components/shared/EditContactDialog"
 import { Button } from "@/components/ui/button"
 import {
@@ -98,14 +99,13 @@ export function ContactActions({ contact }: { contact: Contact }) {
         isDeleting={deleteMutation.isPending}
       />
 
-      <DeleteConfirmationDialog
+      <BlockContactDialog
         open={showBlockDialog}
         onOpenChange={setShowBlockDialog}
         onConfirm={() => blockMutation.mutate()}
-        title="Block Number"
-        description={`Block ${contact.firstName} ${contact.lastName}? New leads and re-enquiries from this number will be dropped and will not reach the CRM. You can unblock it later from the Blocked list.`}
-        confirmText="Block Number"
-        isDeleting={blockMutation.isPending}
+        name={`${contact.firstName} ${contact.lastName || ''}`.trim()}
+        multipleNumbers={(contact.phones?.length ?? 0) > 1}
+        isPending={blockMutation.isPending}
       />
 
       <EditContactDialog

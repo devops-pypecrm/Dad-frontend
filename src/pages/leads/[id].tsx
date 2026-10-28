@@ -30,6 +30,7 @@ import { CollaborationBadge } from "@/components/shared/CollaborationBadge"
 import { EmailComposeDialog } from "@/components/EmailComposeDialog"
 import { AddProductToLeadDialog } from "@/components/leads/AddProductToLeadDialog"
 import { formatIST } from "@/lib/dateUtils"
+import { V2 } from "@/lib/uiV2"
 import { CallRecordingPlayer } from "@/components/CallRecordingPlayer"
 import { isMobileApp, initiateCall as initiateCallBridge } from "@/utils/mobileBridge"
 import { getBestDurationSeconds, formatDuration } from "@/lib/callUtils"
@@ -41,23 +42,23 @@ import {
 
 
 
-// Dashboard design language: soft borderless cards, large radii, tinted icon tiles.
-const CARD = "rounded-[0.8rem] md:rounded-[2rem] border-0 shadow-sm bg-card"
-const ITEM_CARD = "overflow-hidden rounded-[1rem] md:rounded-[1.5rem] border-0 shadow-sm bg-card transition-all hover:shadow-md hover:-translate-y-0.5"
-const EMPTY_STATE = "text-center py-12 text-muted-foreground bg-muted/20 rounded-[1.5rem] border-2 border-dashed"
-const SECTION_TITLE = "text-base font-extrabold tracking-tight flex items-center gap-2"
-const ICON_TILE = "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"
+// Dashboard V2 design language (see .claude/skills/web-ui-v2.md and src/lib/uiV2.ts).
+const CARD = V2.card
+const ITEM_CARD = "overflow-hidden rounded-[10px] border border-border bg-card shadow-none transition-colors hover:bg-[hsl(var(--chart-5))]/5"
+const EMPTY_STATE = V2.emptyState
+const SECTION_TITLE = V2.cardTitle
+const ICON_TILE = "flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-[hsl(var(--chart-5))]/10 text-[hsl(var(--chart-5))]"
 
 const DraggableActivity = ({ type, icon: Icon, label, onDragStart, onClick }: { type: string; icon: React.ElementType; label: string; onDragStart: (e: React.DragEvent, type: string) => void; onClick: (type: string) => void }) => (
   <div
     draggable
     onDragStart={(e) => onDragStart(e, type)}
     onClick={() => onClick(type)}
-    className="flex items-center gap-2 p-2.5 bg-muted/40 rounded-[0.8rem] cursor-grab active:cursor-grabbing hover:bg-primary/10 hover:-translate-y-0.5 transition-all"
+    className="flex items-center gap-2 p-2.5 bg-card border border-border rounded-[10px] cursor-grab active:cursor-grabbing hover:bg-[hsl(var(--chart-5))]/5 transition-colors"
   >
     <GripVertical className="h-4 w-4 text-muted-foreground" />
-    <Icon className="h-4 w-4 text-primary" />
-    <span className="text-sm font-medium">{label}</span>
+    <Icon className="h-4 w-4 text-[hsl(var(--chart-5))]" />
+    <span className="text-sm font-medium font-poppins">{label}</span>
   </div>
 )
 
@@ -162,7 +163,7 @@ export default function LeadDetailPage() {
     retry: false
   })
 
-  if (leadLoading) return <div className="p-4 sm:p-8 space-y-4"><Skeleton className="h-28 w-full rounded-[2rem]" /><div className="grid gap-4 md:grid-cols-3"><Skeleton className="h-96 rounded-[2rem]" /><Skeleton className="h-96 md:col-span-2 rounded-[2rem]" /></div></div>
+  if (leadLoading) return <div className={V2.page}><Skeleton className="h-16 w-full rounded-[10px]" /><div className="grid gap-4 md:grid-cols-3"><Skeleton className="h-96 rounded-[10px]" /><Skeleton className="h-96 md:col-span-2 rounded-[10px]" /></div></div>
 
   if (leadIsError) {
     const status = (leadError as any)?.response?.status
@@ -383,28 +384,28 @@ export default function LeadDetailPage() {
     : [...selectableStatuses, { ...getStatusDetails(lead.status), disabled: true }]
 
   return (
-    <div className="space-y-4 sm:space-y-6 pt-3 sm:p-8 animate-in fade-in duration-500 pb-20 sm:pb-8">
+    <div className={`${V2.page} pb-20 sm:pb-6`}>
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:gap-6 rounded-[0.8rem] md:rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm">
+      <div className="flex flex-col gap-4">
         <div className="flex items-start gap-3 sm:gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-10 w-10 shrink-0 rounded-[0.8rem]">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-9 w-9 shrink-0 rounded-[10px]">
             <ArrowLeft className="h-5 w-5" />
           </Button>
 
-          <div className="hidden sm:flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary text-xl font-extrabold">
+          <div className={`hidden sm:flex ${V2.headerIcon} text-xl font-medium font-poppins`}>
             {(lead.firstName?.[0] || '?').toUpperCase()}
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1">
-              <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight truncate">
+              <h1 className={`${V2.h1} truncate`}>
                 {lead.firstName} {lead.lastName || ''}
               </h1>
               <div className="flex flex-wrap items-center gap-2">
                 {id && <CollaborationBadge resourceId={`leads/${id}`} />}
                 <Badge 
                   variant="outline" 
-                  className="text-[10px] sm:text-xs font-bold uppercase tracking-tight h-6 rounded-full px-3"
+                  className="text-[10px] sm:text-xs font-semibold uppercase tracking-tight h-6 rounded-full px-3"
                   style={{
                     backgroundColor: `${getStatusDetails(lead.status).color}15`,
                     color: getStatusDetails(lead.status).color,
@@ -414,13 +415,13 @@ export default function LeadDetailPage() {
                   {getStatusDetails(lead.status).label}
                 </Badge>
                 {lead.reEnquiryCount > 0 && (
-                  <Badge variant="secondary" className="text-[10px] sm:text-xs font-bold uppercase tracking-tight h-6 rounded-full px-3 bg-orange-100 text-orange-700 hover:bg-orange-100">
+                  <Badge variant="secondary" className="text-[10px] sm:text-xs font-semibold uppercase tracking-tight h-6 rounded-full px-3 bg-orange-100 text-orange-700 hover:bg-orange-100">
                     Re-Enquiry ({lead.reEnquiryCount})
                   </Badge>
                 )}
                 {linkedContacts?.contacts?.map((c) => (
                   <Link key={c.id} to={`/contacts/${c.id}`}>
-                    <Badge variant="outline" className="text-[10px] sm:text-xs font-bold h-6 rounded-full px-3 gap-1 border-primary/30 bg-primary/5 text-primary hover:bg-primary/10">
+                    <Badge variant="outline" className="text-[10px] sm:text-xs font-semibold h-6 rounded-full px-3 gap-1 border-[hsl(var(--chart-5))]/20 bg-[hsl(var(--chart-5))]/5 text-[hsl(var(--chart-5))] hover:bg-[hsl(var(--chart-5))]/10">
                       <ContactIcon className="h-3 w-3" /> Contact: {c.firstName} {c.lastName}
                     </Badge>
                   </Link>
@@ -435,7 +436,7 @@ export default function LeadDetailPage() {
 
           <div className="hidden sm:flex flex-col items-end shrink-0">
             {lead.potentialValue > 0 && (
-              <span className="text-lg font-extrabold text-success mb-1">
+              <span className="text-lg font-medium font-poppins text-success mb-1">
                 {formatCurrency(lead.potentialValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </span>
             )}
@@ -446,7 +447,7 @@ export default function LeadDetailPage() {
         <div className="flex flex-wrap items-center gap-2 px-2 sm:px-0">
           <div className="flex-1 min-w-[140px] sm:hidden">
             <Select value={lead.status || "new"} onValueChange={(val) => updateStatusMutation.mutate(val)}>
-              <SelectTrigger className="w-full h-9 text-xs rounded-[0.8rem]">
+              <SelectTrigger className="w-full h-9 text-xs rounded-[10px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
                   <SelectContent>
@@ -467,7 +468,7 @@ export default function LeadDetailPage() {
 
           <div className="hidden sm:block">
             <Select value={lead.status || "new"} onValueChange={(val) => updateStatusMutation.mutate(val)}>
-              <SelectTrigger className="w-[160px] h-9 text-xs rounded-[0.8rem]">
+              <SelectTrigger className="w-[160px] h-9 text-xs rounded-[10px]">
                 <SelectValue placeholder="Select Status" />
               </SelectTrigger>
               <SelectContent>
@@ -492,7 +493,7 @@ export default function LeadDetailPage() {
               size="sm"
               onClick={handleSuggestNextStep}
               disabled={isAiThinking}
-              className="h-9 px-2 sm:px-3 text-xs rounded-[0.8rem] border-purple-500/30 bg-purple-500/5 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 hover:text-purple-600"
+              className="h-9 px-2 sm:px-3 text-xs rounded-[10px] border-purple-500/30 bg-purple-500/5 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 hover:text-purple-600"
             >
               <motion.span
                 animate={isAiThinking ? { rotate: 360 } : { rotate: 0 }}
@@ -507,21 +508,21 @@ export default function LeadDetailPage() {
               variant="outline"
               size="sm"
               onClick={() => { setAiSuggestion(null); setFollowUpDialogOpen(true) }}
-              className="h-9 px-2 sm:px-3 text-xs rounded-[0.8rem]"
+              className="h-9 px-2 sm:px-3 text-xs rounded-[10px]"
             >
               <Calendar className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Follow-up</span>
             </Button>
 
-            <Button variant="outline" size="sm" onClick={() => setIsEditOpen(true)} className="h-9 px-2 sm:px-3 text-xs rounded-[0.8rem]">
+            <Button variant="outline" size="sm" onClick={() => setIsEditOpen(true)} className="h-9 px-2 sm:px-3 text-xs rounded-[10px]">
               <Pencil className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Edit</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setAssignDialogOpen(true)} className="h-9 px-2 sm:px-3 text-xs rounded-[0.8rem]">
+            <Button variant="outline" size="sm" onClick={() => setAssignDialogOpen(true)} className="h-9 px-2 sm:px-3 text-xs rounded-[10px]">
               <UserPlus className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Assign</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setEmailDialogOpen(true)} className="h-9 px-2 sm:px-3 text-xs rounded-[0.8rem]">
+            <Button variant="outline" size="sm" onClick={() => setEmailDialogOpen(true)} className="h-9 px-2 sm:px-3 text-xs rounded-[10px]">
               <Mail className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Email</span>
             </Button>
@@ -529,7 +530,7 @@ export default function LeadDetailPage() {
               <Button
                 variant="default"
                 size="sm"
-                className="h-9 px-3 sm:px-4 text-xs rounded-[0.8rem] bg-success hover:bg-success/90 text-success-foreground shadow-lg shadow-success/20"
+                className="h-9 px-3 sm:px-4 text-xs rounded-[10px] font-semibold bg-[hsl(var(--chart-5))] hover:bg-[hsl(var(--chart-5))]/90 text-white shadow-lg shadow-[hsl(var(--chart-5))]/20"
                 onClick={() => {
                   if (!lead.products || lead.products.length === 0) {
                     toast.error("Please add at least one product before moving this lead to the pipeline.")
@@ -549,7 +550,7 @@ export default function LeadDetailPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1 h-8 text-[10px] rounded-[0.8rem] bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                    className="flex-1 h-8 text-[10px] rounded-[10px] bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
                     onClick={() => setIsQuickWonOpen(true)}
                   >
                     Closed Won
@@ -557,7 +558,7 @@ export default function LeadDetailPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1 h-8 text-[10px] rounded-[0.8rem] bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+                    className="flex-1 h-8 text-[10px] rounded-[10px] bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
                     onClick={() => setIsQuickLostOpen(true)}
                   >
                     Closed Lost
@@ -751,15 +752,15 @@ export default function LeadDetailPage() {
             <Card className={CARD}>
               <CardHeader><CardTitle className={SECTION_TITLE}><span className={ICON_TILE}><ContactIcon className="h-4 w-4" /></span>Linked Contact</CardTitle></CardHeader>
               <CardContent className="space-y-2">
-                <p className="text-xs text-muted-foreground">This lead's number is saved as a contact.</p>
+                <p className="text-xs text-muted-foreground font-poppins">This lead's number is saved as a contact.</p>
                 {linkedContacts.contacts.map((c) => (
                   <Link
                     key={c.id}
                     to={`/contacts/${c.id}`}
-                    className="flex items-center justify-between gap-3 rounded-[0.8rem] bg-muted/40 px-3 py-2.5 transition-all hover:bg-primary/10 hover:-translate-y-0.5"
+                    className={V2.row}
                   >
                     <span className="flex items-center gap-2 min-w-0">
-                      <span className="truncate text-sm font-semibold">{c.firstName} {c.lastName}</span>
+                      <span className="truncate text-sm font-medium font-poppins">{c.firstName} {c.lastName}</span>
                       {c.isBlocked && <Badge variant="destructive" className="h-5 gap-1 rounded-full text-[10px]"><Ban className="h-3 w-3" />Blocked</Badge>}
                     </span>
                     <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -770,7 +771,7 @@ export default function LeadDetailPage() {
           )}
 
           <Card className={CARD}>
-            <CardHeader><CardTitle className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider">Quick Actions</CardTitle></CardHeader>
+            <CardHeader><CardTitle className={SECTION_TITLE}><span className={ICON_TILE}><GripVertical className="h-4 w-4" /></span>Quick Actions</CardTitle></CardHeader>
             <CardContent className="grid grid-cols-2 gap-2">
               <DraggableActivity type="call" icon={Phone} label="Log Call" onDragStart={handleDragStart} onClick={handleActivityAction} />
               <DraggableActivity type="whatsapp" icon={WhatsAppIcon} label="WhatsApp" onDragStart={handleDragStart} onClick={handleActivityAction} />
@@ -785,18 +786,18 @@ export default function LeadDetailPage() {
         {/* Main Content */}
         <div className="md:col-span-2">
           <Tabs defaultValue="timeline">
-            <TabsList className="mb-4 h-auto w-full flex-wrap justify-start gap-1 rounded-[0.8rem] md:rounded-[1.5rem] bg-card p-1.5 shadow-sm">
-              <TabsTrigger className="rounded-[0.6rem] md:rounded-[1.1rem] px-4 font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground" value="timeline">Timeline</TabsTrigger>
-              <TabsTrigger className="rounded-[0.6rem] md:rounded-[1.1rem] px-4 font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground" value="whatsapp">WhatsApp Messages</TabsTrigger>
-              <TabsTrigger className="rounded-[0.6rem] md:rounded-[1.1rem] px-4 font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground" value="whatsapp-calls">WhatsApp Calls</TabsTrigger>
-              <TabsTrigger className="rounded-[0.6rem] md:rounded-[1.1rem] px-4 font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground" value="calls">Call History</TabsTrigger>
-              <TabsTrigger className="rounded-[0.6rem] md:rounded-[1.1rem] px-4 font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground" value="history">Ownership History</TabsTrigger>
+            <TabsList className="mb-4 h-auto w-full flex-wrap justify-start gap-1 rounded-[10px] border border-border bg-card p-1">
+              <TabsTrigger className="rounded-[8px] px-4 text-xs sm:text-sm font-medium font-poppins data-[state=active]:bg-[hsl(var(--chart-5))] data-[state=active]:text-white data-[state=active]:shadow-none" value="timeline">Timeline</TabsTrigger>
+              <TabsTrigger className="rounded-[8px] px-4 text-xs sm:text-sm font-medium font-poppins data-[state=active]:bg-[hsl(var(--chart-5))] data-[state=active]:text-white data-[state=active]:shadow-none" value="whatsapp">WhatsApp Messages</TabsTrigger>
+              <TabsTrigger className="rounded-[8px] px-4 text-xs sm:text-sm font-medium font-poppins data-[state=active]:bg-[hsl(var(--chart-5))] data-[state=active]:text-white data-[state=active]:shadow-none" value="whatsapp-calls">WhatsApp Calls</TabsTrigger>
+              <TabsTrigger className="rounded-[8px] px-4 text-xs sm:text-sm font-medium font-poppins data-[state=active]:bg-[hsl(var(--chart-5))] data-[state=active]:text-white data-[state=active]:shadow-none" value="calls">Call History</TabsTrigger>
+              <TabsTrigger className="rounded-[8px] px-4 text-xs sm:text-sm font-medium font-poppins data-[state=active]:bg-[hsl(var(--chart-5))] data-[state=active]:text-white data-[state=active]:shadow-none" value="history">Ownership History</TabsTrigger>
             </TabsList>
 
             <TabsContent value="timeline" className="space-y-4">
               {/* Drag & Drop Zone - Integrated */}
               <div
-                className={`transition-all border-2 border-dashed rounded-[1.5rem] p-4 ${dragOver ? 'border-primary ring-2 ring-primary/20 bg-primary/5 h-24' : 'border-transparent h-0 overflow-hidden py-0'}`}
+                className={`transition-all border-2 border-dashed rounded-[10px] p-4 ${dragOver ? 'border-primary ring-2 ring-primary/20 bg-primary/5 h-24' : 'border-transparent h-0 overflow-hidden py-0'}`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
@@ -844,14 +845,14 @@ export default function LeadDetailPage() {
 
             <TabsContent value="whatsapp-calls" className="space-y-4">
               {/* WhatsApp Call Analytics Summary Banner */}
-              <div className="grid grid-cols-3 gap-2 sm:gap-4 p-4 sm:p-6 rounded-[1rem] md:rounded-[1.5rem] shadow-sm bg-gradient-to-r from-emerald-50/60 to-teal-50/60 dark:from-emerald-950/20 dark:to-teal-950/20">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 p-4 sm:p-6 rounded-[10px] border border-border bg-card">
                 <div className="text-center">
                   <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Total Calls</p>
-                  <p className="text-lg sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">{totalWaCalls}</p>
+                  <p className="text-lg sm:text-2xl font-medium font-poppins text-emerald-600 dark:text-emerald-400">{totalWaCalls}</p>
                 </div>
                 <div className="text-center border-x border-emerald-100 dark:border-emerald-900/30">
                   <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Total Talk-Time</p>
-                  <p className="text-lg sm:text-2xl font-bold text-teal-600 dark:text-teal-400">{formatDuration(totalWaDuration)}</p>
+                  <p className="text-lg sm:text-2xl font-medium font-poppins text-[hsl(var(--chart-4))]">{formatDuration(totalWaDuration)}</p>
                 </div>
                 <div className="text-center">
                   <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Last Contacted</p>

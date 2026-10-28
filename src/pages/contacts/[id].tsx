@@ -2,23 +2,21 @@ import { useNavigate, useParams, Link } from "react-router-dom"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { api } from "@/services/api"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowLeft, Mail, Phone, Building, Briefcase, Pencil, Ban, ShieldCheck, ChevronRight, Users, User, RefreshCw } from "lucide-react"
+import {
+  ArrowLeft, Mail, Phone, Building, Briefcase, Pencil, Ban, ShieldCheck, ArrowRight, Users, User, RefreshCw, Contact as ContactIcon,
+} from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { EditContactDialog } from "@/components/shared/EditContactDialog"
-import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog"
+import { BlockContactDialog } from "@/components/shared/BlockContactDialog"
 import TimelineFeed from "@/components/shared/TimelineFeed"
+import { SectionHeading } from "@/components/dashboard-v2/SectionHeading"
 import { blockContact, unblockContact, getContactLeads } from "@/services/contactService"
 import { useLeadStatuses } from "@/hooks/useLeadStatuses"
 import { formatIST } from "@/lib/dateUtils"
 import { isAdmin, getUserInfo } from "@/lib/utils"
-
-const CARD = "rounded-[0.8rem] md:rounded-[2rem] border-0 shadow-sm bg-card"
-const SECTION_TITLE = "text-base font-extrabold tracking-tight flex items-center gap-2"
-const ICON_TILE = "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"
+import { V2 } from "@/lib/uiV2"
 
 export default function ContactDetailPage() {
   const { id } = useParams()
@@ -48,6 +46,8 @@ export default function ContactDetailPage() {
     queryClient.invalidateQueries({ queryKey: ["contacts"] })
     queryClient.invalidateQueries({ queryKey: ["lead-contacts"] })
   }
+  const errMsg = (e: unknown, fallback: string) =>
+    (e as { response?: { data?: { message?: string } } }).response?.data?.message || fallback
 
   const blockMutation = useMutation({
     mutationFn: () => blockContact(id as string),
@@ -56,7 +56,7 @@ export default function ContactDetailPage() {
       setIsBlockOpen(false)
       toast.success("Number blocked. Leads from it will no longer reach the CRM.")
     },
-    onError: (e: unknown) => toast.error((e as { response?: { data?: { message?: string } } }).response?.data?.message || "Failed to block"),
+    onError: (e: unknown) => toast.error(errMsg(e, "Failed to block")),
   })
 
   const unblockMutation = useMutation({
@@ -65,19 +65,17 @@ export default function ContactDetailPage() {
       refresh()
       toast.success("Number unblocked.")
     },
-    onError: (e: unknown) => toast.error((e as { response?: { data?: { message?: string } } }).response?.data?.message || "Failed to unblock"),
+    onError: (e: unknown) => toast.error(errMsg(e, "Failed to unblock")),
   })
 
   if (id === "new") return <div className="p-8">Create Contact (Placeholder)</div>
   if (id === "undefined") return <div className="p-8">Invalid Contact ID</div>
   if (isLoading) {
     return (
-      <div className="p-4 sm:p-8 space-y-4">
-        <Skeleton className="h-28 w-full rounded-[2rem]" />
-        <div className="grid gap-4 md:grid-cols-3">
-          <Skeleton className="h-72 rounded-[2rem]" />
-          <Skeleton className="h-72 md:col-span-2 rounded-[2rem]" />
-        </div>
+      <div className={V2.page}>
+        <Skeleton className="h-14 w-1/3 rounded-[10px]" />
+        <Skeleton className="h-20 w-full rounded-[10px]" />
+        <Skeleton className="h-64 w-full rounded-[10px]" />
       </div>
     )
   }
@@ -85,138 +83,141 @@ export default function ContactDetailPage() {
 
   const phones: { number: string; type: string }[] = Array.isArray(contact.phones) ? contact.phones : []
   const fullName = `${contact.firstName} ${contact.lastName || ""}`.trim()
+  const reEnquiries = leads.reduce((n, l) => n + (l.reEnquiryCount ?? 0), 0)
+
+  const stats = [
+    { label: "Leads", value: leads.length, accent: "bg-[hsl(var(--chart-1))]" },
+    { label: "Re-enquiries", value: reEnquiries, accent: "bg-[hsl(var(--chart-2))]" },
+    { label: "Numbers", value: phones.length, accent: "bg-[hsl(var(--chart-4))]" },
+    { label: "Status", value: contact.isBlocked ? "Blocked" : "Active", accent: contact.isBlocked ? "bg-destructive" : "bg-emerald-500" },
+  ]
 
   return (
-    <div className="space-y-4 sm:space-y-6 pt-3 sm:p-8 animate-in fade-in duration-500 pb-20 sm:pb-8">
+    <div className={V2.page}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4 rounded-[0.8rem] md:rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm">
-        <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/contacts")} className="h-10 w-10 shrink-0 rounded-[0.8rem]">
-            <ArrowLeft className="h-5 w-5" />
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-4 min-w-0">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/contacts")} className="h-9 w-9 rounded-[10px] shrink-0">
+            <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div className="hidden sm:flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary text-xl font-extrabold">
-            {(contact.firstName?.[0] || "?").toUpperCase()}
+          <div className={V2.headerIcon}>
+            <ContactIcon strokeWidth={1.5} className="h-6 w-6" />
           </div>
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight truncate">{fullName}</h1>
+            <h1 className={`${V2.h1} flex items-center gap-2.5 truncate`}>
+              {fullName}
               {contact.isBlocked && (
-                <Badge variant="destructive" className="h-6 gap-1 rounded-full px-3 text-xs font-bold">
+                <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-semibold text-destructive">
                   <Ban className="h-3 w-3" /> Blocked
-                </Badge>
+                </span>
               )}
-            </div>
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm text-muted-foreground mt-1">
-              {contact.jobTitle && (<><Briefcase className="h-4 w-4" /> {contact.jobTitle}<span className="mx-1">•</span></>)}
-              <Building className="h-4 w-4" /> {contact.account?.name || "No Account"}
-            </div>
+            </h1>
+            <p className={`${V2.subtitle} flex items-center gap-x-2 flex-wrap`}>
+              {contact.jobTitle && (<><Briefcase className="h-3.5 w-3.5" /> {contact.jobTitle}<span>•</span></>)}
+              <Building className="h-3.5 w-3.5" /> {contact.account?.name || "No Account"}
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="outline" className="h-10 rounded-[0.8rem] gap-2" onClick={() => setIsEditOpen(true)}>
-            <Pencil className="h-4 w-4" /> Edit
+        <div className="flex items-center gap-2">
+          <Button variant="outline" className={V2.btnOutline} onClick={() => setIsEditOpen(true)}>
+            <Pencil className="h-3.5 w-3.5" /> Edit
           </Button>
           {canBlock && (contact.isBlocked ? (
-            <Button
-              className="h-10 rounded-[0.8rem] gap-2 bg-success text-success-foreground hover:bg-success/90 shadow-lg shadow-success/20"
-              onClick={() => unblockMutation.mutate()}
-              disabled={unblockMutation.isPending}
-            >
-              <ShieldCheck className="h-4 w-4" /> Unblock
+            <Button className={V2.btnPrimary} onClick={() => unblockMutation.mutate()} disabled={unblockMutation.isPending}>
+              <ShieldCheck className="h-3.5 w-3.5" /> Unblock
             </Button>
           ) : (
-            <Button
-              variant="outline"
-              className="h-10 rounded-[0.8rem] gap-2 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => setIsBlockOpen(true)}
-            >
-              <Ban className="h-4 w-4" /> Block
+            <Button variant="outline" className={V2.btnDanger} onClick={() => setIsBlockOpen(true)}>
+              <Ban className="h-3.5 w-3.5" /> Block
             </Button>
           ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* Left: details */}
-        <div className="lg:col-span-1 space-y-4 sm:space-y-6">
-          <Card className={CARD}>
-            <CardHeader>
-              <CardTitle className={SECTION_TITLE}><span className={ICON_TILE}><User className="h-4 w-4" /></span>Contact Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {phones.length === 0 && <p className="text-sm text-muted-foreground">No numbers saved.</p>}
+      {/* Stats bar */}
+      <div className={V2.statBar}>
+        <div className={`grid grid-cols-2 lg:grid-cols-4 ${V2.statGrid} [&>*:nth-child(n+3)]:border-t sm:[&>*:nth-child(n+3)]:border-t lg:[&>*:nth-child(n+3)]:border-t-0`}>
+          {stats.map((tile) => (
+            <div key={tile.label} className={V2.statTile}>
+              <span className={`${V2.statLine} ${tile.accent}`} />
+              <span className={V2.statLabel}>{tile.label}</span>
+              <span className={V2.statValue}>{tile.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Details */}
+        <div className="lg:col-span-1 space-y-5">
+          <div className={V2.cardPad}>
+            <h3 className={`${V2.cardTitle} mb-4`}>
+              <User strokeWidth={1} className={V2.cardIcon} /> Contact Details
+            </h3>
+            <div className="space-y-3.5 text-sm">
+              {phones.length === 0 && <p className="text-muted-foreground">No numbers saved.</p>}
               {phones.map((phone, idx) => (
                 <div key={idx} className="flex items-center gap-3">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">{phone.number} <span className="text-xs text-muted-foreground font-normal">({phone.type})</span></span>
+                  <span className="font-medium tabular-nums">{phone.number} <span className="text-xs text-muted-foreground font-normal">({phone.type})</span></span>
                 </div>
               ))}
               {contact.email && (
                 <div className="flex items-center gap-3">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  <a href={`mailto:${contact.email}`} className="text-primary hover:underline break-all">{contact.email}</a>
+                  <a href={`mailto:${contact.email}`} className="text-[hsl(var(--chart-5))] hover:underline break-all">{contact.email}</a>
                 </div>
               )}
               {contact.owner && (
                 <div className="flex items-center gap-3">
                   <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Owner: <span className="font-medium">{contact.owner.firstName} {contact.owner.lastName}</span></span>
+                  <span>Owner: <span className="font-medium">{contact.owner.firstName} {contact.owner.lastName}</span></span>
                 </div>
               )}
               {contact.isBlocked && (
-                <div className="rounded-[1rem] bg-destructive/10 p-3 text-sm text-destructive">
+                <div className="rounded-[10px] border border-destructive/20 bg-destructive/5 p-3 text-xs text-destructive">
                   Leads and re-enquiries from {phones.length > 1 ? "these numbers are" : "this number is"} being dropped.
-                  {contact.blockedAt && <span className="block text-xs opacity-80 mt-1">Blocked {formatIST(contact.blockedAt, "MMM d, yyyy")}</span>}
+                  {contact.blockedAt && <span className="block opacity-80 mt-1">Blocked {formatIST(contact.blockedAt, "MMM d, yyyy")}</span>}
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
-        {/* Right: leads + timeline */}
-        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-          <Card className={CARD}>
-            <CardHeader>
-              <CardTitle className={`${SECTION_TITLE} justify-between`}>
-                <span className="flex items-center gap-2">
-                  <span className={ICON_TILE}><Users className="h-4 w-4" /></span>
-                  Leads from this contact
-                </span>
-                <span className="rounded-full bg-muted px-3 py-0.5 text-sm font-bold text-muted-foreground">{leads.length}</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
+        {/* Leads + timeline */}
+        <div className="lg:col-span-2 space-y-5">
+          <div className="space-y-3">
+            <SectionHeading icon={<Users strokeWidth={1} className="h-5.5 w-5.5 text-[hsl(var(--chart-5))]" />}>
+              Leads from this contact
+              <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">{leads.length}</span>
+            </SectionHeading>
+            <div className="space-y-2">
               {leadsLoading ? (
-                [...Array(3)].map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-[1rem]" />)
+                [...Array(3)].map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-[10px]" />)
               ) : leads.length === 0 ? (
-                <div className="text-center py-10 text-muted-foreground bg-muted/20 rounded-[1.5rem] border-2 border-dashed">
-                  <Users className="mx-auto h-8 w-8 mb-2 opacity-20" />
-                  <p className="text-sm">No leads have come in on this number yet.</p>
+                <div className={V2.emptyState}>
+                  <Users strokeWidth={1} className="mx-auto h-8 w-8 mb-2 opacity-40" />
+                  <p className="text-sm font-poppins">No leads have come in on this number yet.</p>
                 </div>
               ) : (
                 leads.map((lead) => {
                   const status = getStatusDetails(lead.status)
                   return (
-                    <Link
-                      key={lead.id}
-                      to={`/leads/${lead.id}`}
-                      className="flex items-center justify-between gap-3 rounded-[1rem] bg-muted/40 px-4 py-3 transition-all hover:bg-primary/10 hover:-translate-y-0.5"
-                    >
+                    <Link key={lead.id} to={`/leads/${lead.id}`} className={`group ${V2.row}`}>
                       <div className="min-w-0 space-y-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="truncate font-bold">{lead.firstName} {lead.lastName || ""}</span>
-                          <Badge
-                            variant="outline"
-                            className="h-5 rounded-full px-2.5 text-[10px] font-bold uppercase tracking-tight"
+                          <span className="truncate text-sm font-medium font-poppins">{lead.firstName} {lead.lastName || ""}</span>
+                          <span
+                            className="inline-flex h-5 items-center rounded-full border px-2.5 text-[10px] font-semibold uppercase tracking-tight"
                             style={{ backgroundColor: `${status.color}15`, color: status.color, borderColor: `${status.color}30` }}
                           >
                             {status.label}
-                          </Badge>
+                          </span>
                           {(lead.reEnquiryCount ?? 0) > 0 && (
-                            <Badge variant="secondary" className="h-5 gap-1 rounded-full px-2.5 text-[10px] font-bold bg-orange-100 text-orange-700 hover:bg-orange-100">
+                            <span className="inline-flex h-5 items-center gap-1 rounded-full bg-orange-100 px-2.5 text-[10px] font-semibold text-orange-700">
                               <RefreshCw className="h-3 w-3" /> {lead.reEnquiryCount}
-                            </Badge>
+                            </span>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground">
@@ -225,13 +226,13 @@ export default function ContactDetailPage() {
                           {lead.ownerFirstName ? ` · ${lead.ownerFirstName} ${lead.ownerLastName || ""}` : " · Unassigned"}
                         </p>
                       </div>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-[hsl(var(--chart-5))] transition-colors" />
                     </Link>
                   )
                 })
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {validId && id && <TimelineFeed type="contact" id={id} />}
         </div>
@@ -247,14 +248,13 @@ export default function ContactDetailPage() {
         }}
       />
 
-      <DeleteConfirmationDialog
+      <BlockContactDialog
         open={isBlockOpen}
         onOpenChange={setIsBlockOpen}
         onConfirm={() => blockMutation.mutate()}
-        title="Block Number"
-        description={`Block ${fullName}? New leads and re-enquiries from ${phones.length > 1 ? "these numbers" : "this number"} will be dropped and will not reach the CRM. You can unblock it later from the Blocked list.`}
-        confirmText="Block Number"
-        isDeleting={blockMutation.isPending}
+        name={fullName}
+        multipleNumbers={phones.length > 1}
+        isPending={blockMutation.isPending}
       />
     </div>
   )

@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { api } from '@/services/api';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Contact as ContactIcon } from 'lucide-react';
+import { V2 } from '@/lib/uiV2';
 import { toast } from 'sonner';
 import DynamicCustomFields from '@/components/forms/DynamicCustomFields';
 
@@ -97,49 +98,49 @@ export function EditContactDialog({ open, onOpenChange, contact, onSuccess }: Ed
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className={`sm:max-w-[500px] max-h-[90vh] overflow-y-auto ${V2.dialog}`}>
         <DialogHeader>
-          <DialogTitle>Edit Contact</DialogTitle>
-          <DialogDescription>Update contact information and details.</DialogDescription>
+          <DialogTitle className={V2.dialogTitle}><span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[hsl(var(--chart-5))]/10 text-[hsl(var(--chart-5))]"><ContactIcon strokeWidth={1.5} className="h-5 w-5" /></span>Edit Contact</DialogTitle>
+          <DialogDescription className="font-poppins text-sm">Update contact information and details.</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
-              <Input id="firstName" value={formData.firstName} onChange={(e) => handleChange('firstName', e.target.value)} required />
+              <Label className={V2.label} htmlFor="firstName">First Name</Label>
+              <Input className={V2.input} id="firstName" value={formData.firstName} onChange={(e) => handleChange('firstName', e.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
-              <Input id="lastName" value={formData.lastName} onChange={(e) => handleChange('lastName', e.target.value)} />
+              <Label className={V2.label} htmlFor="lastName">Last Name <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+              <Input className={V2.input} id="lastName" value={formData.lastName} onChange={(e) => handleChange('lastName', e.target.value)} />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={formData.email} onChange={(e) => handleChange('email', e.target.value)} />
+            <Label className={V2.label} htmlFor="email">Email</Label>
+            <Input className={V2.input} id="email" type="email" value={formData.email} onChange={(e) => handleChange('email', e.target.value)} />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="jobTitle">Job Title</Label>
-            <Input id="jobTitle" value={formData.jobTitle} onChange={(e) => handleChange('jobTitle', e.target.value)} />
+            <Label className={V2.label} htmlFor="jobTitle">Job Title</Label>
+            <Input className={V2.input} id="jobTitle" value={formData.jobTitle} onChange={(e) => handleChange('jobTitle', e.target.value)} />
           </div>
 
           <div className="space-y-2">
-            <Label>Phone Numbers</Label>
+            <Label className={V2.label}>Mobile number(s) <span className="text-destructive">*</span></Label>
             {formData.phones.map((phone, index) => (
               <div key={index} className="flex gap-2 mb-2">
-                <Input
+                <Input className={V2.input}
                   placeholder="Number"
                   value={phone.number}
                   onChange={(e) => handlePhoneChange(index, 'number', e.target.value)}
                 />
-                <Button type="button" variant="outline" size="sm" onClick={() => removePhone(index)}>
+                <Button type="button" variant="outline" size="sm" className="h-9 rounded-[10px] text-xs" onClick={() => removePhone(index)}>
                   Remove
                 </Button>
               </div>
             ))}
-            <Button type="button" variant="outline" size="sm" onClick={addPhone} className="w-full">
+            <Button type="button" variant="outline" size="sm" onClick={addPhone} className="w-full h-9 rounded-[10px] text-xs border-dashed text-[hsl(var(--chart-5))] hover:bg-[hsl(var(--chart-5))]/5 hover:text-[hsl(var(--chart-5))]">
               + Add Phone
             </Button>
           </div>
@@ -152,8 +153,8 @@ export function EditContactDialog({ open, onOpenChange, contact, onSuccess }: Ed
           />
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="button" variant="outline" className={V2.btnOutline} onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit" disabled={isLoading} className={V2.btnPrimary}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Changes
             </Button>
