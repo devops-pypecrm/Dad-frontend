@@ -1,8 +1,8 @@
 import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { deleteContact, type Contact } from "@/services/contactService"
+import { deleteContact, blockContact, type Contact } from "@/services/contactService"
 import { toast } from "sonner"
-import { Trash2, MoreHorizontal } from "lucide-react"
+import { Trash2, MoreHorizontal, Ban } from "lucide-react"
 import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog"
 import { EditContactDialog } from "@/components/shared/EditContactDialog"
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,7 @@ import { copyToClipboard, isAdmin, getUserInfo } from "@/lib/utils";
 export function ContactActions({ contact }: { contact: Contact }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showBlockDialog, setShowBlockDialog] = useState(false)
   const queryClient = useQueryClient()
 
   const user = getUserInfo();
@@ -33,6 +34,18 @@ export function ContactActions({ contact }: { contact: Contact }) {
     },
     onError: (error: unknown) => {
       toast.error((error as { response?: { data?: { message?: string } } }).response?.data?.message || "Failed to delete contact")
+    },
+  })
+
+  const blockMutation = useMutation({
+    mutationFn: () => blockContact(contact.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contacts"] })
+      toast.success("Number blocked. Leads from it will no longer reach the CRM.")
+      setShowBlockDialog(false)
+    },
+    onError: (error: unknown) => {
+      toast.error((error as { response?: { data?: { message?: string } } }).response?.data?.message || "Failed to block contact")
     },
   })
 
@@ -57,6 +70,13 @@ export function ContactActions({ contact }: { contact: Contact }) {
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem
+                onClick={() => setShowBlockDialog(true)}
+                className="text-destructive focus:text-destructive focus:bg-destructive/10"
+              >
+                <Ban className="mr-2 h-4 w-4" />
+                Block Number
+              </DropdownMenuItem>
+              <DropdownMenuItem
                 onClick={() => setShowDeleteDialog(true)}
                 className="text-destructive focus:text-destructive focus:bg-destructive/10"
               >
@@ -76,6 +96,16 @@ export function ContactActions({ contact }: { contact: Contact }) {
         description={`Are you sure you want to delete ${contact.firstName} ${contact.lastName}? This action cannot be undone.`}
         confirmText="Delete Contact"
         isDeleting={deleteMutation.isPending}
+      />
+
+      <DeleteConfirmationDialog
+        open={showBlockDialog}
+        onOpenChange={setShowBlockDialog}
+        onConfirm={() => blockMutation.mutate()}
+        title="Block Number"
+        description={`Block ${contact.firstName} ${contact.lastName}? New leads and re-enquiries from this number will be dropped and will not reach the CRM. You can unblock it later from the Blocked list.`}
+        confirmText="Block Number"
+        isDeleting={blockMutation.isPending}
       />
 
       <EditContactDialog

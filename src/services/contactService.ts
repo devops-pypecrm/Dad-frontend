@@ -21,7 +21,24 @@ export interface Contact {
         lastName: string;
         email: string;
     };
+    isBlocked?: boolean;
+    blockedAt?: string | null;
+    blockedReason?: string | null;
     createdAt: string;
+}
+
+export interface ContactLead {
+    id: string;
+    firstName: string;
+    lastName?: string | null;
+    phone: string;
+    status: string;
+    source: string;
+    createdAt: string;
+    isReEnquiry?: boolean;
+    reEnquiryCount?: number;
+    ownerFirstName?: string | null;
+    ownerLastName?: string | null;
 }
 
 export interface ContactQueryParams {
@@ -77,5 +94,25 @@ export const updateContact = async (id: string, data: UpdateContactData) => {
 
 export const deleteContact = async (id: string) => {
     const response = await api.delete(`/contacts/${id}`);
+    return response.data;
+};
+
+export const getBlockedContacts = async (): Promise<{ contacts: Contact[] }> => {
+    const response = await api.get('/contacts/blocked');
+    return response.data;
+};
+
+export const blockContact = async (id: string, reason?: string) => {
+    const response = await api.post(`/contacts/${id}/block`, { reason });
+    return response.data;
+};
+
+export const unblockContact = async (id: string) => {
+    const response = await api.post(`/contacts/${id}/unblock`);
+    return response.data;
+};
+
+export const getContactLeads = async (id: string): Promise<{ leads: ContactLead[] }> => {
+    const response = await api.get(`/contacts/${id}/leads`);
     return response.data;
 };

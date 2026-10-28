@@ -20,7 +20,22 @@ import { getAssignmentRules } from "@/services/assignmentRuleService"
 // re-imported everything as re-enquiries. Small batches each finish quickly.
 const IMPORT_BATCH_SIZE = 50
 
-type ImportOutcome = ImportLeadsResult & { failedRows: number }
+const downloadFailedRows = (failed: { lead: unknown; error: string }[]) => {
+  const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`
+  const lines = ['firstName,phone,email,source,error']
+  for (const f of failed) {
+    const l = (f.lead || {}) as Record<string, unknown>
+    lines.push([l.firstName, l.phone, l.email, l.source, f.error].map(esc).join(','))
+  }
+  const url = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' }))
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'failed-import-rows.csv'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+type ImportOutcome = ImportLeadsResult & { failedRows: number; failedList: { lead: unknown; error: string }[] }
 
 // A broken import (tab closed/refreshed, browser crash, network drop) used to
 // lose all progress - the batch loop lives entirely in this component's React
@@ -148,7 +163,7 @@ export function BulkImportLeads() {
       const alreadyDone = resume ? resume.completedRows : 0
       const fingerprint = file ? fileFingerprint(file) : ''
 
-      const totals: ImportOutcome = { created: 0, reEnquiries: 0, duplicates: 0, failedRows: 0 }
+      const totals: ImportOutcome = { created: 0, reEnquiries: 0, duplicates: 0, failedRows: 0, failedList: [] }
       let splitStartIndex = resume?.splitStartIndex ?? 0
       setProgress({ done: alreadyDone, total: totalRows })
 
@@ -196,6 +211,7 @@ export function BulkImportLeads() {
         totals.created += result.created || 0
         totals.reEnquiries += result.reEnquiries || 0
         totals.failedRows += result.errors?.length || 0
+        if (result.errors) totals.failedList.push(...result.errors)
         if (typeof result.nextSplitIndex === 'number') splitStartIndex = result.nextSplitIndex
         const doneSoFar = Math.min(alreadyDone + start + batch.length, totalRows)
         setProgress({ done: doneSoFar, total: totalRows })
@@ -222,7 +238,10 @@ export function BulkImportLeads() {
       if (data.reEnquiries > 0) parts.push(`${data.reEnquiries} re-enquiries`)
       toast.success(`Successfully imported ${parts.join(' and ')}`)
       if (data.failedRows > 0) {
-        toast.warning(`${data.failedRows} rows could not be imported (invalid data). Check the file and try those rows again.`)
+        toast.warning(`${data.failedRows} rows could not be imported. Download the failed rows to see why.`, {
+          duration: 30000,
+          action: { label: 'Download', onClick: () => downloadFailedRows(data.failedList) }
+        })
       }
       clearResumeState()
       resetForm()

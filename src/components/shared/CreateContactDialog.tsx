@@ -71,6 +71,11 @@ export function CreateContactDialog({ open, onOpenChange, onSuccess }: CreateCon
       return;
     }
 
+    if (!formData.phones.some(p => p.number.trim())) {
+      toast.error('A mobile number is required');
+      return;
+    }
+
     setIsLoading(true);
     try {
       const payload: CreateContactData = {

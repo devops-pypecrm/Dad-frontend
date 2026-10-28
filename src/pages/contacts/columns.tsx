@@ -25,6 +25,14 @@ export const columns: ColumnDef<Contact>[] = [
     }
   },
   {
+    id: "phone",
+    header: "Mobile",
+    cell: ({ row }) => {
+      const numbers = (row.original.phones || []).map(p => p.number).filter(Boolean)
+      return numbers.length ? <span className="font-medium tabular-nums">{numbers.join(", ")}</span> : <span className="text-gray-400">-</span>
+    }
+  },
+  {
     accessorKey: "email",
     header: "Email",
   },
