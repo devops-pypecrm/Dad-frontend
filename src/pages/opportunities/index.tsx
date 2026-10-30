@@ -4,6 +4,7 @@ import { DataTable } from "@/components/ui/data-table"
 import { cn } from "@/lib/utils"
 import { createOpportunityColumns } from "./columns"
 import { getOpportunities, type Opportunity } from "@/services/opportunityService"
+import { useLeadStatuses } from "@/hooks/useLeadStatuses"
 import { useEntityTotalCount } from "@/hooks/useEntityTotalCount"
 import { Button } from "@/components/ui/button"
 import { KanbanBoard } from "./KanbanBoard"
@@ -132,6 +133,7 @@ export default function OpportunitiesPage() {
     refetchInterval: 5000,
   })
 
+  const { getStatusDetails: getLeadStatusDetails } = useLeadStatuses()
   const allOpportunities = data?.opportunities || []
   const filteredOpportunities = allOpportunities
 
@@ -151,6 +153,7 @@ export default function OpportunitiesPage() {
       "Name": opp.name || "",
       "Account": opp.account?.name || "",
       "Stage": opp.stage?.replace(/_/g, " ") || "",
+      "Lead Status Before Opportunity": opp.leadStatusAtConversion ? getLeadStatusDetails(opp.leadStatusAtConversion).label : "",
       "Amount": opp.amount || 0,
       "Payment Status": opp.paymentStatus || "",
       "Type": opp.type || "",

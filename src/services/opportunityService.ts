@@ -45,6 +45,8 @@ export interface Opportunity {
         status?: string;
     };
     leadStatus?: string;
+    /** Lead's status just before it was moved into this opportunity (null if unknown) */
+    leadStatusAtConversion?: string | null;
 }
 
 export interface OpportunityQueryParams {
