@@ -28,7 +28,7 @@ import { createLead, type CreateLeadData } from "@/services/leadService"
 import { getUsers } from "@/services/settingsService"
 import { useQuery } from "@tanstack/react-query"
 import DynamicCustomFields from "@/components/forms/DynamicCustomFields"
-import { countryCodes, identifyCountryFromPhone } from "@/lib/countryCodes"
+import { uniquePrefixes, identifyCountryFromPhone } from "@/lib/countryCodes"
 import { UserPlus, Contact, ClipboardList } from "lucide-react"
 import { useLeadStatuses } from "@/hooks/useLeadStatuses"
 import { getUserInfo } from "@/lib/utils"
@@ -261,8 +261,8 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="max-h-[300px]">
-                          {countryCodes.map((c) => (
-                            <SelectItem key={c.code + c.prefix} value={c.prefix}>
+                          {uniquePrefixes.map((c) => (
+                            <SelectItem key={c.prefix} value={c.prefix}>
                               <span className="flex items-center gap-2">
                                 <span>{c.flag}</span>
                                 <span className="font-mono">{c.prefix}</span>
