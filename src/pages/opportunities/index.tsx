@@ -143,6 +143,19 @@ export default function OpportunitiesPage() {
     setQueryParams(prev => ({ ...prev, [key]: value }))
   }
 
+  // Same rule as the Source column on the Leads table: API leads show the original
+  // source label the integration supplied, not the generic "api".
+  const formatLeadSource = (lead?: Opportunity['lead']) => {
+    if (!lead?.source) return ""
+    const src = lead.source === 'api' && lead.sourceDetails?.originalSource ? lead.sourceDetails.originalSource : lead.source
+    if (src === 'meta_leadgen') return 'Meta Ads'
+    if (src === 'meta_ads') return 'Meta Ads (Custom)'
+    if (src === 'google_ads') return 'Google Ads'
+    if (src === 'facebook_payload') return 'Facebook Lead'
+    if (src === 'lead_squared') return 'LeadSquared'
+    return src.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+  }
+
   const handleExport = () => {
     if (filteredOpportunities.length === 0) {
       toast.error("No opportunities to export")
@@ -154,6 +167,7 @@ export default function OpportunitiesPage() {
       "Account": opp.account?.name || "",
       "Stage": opp.stage?.replace(/_/g, " ") || "",
       "Lead Status Before Opportunity": opp.leadStatusAtConversion ? getLeadStatusDetails(opp.leadStatusAtConversion).label : "",
+      "Lead Original Source": formatLeadSource(opp.lead),
       "Amount": opp.amount || 0,
       "Payment Status": opp.paymentStatus || "",
       "Type": opp.type || "",

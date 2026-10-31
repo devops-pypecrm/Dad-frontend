@@ -43,6 +43,8 @@ export interface Opportunity {
         firstName?: string;
         lastName?: string;
         status?: string;
+        source?: string;
+        sourceDetails?: { originalSource?: string } | null;
     };
     leadStatus?: string;
     /** Lead's status just before it was moved into this opportunity (null if unknown) */
