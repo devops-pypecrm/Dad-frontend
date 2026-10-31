@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { inboxApi, type WaConversation } from '@/services/whatsAppHubService';
 import { cn } from '@/lib/utils';
 import { windowLeft, useNow } from './useNow';
+import { useLivePoll } from '@/hooks/useLivePoll';
 
 const VIEWS = [
   { key: 'all', label: 'All' },
@@ -26,8 +27,9 @@ export function ConversationListPanel({ selectedId, onSelect }: Props) {
   const [label, setLabel] = useState('all');
   const [search, setSearch] = useState('');
   const now = useNow();
+  const poll = useLivePoll(8000, 30000);
 
-  const { data: counts } = useQuery({ queryKey: ['whatsapp', 'inbox', 'counts'], queryFn: inboxApi.counts });
+  const { data: counts } = useQuery({ queryKey: ['whatsapp', 'inbox', 'counts'], queryFn: inboxApi.counts, refetchInterval: poll, refetchIntervalInBackground: false, refetchOnWindowFocus: true });
   const { data: labels = [] } = useQuery({ queryKey: ['whatsapp', 'inbox', 'labels'], queryFn: inboxApi.labels });
 
   const query = useInfiniteQuery({
@@ -39,6 +41,7 @@ export function ConversationListPanel({ selectedId, onSelect }: Props) {
       label: label === 'all' ? undefined : label,
     }),
     getNextPageParam: last => last.nextCursor ?? undefined,
+    refetchInterval: poll, refetchIntervalInBackground: false, refetchOnWindowFocus: true,
   });
 
   const all = query.data?.pages.flatMap(p => p.conversations) ?? [];

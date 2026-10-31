@@ -49,6 +49,9 @@ export default function WhatsAppTemplatesPage() {
   const { data: templates = [], isFetching } = useQuery<Template[]>({
     queryKey: ['whatsapp', 'templates'],
     queryFn: () => templateApi.list(false),
+    // WhatsApp reviews templates asynchronously; check periodically while any is pending
+    refetchInterval: q => (q.state.data?.some(t => t.status === 'PENDING' || t.status === 'IN_APPEAL') ? 20000 : false),
+    refetchIntervalInBackground: false,
   });
   const syncMutation = useMutation({
     mutationFn: () => templateApi.list(true),

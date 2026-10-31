@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { WA_PRIMARY_BTN } from '@/components/WhatsApp/hub/whatsappStyles';
 import { useNow, windowLeft } from '@/components/WhatsApp/inbox/useNow';
 import { IgAvatar } from './IgAvatar';
+import { useLivePoll } from '@/hooks/useLivePoll';
 
 const dayLabel = (d: Date) => (isToday(d) ? 'Today' : isYesterday(d) ? 'Yesterday' : format(d, 'dd MMM yyyy'));
 const SOURCE: Record<string, string> = { chatbot: 'Chatbot', comment_bot: 'Ask to Follow', app: 'Sent from Instagram app' };
@@ -43,11 +44,13 @@ interface Props { conversationId: string; onBack: () => void; onToggleDetails: (
 export function IgThread({ conversationId, onBack, onToggleDetails, detailsOpen }: Props) {
   const queryClient = useQueryClient();
   const now = useNow();
+  const poll = useLivePoll(4000, 20000);
+  const live = { refetchInterval: poll, refetchIntervalInBackground: false, refetchOnWindowFocus: true } as const;
   const [text, setText] = useState('');
   const endRef = useRef<HTMLDivElement>(null);
 
-  const { data: convo } = useQuery({ queryKey: ['instagram', 'inbox', 'conv', conversationId], queryFn: () => instagramInboxApi.get(conversationId) });
-  const { data: thread, isLoading } = useQuery({ queryKey: ['instagram', 'inbox', 'messages', conversationId], queryFn: () => instagramInboxApi.messages(conversationId) });
+  const { data: convo } = useQuery({ queryKey: ['instagram', 'inbox', 'conv', conversationId], queryFn: () => instagramInboxApi.get(conversationId), ...live });
+  const { data: thread, isLoading } = useQuery({ queryKey: ['instagram', 'inbox', 'messages', conversationId], queryFn: () => instagramInboxApi.messages(conversationId), ...live });
   const { data: users = [] } = useQuery({ queryKey: ['instagram', 'inbox', 'users'], queryFn: instagramInboxApi.users, staleTime: 5 * 60_000 });
   const messages = useMemo(() => thread?.messages ?? [], [thread]);
   const win = windowLeft(convo?.lastInboundAt ?? null, now);

@@ -13,6 +13,7 @@ import TemplatePicker from '../TemplatePicker';
 import { WA_PRIMARY_BTN, WA_OUTLINE_BTN } from '../hub/whatsappStyles';
 import { MessageBubble } from './MessageBubble';
 import { useNow, windowLeft } from './useNow';
+import { useLivePoll } from '@/hooks/useLivePoll';
 
 const dayLabel = (d: Date) => (isToday(d) ? 'Today' : isYesterday(d) ? 'Yesterday' : format(d, 'dd MMM yyyy'));
 
@@ -21,13 +22,15 @@ interface Props { conversationId: string; onBack: () => void; onToggleDetails: (
 export function ThreadPanel({ conversationId, onBack, onToggleDetails, detailsOpen }: Props) {
   const queryClient = useQueryClient();
   const now = useNow();
+  const poll = useLivePoll(4000, 20000);
+  const live = { refetchInterval: poll, refetchIntervalInBackground: false, refetchOnWindowFocus: true } as const;
   const [text, setText] = useState('');
   const [pickingTemplate, setPickingTemplate] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const { data: convo } = useQuery({ queryKey: ['whatsapp', 'inbox', 'conv', conversationId], queryFn: () => inboxApi.get(conversationId) });
-  const { data: threadData, isLoading } = useQuery({ queryKey: ['whatsapp', 'inbox', 'messages', conversationId], queryFn: () => inboxApi.messages(conversationId) });
+  const { data: convo } = useQuery({ queryKey: ['whatsapp', 'inbox', 'conv', conversationId], queryFn: () => inboxApi.get(conversationId), ...live });
+  const { data: threadData, isLoading } = useQuery({ queryKey: ['whatsapp', 'inbox', 'messages', conversationId], queryFn: () => inboxApi.messages(conversationId), ...live });
   const { data: users = [] } = useQuery({ queryKey: ['whatsapp', 'inbox', 'users'], queryFn: inboxApi.users, staleTime: 5 * 60_000 });
   const { data: quickReplies = [] } = useQuery({ queryKey: ['whatsapp', 'inbox', 'quick-replies'], queryFn: inboxApi.quickReplies, staleTime: 5 * 60_000 });
 

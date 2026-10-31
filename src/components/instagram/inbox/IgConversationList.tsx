@@ -9,6 +9,7 @@ import { instagramInboxApi, type IgConversation } from '@/services/instagramServ
 import { cn } from '@/lib/utils';
 import { useNow, windowLeft } from '@/components/WhatsApp/inbox/useNow';
 import { IgAvatar } from './IgAvatar';
+import { useLivePoll } from '@/hooks/useLivePoll';
 
 const VIEWS = [{ key: 'all', label: 'All' }, { key: 'mine', label: 'Mine' }, { key: 'unassigned', label: 'Unassigned' }, { key: 'unread', label: 'Unread' }] as const;
 const DOT: Record<string, string> = { open: 'bg-emerald-500', pending: 'bg-amber-500', resolved: 'bg-muted-foreground/40' };
@@ -18,13 +19,15 @@ export function IgConversationList({ selectedId, onSelect }: { selectedId: strin
   const [status, setStatus] = useState('active');
   const [search, setSearch] = useState('');
   const now = useNow();
+  const poll = useLivePoll(8000, 30000);
 
-  const { data: counts } = useQuery({ queryKey: ['instagram', 'inbox', 'counts'], queryFn: instagramInboxApi.counts });
+  const { data: counts } = useQuery({ queryKey: ['instagram', 'inbox', 'counts'], queryFn: instagramInboxApi.counts, refetchInterval: poll, refetchIntervalInBackground: false, refetchOnWindowFocus: true });
   const query = useInfiniteQuery({
     queryKey: ['instagram', 'inbox', 'list', view, status, search],
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam }) => instagramInboxApi.list({ view, search: search || undefined, cursor: pageParam, status: status === 'active' ? undefined : status }),
     getNextPageParam: last => last.nextCursor ?? undefined,
+    refetchInterval: poll, refetchIntervalInBackground: false, refetchOnWindowFocus: true,
   });
   const all = query.data?.pages.flatMap(p => p.conversations) ?? [];
   const conversations = status === 'active' ? all.filter(c => c.status !== 'resolved') : all;
