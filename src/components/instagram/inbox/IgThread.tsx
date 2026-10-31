@@ -44,7 +44,7 @@ interface Props { conversationId: string; onBack: () => void; onToggleDetails: (
 export function IgThread({ conversationId, onBack, onToggleDetails, detailsOpen }: Props) {
   const queryClient = useQueryClient();
   const now = useNow();
-  const poll = useLivePoll(4000, 20000);
+  const poll = useLivePoll(2000, 10000);
   const live = { refetchInterval: poll, refetchIntervalInBackground: false, refetchOnWindowFocus: true } as const;
   const [text, setText] = useState('');
   const endRef = useRef<HTMLDivElement>(null);

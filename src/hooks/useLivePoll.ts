@@ -6,7 +6,7 @@ import { useSocket } from '@/contexts/useSocket';
  * connected and fast when it is not. Queries should also set refetchIntervalInBackground: false so
  * hidden tabs don't poll.
  */
-export function useLivePoll(fastMs = 5000, slowMs = 30000): number {
+export function useLivePoll(fastMs = 2500, slowMs = 15000): number {
   const { connected } = useSocket();
   return connected ? slowMs : fastMs;
 }

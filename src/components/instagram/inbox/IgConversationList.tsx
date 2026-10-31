@@ -19,7 +19,7 @@ export function IgConversationList({ selectedId, onSelect }: { selectedId: strin
   const [status, setStatus] = useState('active');
   const [search, setSearch] = useState('');
   const now = useNow();
-  const poll = useLivePoll(8000, 30000);
+  const poll = useLivePoll(4000, 15000);
 
   const { data: counts } = useQuery({ queryKey: ['instagram', 'inbox', 'counts'], queryFn: instagramInboxApi.counts, refetchInterval: poll, refetchIntervalInBackground: false, refetchOnWindowFocus: true });
   const query = useInfiniteQuery({
