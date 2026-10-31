@@ -70,7 +70,9 @@ export function NewChatDialog({ open, onOpenChange, onSent }: Props) {
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      {/* The dialog is hidden while the template picker is open: a modal dialog traps clicks and
+          would sit on top of the picker. Typed number/text are kept and the dialog returns on cancel. */}
+      <Dialog open={open && !pickingTemplate} onOpenChange={o => { if (!pickingTemplate) onOpenChange(o); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>New WhatsApp message</DialogTitle>
