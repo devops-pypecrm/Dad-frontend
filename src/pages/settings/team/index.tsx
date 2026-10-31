@@ -317,6 +317,7 @@ export default function TeamSettings() {
   const [isInviteOpen, setIsInviteOpen] = useState(false)
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
   const [canCreateSubordinates, setCanCreateSubordinates] = useState(false)
+  const [managedBranchIds, setManagedBranchIds] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [viewMode, setViewMode] = useState<'table' | 'tree'>('tree')
   const [suspendingUser, setSuspendingUser] = useState<TeamMember | null>(null)
@@ -379,9 +380,16 @@ export default function TeamSettings() {
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
       const res = await api.put(`/users/${editingMember?.id}`, data)
+      // A user can manage several branches; saved separately from their own (home) branch.
+      const before = (branches || []).filter((b: any) => b.managerId === editingMember?.id).map((b: any) => b.id).sort()
+      const after = [...managedBranchIds].sort()
+      if (editingMember && JSON.stringify(before) !== JSON.stringify(after)) {
+        await api.put(`/branches/managed-by/${editingMember.id}`, { branchIds: managedBranchIds })
+      }
       return res.data
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['branches'] })
       queryClient.invalidateQueries({ queryKey: ['users'] })
       toast.success("Team member updated successfully")
       setIsInviteOpen(false)
@@ -511,6 +519,7 @@ export default function TeamSettings() {
   const openEdit = (member: TeamMember) => {
     setEditingMember(member)
     setCanCreateSubordinates(member.permissions?.includes('users:create:subordinates') || false)
+    setManagedBranchIds((branches || []).filter((b: any) => b.managerId === member.id).map((b: any) => b.id))
     setIsInviteOpen(true)
   }
 
@@ -957,6 +966,30 @@ export default function TeamSettings() {
                 </Select>
               </div>
             </div>
+
+            {editingMember && (branches?.length ?? 0) > 0 && (
+              <div className="space-y-2">
+                <Label>Branches managed</Label>
+                <p className="text-xs text-muted-foreground">
+                  Tick every branch this person manages (more than one is fine). A branch has one manager, so ticking a branch moves it from its current manager.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-lg border p-3 max-h-40 overflow-y-auto">
+                  {branches.map((branch: any) => (
+                    <label key={branch.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-input"
+                        checked={managedBranchIds.includes(branch.id)}
+                        onChange={(e) =>
+                          setManagedBranchIds(prev => e.target.checked ? [...prev, branch.id] : prev.filter(id => id !== branch.id))
+                        }
+                      />
+                      <span className="truncate">{branch.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="dailyLeadQuota">Daily Lead Quota</Label>
