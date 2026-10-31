@@ -44,6 +44,8 @@ interface LeadListPageProps {
   emptyMessage: string
   /** Show the Pipeline Stage filter — only meaningful on views that span more than one status. */
   showStageFilter?: boolean
+  /** Extra buttons shown next to Export in the page header. */
+  headerActions?: ReactNode
 }
 
 const formatSourceLabel = (src: string) => {
@@ -62,7 +64,7 @@ const FETCH_CAP = 2000
 // table/columns as the main Leads page, plus the same filter-bar look (branch, owner,
 // source, date range, sort, page size), synced to URL params so links from the
 // Dashboard (which carry branch/date range) land pre-filtered here too.
-export function LeadListPage({ title, description, icon, queryKey, queryFn, emptyMessage, showStageFilter }: LeadListPageProps) {
+export function LeadListPage({ title, description, icon, queryKey, queryFn, emptyMessage, showStageFilter, headerActions }: LeadListPageProps) {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [searchParams, setSearchParams] = useSearchParams()
   const { statuses } = useLeadStatuses()
@@ -178,6 +180,8 @@ export function LeadListPage({ title, description, icon, queryKey, queryFn, empt
             )}
           </div>
         </div>
+        <div className="flex items-center gap-2 shrink-0">
+        {headerActions}
         <Button
           onClick={handleExcelDownload}
           disabled={leads.length === 0}
@@ -187,6 +191,7 @@ export function LeadListPage({ title, description, icon, queryKey, queryFn, empt
           <Download className="h-3.5 w-3.5" />
           Export
         </Button>
+        </div>
       </div>
 
       {/* auto-fit/minmax instead of fixed breakpoint column counts: each filter card gets

@@ -226,3 +226,46 @@ export const getDuplicateLeads = async () => {
     const response = await api.get('/leads/duplicates');
     return response.data;
 };
+
+// --- No-activity clean-up tool ---
+export interface NoActivityStatus {
+    id: string;
+    label: string;
+    category: 'active' | 'closed' | 'invalid';
+    source: 'system' | 'ai' | 'keywords';
+    leadCount?: number;
+}
+
+export interface NoActivityCleanupFilters {
+    statuses: string[];
+    inactiveDays?: number;
+    createdBefore?: string;
+    createdAfter?: string;
+    ownerIds?: string[];
+    includeUnassigned?: boolean;
+    neverContacted?: boolean;
+}
+
+export interface NoActivityCleanupPreview {
+    total: number;
+    inactiveDays: number;
+    byStatus: { status: string; count: number }[];
+    oldestCreated: string | null;
+    newestCreated: string | null;
+    sample: { id: string; firstName: string; lastName?: string | null; phone: string; status: string; createdAt: string; updatedAt: string }[];
+}
+
+export const getNoActivityStatuses = async (refresh = false): Promise<NoActivityStatus[]> => {
+    const response = await api.get('/leads/no-activity/statuses', { params: refresh ? { refresh: 1 } : undefined });
+    return response.data.statuses;
+};
+
+export const previewNoActivityCleanup = async (filters: NoActivityCleanupFilters): Promise<NoActivityCleanupPreview> => {
+    const response = await api.post('/leads/no-activity/cleanup/preview', filters);
+    return response.data;
+};
+
+export const executeNoActivityCleanup = async (filters: NoActivityCleanupFilters, expectedCount: number): Promise<{ deleted: number }> => {
+    const response = await api.post('/leads/no-activity/cleanup/execute', { ...filters, expectedCount });
+    return response.data;
+};
