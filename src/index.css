@@ -975,6 +975,8 @@ body.ig-theme [role="option"][data-highlighted], body.ig-theme [role="menuitem"]
 body.ig-theme input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]),
 body.ig-theme textarea,
 body.ig-theme [role="combobox"] { background-color: #fafafa; border: 1px solid #dbdbdb; border-radius: 8px; }
+body.ig-theme input.ig-bare { background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; outline: none !important; padding: 0 !important; }
+body.ig-theme .ig-flat { border: 0 !important; box-shadow: none !important; }
 body.ig-theme input:focus-visible, body.ig-theme textarea:focus-visible, body.ig-theme [role="combobox"]:focus-visible { border-color: #a8a8a8; outline: none; box-shadow: none; }
 
 /* tabs: Instagram profile tabs (uppercase, spaced, black marker on TOP of the active tab) */

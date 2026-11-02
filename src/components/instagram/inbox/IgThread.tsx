@@ -112,7 +112,7 @@ export function IgThread({ conversationId, onBack, onToggleDetails, detailsOpen 
           </div>
         ) : (
           <div className="flex items-center gap-2 rounded-full border px-4 py-2" style={{ borderColor: IG.line }}>
-            <input value={text} maxLength={1000} onChange={e => setText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } }} placeholder="Message..." className="min-w-0 flex-1 border-0 bg-transparent text-[14px] outline-none focus:ring-0 placeholder:text-[#8e8e8e]" style={{ color: IG.text }} />
+            <input value={text} maxLength={1000} onChange={e => setText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } }} placeholder="Message..." className="ig-bare min-w-0 flex-1 text-[14px] placeholder:text-[#8e8e8e]" style={{ color: IG.text }} />
             {text.trim() && <button onClick={submit} disabled={send.isPending} className="text-[14px] font-semibold disabled:opacity-50" style={{ color: IG.blue }}>Send</button>}
           </div>
         )}

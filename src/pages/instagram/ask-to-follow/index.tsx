@@ -11,7 +11,7 @@ import { InstagramConnectionGate } from '@/components/instagram/InstagramConnect
 import { IgAvatar } from '@/components/instagram/inbox/IgAvatar';
 import { EmptyState } from '@/components/WhatsApp/hub/EmptyRow';
 import { WhatsAppSection } from '@/components/WhatsApp/hub/WhatsAppSection';
-import { WA_CARD, WA_OUTLINE_BTN, WA_PRIMARY_BTN } from '@/components/WhatsApp/hub/whatsappStyles';
+import { WA_CARD } from '@/components/WhatsApp/hub/whatsappStyles';
 import { instagramGateApi, startInstagramConnect } from '@/services/instagramService';
 import { apiErrorMessage } from '@/lib/apiError';
 import { cn } from '@/lib/utils';
@@ -55,45 +55,54 @@ export default function InstagramAskToFollow() {
     <InstagramPage
       title="Ask To Follow"
       subtitle="Auto-DM anyone who comments a keyword on your posts"
-      actions={
-        <>
-          <Button variant="outline" size="icon" className={WA_OUTLINE_BTN} onClick={() => { refetch(); queryClient.invalidateQueries({ queryKey: ['instagram', 'gate', 'media'] }); }} aria-label="Refresh"><RefreshCw className={cn('h-4 w-4', isFetching && 'animate-spin')} /></Button>
-          <Button className={WA_PRIMARY_BTN} disabled={!overview?.connected} onClick={() => navigate('/instagram/ask-to-follow/new')}><Plus className="h-4 w-4 mr-1.5" />Create New</Button>
-        </>
-      }
     >
       <InstagramConnectionGate returnPath="/instagram/ask-to-follow" fallback={<PostsConnectPrompt />}>
-        <div className={cn(WA_CARD, 'flex flex-wrap items-center gap-6 p-5')}>
-          <IgAvatar src={acct?.profilePicUrl} name={acct?.username || 'i'} className="h-20 w-20 text-2xl" />
-          <div className="min-w-0 flex-1">
-            <p className="text-lg font-medium text-[#262626]">@{acct?.username}</p>
-            <p className="text-sm text-muted-foreground">Ask to follow {acct?.name || acct?.username}</p>
-            <p className="text-xs text-muted-foreground">Auto-DM anyone who comments a keyword on your posts</p>
-          </div>
-          <div className="flex gap-6 text-center">
-            {[['TOTAL BOTS', stats.total, 'text-black'], ['ACTIVE', stats.active, 'text-emerald-600'], ['INACTIVE', stats.inactive, 'text-amber-600']].map(([l, v, c]) => (
-              <div key={l as string}><p className={cn('text-2xl font-medium', c as string)}>{v}</p><p className={cn('text-[10px] font-semibold tracking-widest', c as string)}>{l}</p></div>
+        <div className="mx-auto w-full max-w-[935px]">
+          <header className="flex flex-col items-center gap-6 px-4 pb-10 pt-4 sm:flex-row sm:items-start sm:gap-20 sm:px-0">
+            <div className="shrink-0 sm:mx-[30px]">
+              <IgAvatar src={acct?.profilePicUrl} name={acct?.username || 'i'} ring className="h-[100px] w-[100px] sm:h-[150px] sm:w-[150px]" />
+            </div>
+            <div className="min-w-0 flex-1 space-y-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <h2 className="text-[20px] font-normal leading-6 text-[#262626]">{acct?.username}</h2>
+                <button disabled={!overview?.connected} onClick={() => navigate('/instagram/ask-to-follow/new')} className="rounded-lg bg-[#0095f6] px-4 py-1.5 text-[14px] font-semibold text-white hover:bg-[#1877f2] disabled:opacity-50">Create bot</button>
+                <button onClick={() => { refetch(); queryClient.invalidateQueries({ queryKey: ['instagram', 'gate', 'media'] }); }} aria-label="Refresh" className="rounded-lg bg-[#efefef] px-4 py-1.5 text-[14px] font-semibold text-[#262626] hover:bg-[#dbdbdb]"><RefreshCw className={cn('inline h-4 w-4', isFetching && 'animate-spin')} /></button>
+              </div>
+              <ul className="hidden gap-10 text-[16px] text-[#262626] sm:flex">
+                <li><b className="font-semibold">{media.length}</b> posts</li>
+                <li><b className="font-semibold">{stats.active}</b> active bots</li>
+                <li><b className="font-semibold">{stats.inactive}</b> inactive</li>
+              </ul>
+              <div className="text-[14px] leading-5 text-[#262626]">
+                <p className="font-semibold">{acct?.name || acct?.username}</p>
+                <p className="text-[#737373]">Ask to follow</p>
+                <p>Auto-DM anyone who comments a keyword on your posts.</p>
+              </div>
+            </div>
+          </header>
+          <ul className="flex justify-around border-t border-[#dbdbdb] py-3 text-center text-[14px] text-[#737373] sm:hidden">
+            <li><b className="block font-semibold text-[#262626]">{media.length}</b>posts</li>
+            <li><b className="block font-semibold text-[#262626]">{stats.active}</b>active</li>
+            <li><b className="block font-semibold text-[#262626]">{stats.inactive}</b>inactive</li>
+          </ul>
+
+          <div className="flex justify-center gap-14 border-t border-[#dbdbdb]">
+            {([['posts', 'Posts', Grid3x3], ['bots', 'Bots', UserPlus]] as const).map(([k, label, Icon]) => (
+              <button key={k} onClick={() => setTab(k)} className={cn('-mt-px flex items-center gap-1.5 border-t py-4 text-[12px] font-semibold uppercase tracking-[1px]', tab === k ? 'border-[#262626] text-[#262626]' : 'border-transparent text-[#8e8e8e]')}><Icon className="h-3 w-3" />{label}</button>
             ))}
           </div>
-        </div>
-
-        <div className="flex gap-6 border-b border-border">
-          {([['posts', 'POSTS', Grid3x3, media.length], ['bots', 'BOTS', UserPlus, stats.total]] as const).map(([k, label, Icon, n]) => (
-            <button key={k} onClick={() => setTab(k)} className={cn('-mb-px flex items-center gap-1.5 border-b-2 px-1 pb-2.5 text-xs font-semibold tracking-wide', tab === k ? 'border-black text-black' : 'border-transparent text-muted-foreground hover:text-foreground')}><Icon className="h-3.5 w-3.5" />{label}<span className="rounded-full bg-muted px-1.5 text-[10px]">{n}</span></button>
-          ))}
-        </div>
 
         {tab === 'posts' && (
-          mediaLoading ? <div className="grid grid-cols-3 gap-1 sm:grid-cols-4 lg:grid-cols-6">{Array.from({ length: 12 }).map((_, i) => <div key={i} className="aspect-square animate-pulse rounded bg-muted" />)}</div>
+          mediaLoading ? <div className="grid grid-cols-3 gap-1">{Array.from({ length: 12 }).map((_, i) => <div key={i} className="aspect-[3/4] animate-pulse bg-[#efefef]" />)}</div>
           : mediaError ? <EmptyState>{apiErrorMessage(mediaError, 'Could not load your posts')}</EmptyState>
           : media.length === 0 ? <EmptyState icon={<Grid3x3 strokeWidth={1.25} />}>No posts found on this account yet.</EmptyState>
           : (
-            <div className="grid grid-cols-3 gap-1 sm:grid-cols-4 lg:grid-cols-6">
+            <div className="grid grid-cols-3 gap-1">
               {media.map(m => (
-                <button key={m.id} onClick={() => navigate(`/instagram/ask-to-follow/new?mediaId=${m.id}`)} className="group relative aspect-square overflow-hidden rounded bg-muted text-left" title="Create an Ask-to-Follow bot for this post">
-                  <img src={m.thumbnailUrl} alt={m.caption.slice(0, 60)} referrerPolicy="no-referrer" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
-                  {m.bots > 0 && <span className={cn('absolute left-1.5 top-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white', m.activeBots ? 'bg-emerald-500' : 'bg-amber-500')}>{m.bots} bot{m.bots === 1 ? '' : 's'}</span>}
-                  <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/55 text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100"><Plus className="h-5 w-5" />Create bot<span className="flex items-center gap-1 text-[10px] opacity-80"><MessageCircle className="h-3 w-3" />{m.commentsCount ?? 0}</span></span>
+                <button key={m.id} onClick={() => navigate(`/instagram/ask-to-follow/new?mediaId=${m.id}`)} className="group relative aspect-[3/4] overflow-hidden bg-[#efefef] text-left" title="Create an Ask-to-Follow bot for this post">
+                  <img src={m.thumbnailUrl} alt={m.caption.slice(0, 60)} referrerPolicy="no-referrer" className="h-full w-full object-cover transition-transform " />
+                  {m.bots > 0 && <span className={cn('absolute right-2 top-2 rounded-full px-2 py-0.5 text-[11px] font-semibold text-white', m.activeBots ? 'bg-emerald-500' : 'bg-amber-500')}>{m.bots} bot{m.bots === 1 ? '' : 's'}</span>}
+                  <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/30 text-[16px] font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100"><Plus className="h-5 w-5" />Create bot<span className="flex items-center gap-1 text-[10px] opacity-80"><MessageCircle className="h-3 w-3" />{m.commentsCount ?? 0}</span></span>
                 </button>
               ))}
             </div>
@@ -125,6 +134,7 @@ export default function InstagramAskToFollow() {
             )}
           </WhatsAppSection>
         )}
+        </div>
       </InstagramConnectionGate>
     </InstagramPage>
   );

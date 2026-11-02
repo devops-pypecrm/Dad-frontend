@@ -9,7 +9,7 @@ import { IgAvatar } from './IgAvatar';
 import { IG } from './ig';
 
 const H = ({ children }: { children: string }) => <h3 className="mb-2 text-[14px] font-semibold" style={{ color: IG.text }}>{children}</h3>;
-const FIELD = 'w-full rounded-lg border-0 px-3 py-2 text-[14px] outline-none focus:ring-0 placeholder:text-[#8e8e8e]';
+const FIELD = 'ig-flat w-full rounded-lg border-0 px-3 py-2 text-[14px] outline-none focus:ring-0 placeholder:text-[#8e8e8e]';
 
 export function IgDetails({ conversationId }: { conversationId: string }) {
   const queryClient = useQueryClient();
