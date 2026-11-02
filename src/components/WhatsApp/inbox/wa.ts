@@ -3,15 +3,16 @@ export const WA = {
   font: '"Segoe UI", "Helvetica Neue", Helvetica, "Lucida Grande", Arial, Ubuntu, Cantarell, "Fira Sans", sans-serif',
   panel: '#f0f2f5',        // header / composer / empty-state grey
   chat: '#efeae2',         // chat wallpaper
-  out: '#d9fdd3',          // outgoing bubble
+  out: '#DCF8C6',          // outgoing bubble (pastel green)
   inn: '#ffffff',          // incoming bubble
   text: '#111b21',
   sub: '#667781',
   icon: '#54656f',
   line: '#e9edef',
-  green: '#00a884',
-  greenDark: '#008069',
-  unread: '#25d366',
+  header: '#075E54',       // dark teal top bars
+  green: '#128C7E',        // teal accent / buttons
+  greenDark: '#075E54',
+  unread: '#25D366',       // brand green: badges, active highlights
   tick: '#53bdeb',
   selected: '#f0f2f5',
   hover: '#f5f6f6',

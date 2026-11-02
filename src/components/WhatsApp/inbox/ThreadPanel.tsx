@@ -104,13 +104,13 @@ export function ThreadPanel({ conversationId, onBack, onToggleDetails, detailsOp
   return (
     <div className="flex h-full flex-col" style={{ fontFamily: WA.font, background: WA.chat }}>
       {/* header */}
-      <div className="flex h-[59px] shrink-0 items-center gap-3 px-4" style={{ background: WA.panel }}>
-        <button className="md:hidden -ml-1 p-1" onClick={onBack} aria-label="Back" style={{ color: WA.icon }}><ArrowLeft className="h-5 w-5" /></button>
+      <div className="flex h-[59px] shrink-0 items-center gap-3 px-4" style={{ background: WA.header }}>
+        <button className="md:hidden -ml-1 p-1 text-white" onClick={onBack} aria-label="Back"><ArrowLeft className="h-5 w-5" /></button>
         <button className="flex min-w-0 flex-1 items-center gap-3 text-left" onClick={onToggleDetails} aria-label="Contact info">
           <WaAvatar name={name} className="h-10 w-10 text-[20px]" />
           <div className="min-w-0">
-            <p className="truncate text-[16px] leading-5" style={{ color: WA.text }}>{name}</p>
-            <p className="truncate text-[13px] leading-4" style={{ color: win.open ? WA.greenDark : WA.sub }}>
+            <p className="truncate text-[16px] leading-5 text-white">{name}</p>
+            <p className="truncate text-[13px] leading-4 text-white/80">
               {convo ? (win.open ? `+${convo.phoneNumber} · reply window ${win.label}` : `+${convo.phoneNumber} · 24-hour window closed`) : ''}
             </p>
           </div>
@@ -124,7 +124,7 @@ export function ThreadPanel({ conversationId, onBack, onToggleDetails, detailsOp
           <SelectTrigger className={cn(pillSelect, 'w-[104px] bg-white/80')}><SelectValue /></SelectTrigger>
           <SelectContent><SelectItem value="open">Open</SelectItem><SelectItem value="pending">Pending</SelectItem><SelectItem value="resolved">Resolved</SelectItem></SelectContent>
         </Select>
-        <button onClick={onToggleDetails} aria-label="Contact info" className={cn('rounded-full p-2 hover:bg-black/5', detailsOpen && 'bg-black/10')} style={{ color: WA.icon }}><Info className="h-5 w-5" /></button>
+        <button onClick={onToggleDetails} aria-label="Contact info" className={cn('rounded-full p-2 text-white hover:bg-white/10', detailsOpen && 'bg-white/20')}><Info className="h-5 w-5" /></button>
       </div>
 
       {/* messages */}

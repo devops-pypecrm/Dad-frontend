@@ -41,9 +41,9 @@ export function DetailsPanel({ conversationId, onClose }: { conversationId: stri
 
   return (
     <div className="flex h-full flex-col" style={{ background: WA.panel, fontFamily: WA.font }}>
-      <div className="flex h-[59px] shrink-0 items-center gap-6 px-4" style={{ background: WA.panel }}>
-        <button onClick={onClose} aria-label="Close" className="rounded-full p-1 hover:bg-black/5" style={{ color: WA.icon }}><X className="h-5 w-5" /></button>
-        <span className="text-[16px] font-medium" style={{ color: WA.text }}>Contact info</span>
+      <div className="flex h-[59px] shrink-0 items-center gap-6 px-4" style={{ background: WA.header }}>
+        <button onClick={onClose} aria-label="Close" className="rounded-full p-1 text-white hover:bg-white/10"><X className="h-5 w-5" /></button>
+        <span className="text-[16px] font-medium text-white">Contact info</span>
       </div>
 
       <div className="flex-1 overflow-y-auto">

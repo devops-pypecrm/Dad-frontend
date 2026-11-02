@@ -32,9 +32,9 @@ const WhatsAppInbox: React.FC = () => {
             {selectedId ? (
               <ThreadPanel key={selectedId} conversationId={selectedId} onBack={() => setSelectedId(null)} detailsOpen={detailsOpen} onToggleDetails={() => setDetailsOpen(o => !o)} />
             ) : (
-              <div className="flex flex-1 flex-col items-center justify-center border-b-[6px] px-10 text-center" style={{ background: WA.panel, borderBottomColor: WA.green }}>
-                <div className="mb-7 flex h-[150px] w-[150px] items-center justify-center rounded-full" style={{ background: '#e7f8ef' }}>
-                  <div className="flex h-[96px] w-[96px] items-center justify-center rounded-full text-white" style={{ background: WA.green }}><MessageSquare className="h-12 w-12" strokeWidth={1.6} /></div>
+              <div className="flex flex-1 flex-col items-center justify-center border-b-[6px] px-10 text-center" style={{ background: WA.panel, borderBottomColor: WA.unread }}>
+                <div className="mb-7 flex h-[150px] w-[150px] items-center justify-center rounded-full" style={{ background: WA.out }}>
+                  <div className="flex h-[96px] w-[96px] items-center justify-center rounded-full text-white" style={{ background: WA.unread }}><MessageSquare className="h-12 w-12" strokeWidth={1.6} /></div>
                 </div>
                 <h1 className="text-[32px] font-light leading-[1.2]" style={{ color: '#41525d' }}>Team Inbox</h1>
                 <p className="mt-4 max-w-[460px] text-[14px] leading-5" style={{ color: WA.sub }}>

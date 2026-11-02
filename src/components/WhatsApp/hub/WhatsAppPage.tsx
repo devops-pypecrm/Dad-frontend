@@ -23,9 +23,9 @@ export function WhatsAppPage({ title, subtitle, actions, children, fullHeight, s
     >
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-11 w-11 shrink-0 rounded-full bg-[hsl(var(--chart-5))] flex items-center justify-center text-white"><WhatsAppLogo className="h-6 w-6" /></div>
+          <div className="h-11 w-11 shrink-0 rounded-full bg-[#25D366] flex items-center justify-center text-white"><WhatsAppLogo className="h-6 w-6" /></div>
           <div className="min-w-0">
-            <h1 className="text-[22px] sm:text-[26px] font-normal leading-tight text-foreground">{title}</h1>
+            <h1 className="text-[22px] sm:text-[26px] font-normal leading-tight text-[#075E54]">{title}</h1>
             <p className="text-[13.5px] text-muted-foreground mt-0.5">{subtitle}</p>
           </div>
         </div>

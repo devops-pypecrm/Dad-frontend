@@ -861,7 +861,7 @@ body.wa-theme {
   --card-foreground: 200 32% 11%;
   --popover: 0 0% 100%;
   --popover-foreground: 200 32% 11%;
-  --primary: 168 100% 33%;            /* #00a884 */
+  --primary: 174 77% 31%;             /* #128C7E teal */
   --primary-foreground: 0 0% 100%;
   --secondary: 214 17% 95%;
   --secondary-foreground: 200 32% 11%;
@@ -871,9 +871,9 @@ body.wa-theme {
   --accent-foreground: 200 32% 11%;
   --border: 199 14% 92%;              /* #e9edef */
   --input: 200 12% 83%;
-  --ring: 168 100% 33%;
+  --ring: 174 77% 31%;
   --radius: 0.5rem;
-  --chart-5: 168 100% 33%;            /* the accent the WhatsApp pages already use */
+  --chart-5: 174 77% 31%;             /* the accent the WhatsApp pages already use */
   /* knobs read by the shared WhatsApp components */
   --btn-radius: 9999px;
   --card-radius: 8px;
@@ -888,7 +888,7 @@ body.wa-theme .font-sans { font-family: var(--wa-font); }
 body.wa-theme button.bg-primary,
 body.wa-theme a.bg-primary { box-shadow: none; }
 body.wa-theme button.bg-primary:hover,
-body.wa-theme a.bg-primary:hover { background-color: #008069; }
+body.wa-theme a.bg-primary:hover { background-color: #075E54; }
 body.wa-theme button.border-input:not([role="combobox"]) { border-color: #d1d7db; }
 body.wa-theme button.border-input:not([role="combobox"]):hover { background-color: #f0f2f5; }
 
@@ -904,15 +904,16 @@ body.wa-theme textarea,
 body.wa-theme [role="combobox"] { background-color: #f0f2f5; border-color: transparent; }
 body.wa-theme [role="dialog"] input:not([type="checkbox"]):not([type="radio"]),
 body.wa-theme [role="dialog"] textarea { background-color: #f0f2f5; }
-body.wa-theme input:focus-visible, body.wa-theme textarea:focus-visible, body.wa-theme [role="combobox"]:focus-visible { border-color: #00a884; outline: none; box-shadow: 0 0 0 1px #00a884; }
+body.wa-theme input:focus-visible, body.wa-theme textarea:focus-visible, body.wa-theme [role="combobox"]:focus-visible { border-color: #128C7E; outline: none; box-shadow: 0 0 0 1px #128C7E; }
 
-/* tabs: WhatsApp-style underline tabs */
-body.wa-theme [role="tablist"] { background: transparent !important; border-radius: 0 !important; padding: 0 !important; height: auto !important; border-bottom: 1px solid #e9edef; gap: 4px; justify-content: flex-start; }
-body.wa-theme [role="tab"] { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; padding: 12px 18px !important; color: #667781; font-weight: 400; }
-body.wa-theme [role="tab"][data-state="active"] { color: #008069; font-weight: 500; box-shadow: inset 0 -3px 0 #00a884 !important; }
+/* tabs: WhatsApp's tab bar (dark teal strip, uppercase labels, bright underline on the active tab) */
+body.wa-theme [role="tablist"] { background: #075E54 !important; border-radius: 8px !important; padding: 0 8px !important; height: auto !important; gap: 0; justify-content: flex-start; border: 0; overflow-x: auto; }
+body.wa-theme [role="tab"] { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; padding: 15px 20px !important; color: rgba(255, 255, 255, 0.7) !important; font-weight: 600; font-size: 13.5px; text-transform: uppercase; letter-spacing: 0.3px; }
+body.wa-theme [role="tab"]:hover { color: #fff !important; }
+body.wa-theme [role="tab"][data-state="active"] { color: #fff !important; box-shadow: inset 0 -3px 0 #25D366 !important; }
 
 /* status pills: WhatsApp's soft chip colours */
-body.wa-theme [data-pill="success"] { background: #d9fdd3; color: #008069; }
+body.wa-theme [data-pill="success"] { background: #DCF8C6; color: #075E54; }
 body.wa-theme [data-pill="warning"] { background: #fff3d6; color: #9a6a00; }
 body.wa-theme [data-pill="danger"] { background: #fde7ea; color: #ea0038; }
 body.wa-theme [data-pill="info"] { background: #e3f3fb; color: #027eb5; }

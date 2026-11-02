@@ -54,15 +54,15 @@ export function ConversationListPanel({ selectedId, onSelect, onNewChat }: Props
   return (
     <div className="flex h-full flex-col bg-white" style={{ fontFamily: WA.font }}>
       {/* header */}
-      <div className="flex h-[59px] shrink-0 items-center justify-between px-4" style={{ background: WA.panel }}>
+      <div className="flex h-[59px] shrink-0 items-center justify-between px-4" style={{ background: WA.header }}>
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white" style={{ background: WA.green }}><WhatsAppLogo className="h-6 w-6" /></div>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white" style={{ color: WA.unread }}><WhatsAppLogo className="h-6 w-6" /></div>
           <div className="min-w-0">
-            <p className="truncate text-[16px] font-medium leading-5" style={{ color: WA.text }}>Team Inbox</p>
-            <p className="truncate text-[12px] leading-4" style={{ color: WA.sub }}>{conn?.phoneNumber || 'WhatsApp Business'}</p>
+            <p className="truncate text-[16px] font-medium leading-5 text-white">Team Inbox</p>
+            <p className="truncate text-[12px] leading-4 text-white/80">{conn?.phoneNumber || 'WhatsApp Business'}</p>
           </div>
         </div>
-        <div className="flex items-center gap-1" style={{ color: WA.icon }}>
+        <div className="flex items-center gap-1 text-white">
           <button onClick={() => setFilters(f => !f)} className={cn('rounded-full p-2 hover:bg-black/5', filters && 'bg-black/10')} aria-label="Filters"><SlidersHorizontal className="h-5 w-5" /></button>
           <button onClick={onNewChat} className="rounded-full p-2 hover:bg-black/5" aria-label="New chat"><MessageSquarePlus className="h-5 w-5" /></button>
         </div>
@@ -82,7 +82,7 @@ export function ConversationListPanel({ selectedId, onSelect, onNewChat }: Props
           const active = view === v.key;
           const n = counts?.[v.key as keyof typeof counts] ?? 0;
           return (
-            <button key={v.key} onClick={() => setView(v.key)} className="shrink-0 rounded-full px-3 py-[5px] text-[14px] transition-colors" style={{ background: active ? '#d9fdd3' : WA.panel, color: active ? WA.greenDark : WA.sub, fontWeight: active ? 500 : 400 }}>
+            <button key={v.key} onClick={() => setView(v.key)} className="shrink-0 rounded-full px-3 py-[5px] text-[14px] transition-colors" style={{ background: active ? WA.out : WA.panel, color: active ? WA.greenDark : WA.sub, fontWeight: active ? 500 : 400 }}>
               {v.label}{v.key !== 'all' && n > 0 ? ` ${n}` : ''}
             </button>
           );

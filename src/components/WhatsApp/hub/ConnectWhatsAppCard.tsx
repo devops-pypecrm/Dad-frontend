@@ -40,8 +40,8 @@ export function ConnectWhatsAppCard({
     <div className="flex-1 flex items-center justify-center p-6 overflow-auto bg-[var(--page-bg,transparent)]">
       <div className="w-full max-w-4xl grid md:grid-cols-2 gap-10 items-center">
         <div className="flex flex-col items-center text-center">
-          <div className="h-[150px] w-[150px] rounded-full bg-[#e7f8ef] flex items-center justify-center mb-6">
-            <div className="h-[96px] w-[96px] rounded-full bg-[hsl(var(--chart-5))] flex items-center justify-center text-white"><WhatsAppLogo className="h-12 w-12" /></div>
+          <div className="h-[150px] w-[150px] rounded-full bg-[#DCF8C6] flex items-center justify-center mb-6">
+            <div className="h-[96px] w-[96px] rounded-full bg-[#25D366] flex items-center justify-center text-white"><WhatsAppLogo className="h-12 w-12" /></div>
           </div>
           <h2 className="text-[30px] font-light leading-9 text-foreground">{title}</h2>
           <p className="mt-3 text-[14px] leading-5 text-muted-foreground max-w-sm">{description}</p>
@@ -76,7 +76,7 @@ export function ConnectWhatsAppCard({
               </li>
             ))}
           </ul>
-          <div className="flex items-center gap-2 rounded-lg bg-[#d9fdd3] text-[#008069] text-[13px] px-3 py-2.5">
+          <div className="flex items-center gap-2 rounded-lg bg-[#DCF8C6] text-[#075E54] text-[13px] px-3 py-2.5">
             <Zap className="h-4 w-4 shrink-0" />
             Setup takes less than 5 minutes and is completely secure
           </div>
