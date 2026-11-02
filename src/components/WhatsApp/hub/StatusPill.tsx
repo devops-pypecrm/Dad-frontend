@@ -12,7 +12,7 @@ export type PillTone = keyof typeof TONES;
 
 export function StatusPill({ tone = 'muted', children }: { tone?: PillTone; children: React.ReactNode }) {
   return (
-    <span className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium font-poppins capitalize', TONES[tone])}>
+    <span data-pill={tone} className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium font-poppins capitalize', TONES[tone])}>
       {children}
     </span>
   );

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Instagram, MessageCircle, Search, ToggleRight } from 'lucide-react';
+import { CheckCircle2, ChevronDown, Copy, Instagram, MessageCircle, Search, ToggleRight, XCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,11 +12,53 @@ import { api } from '@/services/api';
 import { apiErrorMessage } from '@/lib/apiError';
 import { cn } from '@/lib/utils';
 
-interface Feature { key: string; label: string; description: string; enabledCount: number }
+interface FeatureSetup { callbackUrl: string; oauthRedirectUri?: string; subscribedFields: string[]; checks: { label: string; ok: boolean }[] }
+interface Feature { key: string; label: string; description: string; enabledCount: number; setup?: FeatureSetup | null }
 interface Org { id: string; name: string; slug: string; status: string; enabledFeatures: string[] }
 interface FeatureData { features: Feature[]; organisations: Org[] }
 
 const ICONS: Record<string, typeof MessageCircle> = { whatsapp: MessageCircle, instagram: Instagram };
+
+function CopyRow({ label, value }: { label: string; value: string }) {
+  const copy = () => navigator.clipboard.writeText(value).then(() => toast.success('Copied'));
+  return (
+    <div>
+      <p className="mb-1 text-xs text-muted-foreground">{label}</p>
+      <div className="flex gap-2"><code className="flex-1 break-all rounded border border-border bg-muted/40 px-2 py-1.5 text-xs">{value}</code><Button type="button" variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={copy} aria-label={`Copy ${label}`}><Copy className="h-3.5 w-3.5" /></Button></div>
+    </div>
+  );
+}
+
+/** One-time Meta app configuration for the whole platform (not per organisation). */
+function PlatformSetup({ setup }: { setup: FeatureSetup }) {
+  const [open, setOpen] = useState(false);
+  const allOk = setup.checks.every(c => c.ok);
+  return (
+    <div className="rounded-lg border border-border">
+      <button type="button" onClick={() => setOpen(o => !o)} className="flex w-full items-center gap-2 px-4 py-3 text-left">
+        <span className="flex-1 text-sm font-medium text-foreground">Platform setup <span className="font-normal text-muted-foreground">(Meta app, configured once for every organisation)</span></span>
+        {allOk ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <XCircle className="h-4 w-4 text-destructive" />}
+        <ChevronDown className={cn('h-4 w-4 text-muted-foreground transition-transform', open && 'rotate-180')} />
+      </button>
+      {open && (
+        <div className="space-y-3 border-t border-border p-4">
+          <CopyRow label="Webhook callback URL" value={setup.callbackUrl} />
+          {setup.oauthRedirectUri && <CopyRow label="OAuth redirect URI" value={setup.oauthRedirectUri} />}
+          <div>
+            <p className="mb-1 text-xs text-muted-foreground">Subscribe these fields in the Meta app</p>
+            <div className="flex flex-wrap gap-1.5">{setup.subscribedFields.map(f => <code key={f} className="rounded bg-muted px-2 py-0.5 text-[11px]">{f}</code>)}</div>
+          </div>
+          <ul className="space-y-1.5">
+            {setup.checks.map(c => (
+              <li key={c.label} className="flex items-center gap-2 text-sm">{c.ok ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <XCircle className="h-4 w-4 text-destructive" />}{c.label}</li>
+            ))}
+          </ul>
+          <p className="text-[11px] text-muted-foreground">Organisations never see or set any of this. They only connect their own number or account.</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 /** One feature: pick which organisations get it, then save. */
 function FeatureCard({ feature, orgs }: { feature: Feature; orgs: Org[] }) {
@@ -69,6 +111,7 @@ function FeatureCard({ feature, orgs }: { feature: Feature; orgs: Org[] }) {
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
+        {feature.setup && <PlatformSetup setup={feature.setup} />}
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

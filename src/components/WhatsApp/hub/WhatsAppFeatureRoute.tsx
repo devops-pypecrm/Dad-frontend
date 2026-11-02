@@ -2,11 +2,13 @@ import { Link, Outlet } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useWhatsAppEnabled } from '@/hooks/useWhatsAppEnabled';
+import { useBodyClass } from '@/hooks/useBodyClass';
 import { WA_CARD } from './whatsappStyles';
 
 /** Wraps every /whatsapp/* route: organisations without the feature see an explanation instead. */
 export function WhatsAppFeatureRoute() {
   const enabled = useWhatsAppEnabled();
+  useBodyClass('wa-theme'); // WhatsApp look for every /whatsapp/* page, dialog and dropdown
   if (enabled) return <Outlet />;
 
   return (

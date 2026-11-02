@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
-import { whatsAppFlowService } from "@/services/whatsAppFlowService"
+import { whatsAppFlowService, type WhatsAppFlow } from "@/services/whatsAppFlowService"
 import { nodeTypes, NODE_META, NODE_PALETTE, type FlowNodeType } from "@/components/WhatsApp/flow-nodes/nodeTypes"
 import { NodeSettingsPanel } from "@/components/WhatsApp/flow-nodes/NodeSettingsPanel"
 
@@ -42,44 +42,36 @@ function makeNodeId() {
 
 export default function WhatsAppFlowEditorPage() {
   const { id } = useParams()
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
-
-  const [nodes, setNodes] = useState<Node[]>([])
-  const [edges, setEdges] = useState<Edge[]>([])
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
-  const [flowName, setFlowName] = useState("")
-  const [isActive, setIsActive] = useState(false)
-  const [testDialogOpen, setTestDialogOpen] = useState(false)
-  const [testPhone, setTestPhone] = useState("")
-
   const { data: flow, isLoading } = useQuery({
     queryKey: ["whatsapp-flow", id],
     queryFn: () => whatsAppFlowService.getFlowById(id!),
     enabled: !!id,
   })
 
-  useEffect(() => {
-    if (flow) {
-      setFlowName(flow.name)
-      setIsActive(flow.isActive)
-      if (flow.nodes?.length > 0) {
-        setNodes(flow.nodes)
-        setEdges(flow.edges || [])
-      } else {
-        const rootId = makeNodeId()
-        setNodes([
-          {
-            id: rootId,
-            type: "message",
-            position: { x: 250, y: 50 },
-            data: { ...NODE_META.message.defaultData },
-          },
-        ])
-        setEdges([])
-      }
-    }
-  }, [flow])
+  if (isLoading || !flow) {
+    return <div className="p-8 text-center text-muted-foreground">Loading chatbot...</div>
+  }
+  // keyed so the editor starts with the loaded chatbot already on the canvas (and fits it to the screen)
+  return <FlowEditor key={flow.id} flow={flow} />
+}
+
+function FlowEditor({ flow }: { flow: WhatsAppFlow }) {
+  const id = flow.id
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+
+  const [nodes, setNodes] = useState<Node[]>(() =>
+    flow.nodes?.length > 0
+      ? flow.nodes
+      : [{ id: makeNodeId(), type: "message", position: { x: 250, y: 50 }, data: { ...NODE_META.message.defaultData } }]
+  )
+  const [edges, setEdges] = useState<Edge[]>(() => (flow.nodes?.length > 0 ? flow.edges || [] : []))
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
+  const [flowName, setFlowName] = useState(flow.name)
+  const [isActive, setIsActive] = useState(flow.isActive)
+  const [keywords, setKeywords] = useState((flow.triggerKeywords || []).join(", "))
+  const [testDialogOpen, setTestDialogOpen] = useState(false)
+  const [testPhone, setTestPhone] = useState("")
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     setNodes((nds) => applyNodeChanges(changes, nds))
@@ -115,7 +107,13 @@ export default function WhatsAppFlowEditorPage() {
 
   const saveMutation = useMutation({
     mutationFn: () =>
-      whatsAppFlowService.updateFlow(id!, { name: flowName, nodes, edges, isActive }),
+      whatsAppFlowService.updateFlow(id, {
+        name: flowName,
+        nodes,
+        edges,
+        isActive,
+        ...(flow.triggerType === "keyword" ? { triggerKeywords: keywords.split(",").map((k) => k.trim().toLowerCase()).filter(Boolean) } : {}),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["whatsapp-flow", id] })
       queryClient.invalidateQueries({ queryKey: ["whatsapp-flows"] })
@@ -127,7 +125,7 @@ export default function WhatsAppFlowEditorPage() {
   })
 
   const testMutation = useMutation({
-    mutationFn: () => whatsAppFlowService.testFlow(id!, testPhone),
+    mutationFn: () => whatsAppFlowService.testFlow(id, testPhone),
     onSuccess: () => {
       toast.success("Test flow started - check the number on WhatsApp")
       setTestDialogOpen(false)
@@ -139,12 +137,8 @@ export default function WhatsAppFlowEditorPage() {
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId) || null
 
-  if (isLoading) {
-    return <div className="p-8 text-center text-muted-foreground">Loading flow...</div>
-  }
-
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-full min-h-[480px] overflow-hidden bg-background">
       <div className="flex-1 flex flex-col">
         <div className="flex items-center gap-3 border-b p-3">
           <Button variant="ghost" size="icon" onClick={() => navigate("/whatsapp/chatbot")}>
@@ -160,6 +154,15 @@ export default function WhatsAppFlowEditorPage() {
             <Switch checked={isActive} onCheckedChange={setIsActive} />
             <span className="text-sm text-muted-foreground">{isActive ? "Active" : "Inactive"}</span>
           </div>
+          {flow.triggerType === "keyword" && (
+            <Input
+              className="max-w-xs"
+              value={keywords}
+              onChange={(e) => setKeywords(e.target.value)}
+              placeholder="Trigger keywords, comma separated"
+              title="The chatbot starts when a customer's message contains one of these words"
+            />
+          )}
 
           <div className="flex-1" />
 
@@ -202,6 +205,8 @@ export default function WhatsAppFlowEditorPage() {
             onPaneClick={() => setSelectedNodeId(null)}
             nodeTypes={nodeTypes}
             fitView
+            fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
+            style={{ width: "100%", height: "100%" }}
           >
             <Background />
             <Controls />

@@ -117,6 +117,11 @@ export default function WhatsAppChatbotPage() {
                         <div className="flex items-center gap-2">
                           <Switch checked={b.isPublished} disabled={publish.isPending} onCheckedChange={v => toggleBot(b, v)} aria-label="Publish" />
                           <Button size="sm" variant="outline" className={cn('h-7', WA_OUTLINE_BTN)} onClick={() => navigate(`/whatsapp/chatbot/${b.flowId}`)}>Edit</Button>
+                          <Button
+                            size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive hover:text-destructive" title="Remove this chatbot" aria-label={`Remove ${b.name}`}
+                            disabled={remove.isPending}
+                            onClick={() => window.confirm(`Remove "${b.name}"? Its steps and settings will be deleted. You can add it again later from this list.`) && remove.mutate(b.flowId!)}
+                          ><Trash2 className="h-4 w-4" /></Button>
                         </div>
                       ) : (
                         <Button size="sm" className={cn('h-7', WA_PRIMARY_BTN)} disabled={use.isPending} onClick={() => use.mutate(b.key)}>Use</Button>

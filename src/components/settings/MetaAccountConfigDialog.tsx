@@ -1,9 +1,9 @@
 
 
-import { useEffect } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Loader2, AlertTriangle } from "lucide-react"
+import { Loader2, AlertTriangle, RefreshCw, Search } from "lucide-react"
 import { toast } from "sonner"
 import type { AxiosError } from "axios"
 
@@ -128,7 +128,7 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
   // Campaigns across every ad account selected above — the pool a "sync only these
   // campaigns" allowlist gets picked from. Only fetched once the allowlist section is
   // actually open, since each of these is a real ad-account API call, not free.
-  const { data: campaignsData, isLoading: campaignsLoading } = useQuery({
+  const { data: campaignsData, isLoading: campaignsLoading, refetch: refetchCampaigns, isFetching: campaignsFetching } = useQuery({
     queryKey: ["meta-campaigns-for-allowlist", watchedAdAccountIds],
     queryFn: async () => {
       const results = await Promise.all(watchedAdAccountIds.map((id) => getMetaCampaigns(id)))
@@ -143,6 +143,34 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
     enabled: open && restrictCampaigns && watchedAdAccountIds.length > 0,
   })
   const campaignOptions: Campaign[] = campaignsData || []
+
+  const [campaignSearch, setCampaignSearch] = useState("")
+  useEffect(() => { if (!open) setCampaignSearch("") }, [open])
+
+  const visibleCampaigns = useMemo(() => {
+    const q = campaignSearch.trim().toLowerCase()
+    return q ? campaignOptions.filter((c) => c.name.toLowerCase().includes(q) || c.id.includes(q)) : campaignOptions
+  }, [campaignOptions, campaignSearch])
+  const allVisibleSelected = visibleCampaigns.length > 0 && visibleCampaigns.every((c) => allowedCampaignIds.includes(c.id))
+
+  const toggleAllVisible = (checked: boolean) => {
+    const current = form.getValues("allowedCampaignIds") || []
+    const visibleIds = visibleCampaigns.map((c) => c.id)
+    form.setValue(
+      "allowedCampaignIds",
+      checked ? Array.from(new Set([...current, ...visibleIds])) : current.filter((id) => !visibleIds.includes(id))
+    )
+  }
+
+  // Selects exactly the campaigns the Ads Manager page lists (fresh from Meta), i.e. everything
+  // except archived/deleted ones, replacing the current selection.
+  const syncCampaigns = async () => {
+    const res = await refetchCampaigns()
+    const fresh = (res.data || []) as Campaign[]
+    const listed = fresh.filter((c) => !["ARCHIVED", "DELETED"].includes((c.effective_status || c.status || "").toUpperCase()))
+    form.setValue("allowedCampaignIds", listed.map((c) => c.id), { shouldDirty: true })
+    toast.success(`${listed.length} campaign${listed.length === 1 ? "" : "s"} selected from Ads Manager`)
+  }
 
   const toggleCampaign = (campaignId: string, checked: boolean) => {
     const current = form.getValues("allowedCampaignIds") || []
@@ -235,7 +263,7 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] sm:rounded-[10px] p-6">
+      <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto sm:rounded-[10px] p-6">
         <DialogHeader>
           <DialogTitle className="text-xl font-medium font-poppins tracking-tight text-foreground flex items-center gap-2">
             {account?.needsAdAccountSelection ? "Finish Connecting Meta" : "Configure Meta Account"}
@@ -391,24 +419,68 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
                 ) : campaignOptions.length === 0 ? (
                   <FormDescription>No campaigns found for this ad account.</FormDescription>
                 ) : (
-                  <ScrollArea className="h-48 pr-2">
-                    <div className="space-y-1">
-                      {campaignOptions.map((camp) => (
-                        <label
-                          key={camp.id}
-                          className="flex items-center gap-2 px-2 py-1.5 rounded-sm hover:bg-accent text-sm cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                            checked={allowedCampaignIds.includes(camp.id)}
-                            onChange={(e) => toggleCampaign(camp.id, e.target.checked)}
-                          />
-                          <span className="truncate">{camp.name}</span>
-                        </label>
-                      ))}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                        <Input
+                          value={campaignSearch}
+                          onChange={(e) => setCampaignSearch(e.target.value)}
+                          placeholder="Search campaigns..."
+                          className="h-8 pl-8 text-sm rounded-[10px]"
+                        />
+                      </div>
+                      <Button type="button" variant="outline" size="sm" className="h-8 gap-1.5 rounded-[10px] shrink-0"
+                        onClick={syncCampaigns} disabled={campaignsFetching}>
+                        <RefreshCw className={`h-3.5 w-3.5 ${campaignsFetching ? "animate-spin" : ""}`} />
+                        Sync campaigns
+                      </Button>
                     </div>
-                  </ScrollArea>
+                    <div className="flex items-center justify-between px-1">
+                      <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          checked={allVisibleSelected}
+                          disabled={visibleCampaigns.length === 0}
+                          onChange={(e) => toggleAllVisible(e.target.checked)}
+                        />
+                        Select all{campaignSearch.trim() ? " (filtered)" : ""}
+                      </label>
+                      <span className="text-xs text-muted-foreground">
+                        {allowedCampaignIds.length} of {campaignOptions.length} selected
+                      </span>
+                    </div>
+                    <ScrollArea className="h-52 rounded-md border">
+                      <div className="p-1 space-y-0.5">
+                        {visibleCampaigns.length === 0 && (
+                          <p className="text-sm text-muted-foreground px-2 py-3 text-center">No campaigns match "{campaignSearch}".</p>
+                        )}
+                        {visibleCampaigns.map((camp) => {
+                          const st = (camp.effective_status || camp.status || "").toUpperCase()
+                          return (
+                            <label
+                              key={camp.id}
+                              className="flex items-center gap-2 px-2 py-1.5 rounded-sm hover:bg-accent text-sm cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 shrink-0 rounded border-gray-300 text-primary focus:ring-primary"
+                                checked={allowedCampaignIds.includes(camp.id)}
+                                onChange={(e) => toggleCampaign(camp.id, e.target.checked)}
+                              />
+                              <span className="truncate flex-1" title={camp.name}>{camp.name}</span>
+                              {st && (
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 ${st === "ACTIVE" ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"}`}>
+                                  {st.replace(/_/g, " ").toLowerCase()}
+                                </span>
+                              )}
+                            </label>
+                          )
+                        })}
+                      </div>
+                    </ScrollArea>
+                  </div>
                 )}
                 {allowedCampaignIds.length === 0 && (
                   <FormDescription className="flex items-center gap-1 text-warning">

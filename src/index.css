@@ -848,3 +848,78 @@
     @apply uppercase text-[10px] tracking-wider;
   }
 }
+/* ==========================================================================
+   WhatsApp theme: switched on (body.wa-theme) while any /whatsapp/* page is open.
+   It re-points the shared design tokens, so pages, dialogs, dropdowns and popovers
+   (which render outside the page, in <body>) all pick it up. Not applied anywhere else.
+   ========================================================================== */
+body.wa-theme {
+  --wa-font: "Segoe UI", "Helvetica Neue", Helvetica, "Lucida Grande", Arial, Ubuntu, Cantarell, "Fira Sans", sans-serif;
+  --background: 214 17% 95%;          /* #f0f2f5 */
+  --foreground: 200 32% 11%;          /* #111b21 */
+  --card: 0 0% 100%;
+  --card-foreground: 200 32% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 200 32% 11%;
+  --primary: 174 77% 31%;             /* #128C7E teal */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 214 17% 95%;
+  --secondary-foreground: 200 32% 11%;
+  --muted: 214 17% 95%;
+  --muted-foreground: 200 12% 45%;    /* #667781 */
+  --accent: 214 17% 95%;
+  --accent-foreground: 200 32% 11%;
+  --border: 199 14% 92%;              /* #e9edef */
+  --input: 200 12% 83%;
+  --ring: 174 77% 31%;
+  --radius: 0.5rem;
+  --chart-5: 174 77% 31%;             /* the accent the WhatsApp pages already use */
+  /* knobs read by the shared WhatsApp components */
+  --btn-radius: 9999px;
+  --card-radius: 8px;
+  --card-shadow: 0 1px 3px rgba(11, 20, 26, 0.08);
+  --page-bg: #f0f2f5;
+  font-family: var(--wa-font);
+}
+body.wa-theme .font-poppins,
+body.wa-theme .font-sans { font-family: var(--wa-font); }
+
+/* buttons: flat WhatsApp green pills, no coloured glow */
+body.wa-theme button.bg-primary,
+body.wa-theme a.bg-primary { box-shadow: none; }
+body.wa-theme button.bg-primary:hover,
+body.wa-theme a.bg-primary:hover { background-color: #075E54; }
+body.wa-theme button.border-input:not([role="combobox"]) { border-color: #d1d7db; }
+body.wa-theme button.border-input:not([role="combobox"]):hover { background-color: #f0f2f5; }
+
+/* dialogs / popovers: soft WhatsApp panels */
+body.wa-theme [role="dialog"] { border-radius: 12px; border-color: transparent; box-shadow: 0 17px 50px rgba(11, 20, 26, 0.3); }
+body.wa-theme [role="dialog"] h2 { font-weight: 500; letter-spacing: 0; color: #111b21; }
+body.wa-theme [role="menu"], body.wa-theme [role="listbox"] { border-radius: 8px; border-color: transparent; box-shadow: 0 2px 8px rgba(11, 20, 26, 0.25); }
+body.wa-theme [role="option"][data-highlighted], body.wa-theme [role="menuitem"][data-highlighted] { background: #f0f2f5; color: #111b21; }
+
+/* inputs: filled grey like WhatsApp's search / message fields */
+body.wa-theme input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]),
+body.wa-theme textarea,
+body.wa-theme [role="combobox"] { background-color: #f0f2f5; border-color: transparent; }
+body.wa-theme [role="dialog"] input:not([type="checkbox"]):not([type="radio"]),
+body.wa-theme [role="dialog"] textarea { background-color: #f0f2f5; }
+body.wa-theme input:focus-visible, body.wa-theme textarea:focus-visible, body.wa-theme [role="combobox"]:focus-visible { border-color: #128C7E; outline: none; box-shadow: 0 0 0 1px #128C7E; }
+
+/* tabs: WhatsApp's tab bar (dark teal strip, uppercase labels, bright underline on the active tab) */
+body.wa-theme [role="tablist"] { background: #075E54 !important; border-radius: 8px !important; padding: 0 8px !important; height: auto !important; gap: 0; justify-content: flex-start; border: 0; overflow-x: auto; }
+body.wa-theme [role="tab"] { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; padding: 15px 20px !important; color: rgba(255, 255, 255, 0.7) !important; font-weight: 600; font-size: 13.5px; text-transform: uppercase; letter-spacing: 0.3px; }
+body.wa-theme [role="tab"]:hover { color: #fff !important; }
+body.wa-theme [role="tab"][data-state="active"] { color: #fff !important; box-shadow: inset 0 -3px 0 #25D366 !important; }
+
+/* status pills: WhatsApp's soft chip colours */
+body.wa-theme [data-pill="success"] { background: #DCF8C6; color: #075E54; }
+body.wa-theme [data-pill="warning"] { background: #fff3d6; color: #9a6a00; }
+body.wa-theme [data-pill="danger"] { background: #fde7ea; color: #ea0038; }
+body.wa-theme [data-pill="info"] { background: #e3f3fb; color: #027eb5; }
+body.wa-theme [data-pill="muted"] { background: #f0f2f5; color: #667781; }
+
+/* tables */
+body.wa-theme table thead tr { background: #f0f2f5; }
+body.wa-theme table th { color: #667781; font-weight: 500; }
+body.wa-theme table tbody tr { border-color: #e9edef; }

@@ -38,6 +38,8 @@ export interface CreateWorkflowData {
 export interface WorkflowSearchParams {
     isActive?: boolean;
     triggerEntity?: string;
+    /** Leave out workflows triggered by this entity (e.g. 'WhatsAppMessage' on the general Automation pages). */
+    excludeTriggerEntity?: string;
 }
 
 export const getWorkflows = async (params?: WorkflowSearchParams) => {
