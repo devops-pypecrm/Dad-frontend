@@ -26,6 +26,7 @@ export default function Layout() {
   const isFullWidthPage = location.pathname.startsWith('/automation/workflows') ||
     location.pathname.startsWith('/workflows') ||
     location.pathname === '/whatsapp/inbox' ||
+    location.pathname.startsWith('/whatsapp/chatbot/') ||
     location.pathname === '/instagram/inbox' ||
     location.pathname.startsWith('/instagram/chatbots/') ||
     location.pathname.startsWith('/instagram/ask-to-follow/') ||
