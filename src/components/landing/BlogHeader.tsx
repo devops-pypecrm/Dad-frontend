@@ -14,9 +14,9 @@ export default function BlogHeader() {
             <Logo size="md" />
           </Link>
           <nav className="hidden sm:flex items-center gap-6 text-sm font-semibold text-gray-600 dark:text-gray-300">
-            <Link to="/blog" className="hover:text-gray-900 dark:hover:text-white transition-colors">Blog Home</Link>
-            <Link to="/help" className="hover:text-gray-900 dark:hover:text-white transition-colors">Help Center</Link>
-            <a href="/#features" className="hover:text-gray-900 dark:hover:text-white transition-colors">Explore Pype CRM</a>
+            <Link to="/docs" className="hover:text-gray-900 dark:hover:text-white transition-colors">Documentation</Link>
+            <Link to="/partners" className="hover:text-gray-900 dark:hover:text-white transition-colors">Partners</Link>
+            <Link to="/features" className="hover:text-gray-900 dark:hover:text-white transition-colors">Explore Pype CRM</Link>
           </nav>
         </div>
         <Link to="/enquire">

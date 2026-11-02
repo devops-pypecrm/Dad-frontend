@@ -120,6 +120,14 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const nowTime = () => new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 
+const getInitialItems = (): ChatItem[] => [
+  { id: 0, kind: "sys", text: "ðŸ”’ Messages and calls are end-to-end encrypted." },
+  { id: 1, kind: "sys", text: 'Pype CRM created group "Loved by growing teams"' },
+  { id: 2, kind: "sys", text: "Pype CRM added you" },
+  { id: 3, kind: "sys", text: `${members.sarah.name} joined using this group's invite link` },
+  { id: 4, kind: "msg", who: "sarah", time: nowTime() },
+];
+
 function TypingDots() {
   return (
     <span className="inline-flex items-center gap-1" aria-hidden>
@@ -148,30 +156,31 @@ function BubbleTail() {
 export default function Testimonials() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const inView = useInView(sectionRef, { once: true, amount: 0.35 });
+  const inView = useInView(sectionRef, { once: true, amount: 0.1 });
   const reduceMotion = useReducedMotion();
 
-  const [phase, setPhase] = useState<"idle" | "notif" | "chat">("idle");
-  const [items, setItems] = useState<ChatItem[]>([]);
+  const [phase, setPhase] = useState<"idle" | "notif" | "chat">("chat");
+  const [items, setItems] = useState<ChatItem[]>(getInitialItems);
   const [typing, setTyping] = useState<MemberKey | "me" | null>(null);
   const [done, setDone] = useState(false);
   const [run, setRun] = useState(0);
-  const idRef = useRef(0);
+  const idRef = useRef(5);
 
   const play = useCallback(async (cancelled: () => boolean) => {
     const wait = async (ms: number) => {
-      await sleep(reduceMotion ? 0 : ms);
+      await sleep(reduceMotion ? 0 : Math.min(ms, 500));
       return !cancelled();
     };
-    setItems([]);
+    idRef.current = 5;
+    setItems(getInitialItems());
     setTyping(null);
     setDone(false);
-    setPhase(reduceMotion ? "chat" : "notif");
-    if (!(await wait(2600))) return;
     setPhase("chat");
-    if (!(await wait(900))) return;
 
-    for (const step of steps) {
+    // The intro and first testimonial are already visible. Continue the
+    // conversation from the next step without making visitors wait through
+    // an empty notification sequence.
+    for (const step of steps.slice(6)) {
       if (step.kind === "typing") {
         setTyping(step.who);
       } else if (step.kind === "me") {

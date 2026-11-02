@@ -24,7 +24,7 @@ export default function DocArticlePage() {
   const article = getDocBySlug(slug || "")
 
   if (!article) {
-    return <Navigate to="/docs" replace />
+    return <Navigate to="/training/docs" replace />
   }
 
   const categoryArticles = WHATSAPP_DOCS.filter((d) => d.category === article.category)
@@ -35,7 +35,7 @@ export default function DocArticlePage() {
   return (
     <div className="flex h-screen overflow-hidden">
       <aside className="w-64 shrink-0 border-r overflow-y-auto p-4 hidden md:block">
-        <Link to="/docs" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4">
+        <Link to="/training/docs" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4">
           <ArrowLeft className="h-3.5 w-3.5" /> All Docs
         </Link>
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{article.category}</p>
@@ -43,7 +43,7 @@ export default function DocArticlePage() {
           {categoryArticles.map((a) => (
             <Link
               key={a.slug}
-              to={`/docs/${a.slug}`}
+              to={`/training/docs/${a.slug}`}
               className={cn(
                 "block rounded-[8px] px-2 py-1.5 text-sm transition-colors",
                 a.slug === article.slug
@@ -59,7 +59,7 @@ export default function DocArticlePage() {
 
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto p-6 md:p-10">
-          <Link to="/docs" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 md:hidden">
+          <Link to="/training/docs" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 md:hidden">
             <ArrowLeft className="h-3.5 w-3.5" /> All Docs
           </Link>
 
@@ -102,7 +102,7 @@ export default function DocArticlePage() {
                 {relatedArticles.map((a) => (
                   <Link
                     key={a!.slug}
-                    to={`/docs/${a!.slug}`}
+                    to={`/training/docs/${a!.slug}`}
                     className="text-sm rounded-[10px] border p-3 hover:border-[hsl(var(--chart-5))]/40 hover:bg-muted/50 transition-colors"
                   >
                     {a!.title}

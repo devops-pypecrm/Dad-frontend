@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowRight, Calendar, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BLOG_POSTS } from "@/data/blogPosts";
+import { PageTransition, Reveal } from "@/components/shared/MotionReveal";
 
 // No product photography in the asset pipeline yet - each post gets a
 // real, stable stock image from Lorem Picsum (seeded by slug, so a given
@@ -65,7 +66,7 @@ export default function Blog() {
         keywords="sales crm blog, lead management, sales process, crm tips"
       />
       <BlogHeader />
-      <main className="pb-20">
+      <PageTransition><main className="pb-20">
         {/* Hero */}
         <div className="container mx-auto px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28 pt-12 pb-10">
           <div className="grid lg:grid-cols-2 gap-10 items-center">
@@ -110,7 +111,7 @@ export default function Blog() {
         </div>
 
         {/* Articles */}
-        <div className="container mx-auto px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28">
+        <Reveal><div className="container mx-auto px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28">
           <div className="flex items-center justify-between mb-6">
             <p className="text-xs font-semibold tracking-[0.2em] text-gray-400">ARTICLES</p>
             <div className="inline-flex rounded-full border border-gray-200 dark:border-gray-800 p-1">
@@ -177,10 +178,10 @@ export default function Blog() {
               </div>
             ))}
           </div>
-        </div>
+        </div></Reveal>
 
         {/* Newsletter banner */}
-        <div className="container mx-auto px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28 mt-16">
+        <Reveal><div className="container mx-auto px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28 mt-16">
           <div className="rounded-2xl bg-gray-50 dark:bg-gray-900 p-8 sm:p-10 flex flex-col sm:flex-row items-center justify-between gap-6">
             <div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
@@ -200,8 +201,8 @@ export default function Blog() {
               <Button type="submit" className="h-11 px-6 shrink-0">Subscribe</Button>
             </form>
           </div>
-        </div>
-      </main>
+        </div></Reveal>
+      </main></PageTransition>
       <Footer />
     </div>
   );

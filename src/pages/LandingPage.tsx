@@ -10,6 +10,7 @@ import FAQSection from "@/components/landing/FAQSection";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
 import SEO from "@/components/shared/SEO";
+import { PageTransition, Reveal } from "@/components/shared/MotionReveal";
 
 const landingJsonLd = [
   {
@@ -52,17 +53,19 @@ export default function LandingPage() {
         jsonLd={landingJsonLd}
       />
       <LandingNavbar />
-      <main>
-      <Hero />
-        <FeatureSpotlight />
-        <GetStartedBanner />
-        <FeatureSection />
-        <IntegrationSection />
-        <Testimonials />
-        <PricingTable />
-        <FAQSection />
-        <CTASection />
-      </main>
+      <PageTransition>
+        <main>
+          <Hero />
+          <Reveal><FeatureSpotlight /></Reveal>
+          <Reveal><GetStartedBanner /></Reveal>
+          <Reveal><FeatureSection /></Reveal>
+          <Reveal><IntegrationSection /></Reveal>
+          <Reveal><Testimonials /></Reveal>
+          <Reveal><PricingTable /></Reveal>
+          <Reveal><FAQSection /></Reveal>
+          <Reveal><CTASection /></Reveal>
+        </main>
+      </PageTransition>
       <Footer />
     </div>
   );

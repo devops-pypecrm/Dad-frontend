@@ -4,13 +4,14 @@ import Footer from "@/components/landing/Footer";
 import SEO from "@/components/shared/SEO";
 import { ArrowLeft } from "lucide-react";
 import { getHelpArticle } from "@/data/helpArticles";
+import { PageTransition } from "@/components/shared/MotionReveal";
 
 export default function HelpArticle() {
   const { slug } = useParams<{ slug: string }>();
   const article = slug ? getHelpArticle(slug) : undefined;
 
   if (!article) {
-    return <Navigate to="/help" replace />;
+    return <Navigate to="/docs" replace />;
   }
 
   return (
@@ -18,13 +19,13 @@ export default function HelpArticle() {
       <SEO
         title={article.title}
         description={article.summary}
-        canonical={`https://pypecrm.com/help/${article.slug}`}
+        canonical={`https://pypecrm.com/docs/${article.slug}`}
       />
       <LandingNavbar />
-      <main className="pt-28 pb-20">
+      <PageTransition><main className="pt-28 pb-20">
         <article className="container mx-auto px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28 max-w-3xl">
-          <Link to="/help" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary mb-8">
-            <ArrowLeft className="h-4 w-4" /> Back to Help Center
+          <Link to="/docs" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary mb-8">
+            <ArrowLeft className="h-4 w-4" /> Back to Documentation
           </Link>
 
           <p className="text-sm font-semibold text-primary mb-3">{article.category}</p>
@@ -45,7 +46,7 @@ export default function HelpArticle() {
             </Link>
           </div>
         </article>
-      </main>
+      </main></PageTransition>
       <Footer />
     </div>
   );

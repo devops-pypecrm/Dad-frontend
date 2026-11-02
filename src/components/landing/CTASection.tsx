@@ -17,16 +17,16 @@ export default function CTASection() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
-          <Link to="/enquire">
-            <Button size="lg" className="h-14 px-8 text-lg rounded-full bg-white text-brand-600 hover:bg-gray-100 shadow-xl transition-all hover:scale-105 font-bold">
+          <Button asChild size="lg" className="h-14 w-full sm:w-auto sm:min-w-60 px-8 text-lg rounded-full !bg-white !text-brand-700 hover:!bg-gray-100 shadow-xl transition-colors font-bold">
+            <Link to="/enquire">
               Get Started Now <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
-          <Link to="/login">
-            <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-full border-2 border-white/30 text-white hover:bg-white/10 hover:text-white hover:border-white transition-all">
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" className="h-14 w-full sm:w-auto sm:min-w-60 px-8 text-lg rounded-full !border-2 !border-white !bg-transparent !text-white hover:!bg-white/10 hover:!text-white transition-all font-semibold">
+            <Link to="/login">
               Contact Sales
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-6 text-sm font-medium text-brand-100">

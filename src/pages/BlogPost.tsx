@@ -8,6 +8,7 @@ import SEO from "@/components/shared/SEO";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Calendar, Clock, Link2, Linkedin, Twitter } from "lucide-react";
 import { getBlogPost, BLOG_POSTS } from "@/data/blogPosts";
+import { PageTransition } from "@/components/shared/MotionReveal";
 
 const slugifyHeading = (text: string) =>
   text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -97,7 +98,7 @@ export default function BlogPost() {
         }}
       />
       <BlogHeader />
-      <main className="pt-12 pb-20">
+      <PageTransition><main className="pt-12 pb-20">
         <div className="container mx-auto px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28 max-w-6xl">
           <Link to="/blog" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary mb-8">
             <ArrowLeft className="h-4 w-4" /> Back to Blog
@@ -265,7 +266,7 @@ export default function BlogPost() {
             </aside>
           </div>
         </div>
-      </main>
+      </main></PageTransition>
       <Footer />
     </div>
   );

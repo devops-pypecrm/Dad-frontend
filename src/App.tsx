@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Suspense, lazy, useEffect, useState } from 'react';
 import Login from './pages/Login';
 import Enquire from './pages/Enquire';
@@ -30,6 +30,9 @@ const Blog = lazy(() => import('./pages/Blog'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
 const Help = lazy(() => import('./pages/Help'));
 const HelpArticle = lazy(() => import('./pages/HelpArticle'));
+const Features = lazy(() => import('./pages/Features'));
+const Pricing = lazy(() => import('./pages/Pricing'));
+const Partners = lazy(() => import('./pages/Partners'));
 const LeadsPage = lazy(() => import('./pages/leads'));
 const CreateLeadPage = lazy(() => import('./pages/leads/new'));
 const LeadDetailPage = lazy(() => import('./pages/leads/[id]'));
@@ -164,6 +167,21 @@ const queryClient = new QueryClient({
 function LegacyFlowRedirect() {
   const { id } = useParams();
   return <Navigate to={`/whatsapp/chatbot/${id}`} replace />;
+}
+
+function LegacyHelpRedirect() {
+  const { slug } = useParams();
+  return <Navigate to={slug ? `/docs/${slug}` : '/docs'} replace />;
+}
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [pathname]);
+
+  return null;
 }
 
 function AuthListener() {
@@ -324,6 +342,7 @@ function AppContent() {
   <SocketProvider>
    <Router>
     <AuthListener />
+    <ScrollToTop />
     <Suspense fallback={<PageLoader text="Loading..." />}>
      <Routes>
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
@@ -428,8 +447,8 @@ function AppContent() {
        <Route path="/field-force" element={<FieldForcePage />} />
        <Route path="/issues" element={<IssuesPage />} />
        <Route path="/training" element={<TrainingPage />} />
-       <Route path="/docs" element={<DocsIndexPage />} />
-       <Route path="/docs/:slug" element={<DocArticlePage />} />
+       <Route path="/training/docs" element={<DocsIndexPage />} />
+       <Route path="/training/docs/:slug" element={<DocArticlePage />} />
        <Route path="/trash" element={<TrashPage />} />
        {/* <Route path="/goals" element={<GoalsPage />} /> */}
        <Route path="/sales-targets" element={<SalesTargetsPage />} />
@@ -471,8 +490,13 @@ function AppContent() {
       <Route path="/terms" element={<Terms />} />
       <Route path="/blog" element={<Blog />} />
       <Route path="/blog/:slug" element={<BlogPost />} />
-      <Route path="/help" element={<Help />} />
-      <Route path="/help/:slug" element={<HelpArticle />} />
+      <Route path="/docs" element={<Help />} />
+      <Route path="/docs/:slug" element={<HelpArticle />} />
+      <Route path="/help" element={<LegacyHelpRedirect />} />
+      <Route path="/help/:slug" element={<LegacyHelpRedirect />} />
+      <Route path="/features" element={<Features />} />
+      <Route path="/pricing" element={<Pricing />} />
+      <Route path="/partners" element={<Partners />} />
       <Route path="/download" element={<DownloadApp />} />
       <Route path="/data-deletion" element={<DataDeletion />} />
       <Route path="/shared-product/:slug" element={<SharedProductPage />} />

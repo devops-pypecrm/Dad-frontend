@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -8,16 +8,18 @@ import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import Logo from "../shared/Logo";
 
 const navLinks = [
-  { label: "Features", href: "/#features" },
-  { label: "Pricing", href: "/#pricing" },
+  { label: "Features", href: "/features" },
+  { label: "Pricing", href: "/pricing" },
   { label: "Blog", href: "/blog" },
-  { label: "Help Center", href: "/help" },
+  { label: "Documentation", href: "/docs" },
 ];
 
 export default function LandingNavbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const { scrollY } = useScroll();
+  const { pathname } = useLocation();
+  const useLightNav = pathname === "/partners" && !isScrolled;
   // Read once per mount rather than via a state/effect pair - this only
   // needs to reflect whatever was true when the landing page loaded (a
   // login/logout elsewhere triggers a full navigation back here anyway).
@@ -27,20 +29,10 @@ export default function LandingNavbar() {
     setIsScrolled(latest > 50);
   });
 
-  // The homepage sections live at /#features and /#pricing - a plain <a>
-  // (not react-router's Link) is used for those so the browser's native
-  // hash-scroll handles navigating there from any other page, not just
-  // from "/" itself.
   const renderLink = (link: (typeof navLinks)[number], className: string, onClick?: () => void) =>
-    link.href.startsWith("/#") ? (
-      <a key={link.label} href={link.href} className={className} onClick={onClick}>
-        {link.label}
-      </a>
-    ) : (
-      <Link key={link.label} to={link.href} className={className} onClick={onClick}>
-        {link.label}
-      </Link>
-    );
+    <Link key={link.label} to={link.href} className={className} onClick={onClick}>
+      {link.label}
+    </Link>;
 
   return (
     <motion.nav
@@ -57,22 +49,64 @@ export default function LandingNavbar() {
       <div className="container mx-auto px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28">
         <div className="flex items-center justify-between gap-6">
           <Link to="/" className="flex items-center gap-2 group shrink-0">
-            <Logo size="lg" />
+            <Logo size="lg" variant={useLightNav ? "onColor" : "auto"} />
           </Link>
 
           <div className="hidden lg:flex items-center gap-8">
             {navLinks.map((link) =>
               renderLink(
                 link,
-                "text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                cn(
+                  "text-sm font-semibold transition-colors",
+                  useLightNav
+                    ? "text-white/75 hover:text-white"
+                    : "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                )
               )
             )}
+            <Link
+              to="/partners"
+              className={cn(
+                "relative inline-flex items-center text-sm font-bold leading-normal",
+                useLightNav
+                  ? "text-white"
+                  : "text-brand-800 dark:text-brand-200"
+              )}
+            >
+              <motion.span
+                className={cn("absolute -top-3 left-0 whitespace-nowrap text-[9px] font-extrabold uppercase leading-none tracking-wide", useLightNav ? "text-brand-300" : "text-brand-600 dark:text-brand-300")}
+                animate={{ opacity: [0, 1, 1, 0], y: [4, 0, 0, -4] }}
+                transition={{ duration: 3.2, repeat: Infinity, times: [0, 0.18, 0.82, 1], ease: "easeInOut" }}
+              >
+                30% recurring
+              </motion.span>
+              <span className="relative">
+                <motion.span
+                  className="inline-block bg-clip-text text-transparent"
+                  style={{
+                    backgroundImage: useLightNav
+                      ? "linear-gradient(90deg, #ffffff, #9ee56f, #d9b8ea, #ffffff)"
+                      : "linear-gradient(90deg, #2f7d32, #8a47a0, #66b83e, #2f7d32)",
+                    backgroundSize: "250% 100%",
+                  }}
+                  animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                >
+                  Partner With Us
+                </motion.span>
+                <motion.span
+                  className="absolute -bottom-1 left-0 h-0.5 rounded-full bg-gradient-to-r from-brand-500 to-plum-500"
+                  animate={{ left: ["0%", "72%", "0%"], width: ["28%", "28%", "28%"], opacity: [0.45, 1, 0.45] }}
+                  transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+                />
+              </span>
+            </Link>
           </div>
 
           <div className="hidden lg:flex items-center gap-3 md:gap-6 shrink-0">
             {isLoggedIn ? (
               <Link to="/dashboard">
-                <Button size="sm" className="gap-2 px-4 md:h-10 md:px-5">
+                  <Button size="sm" className={cn("gap-2 px-4 md:h-10 md:px-5", useLightNav && "bg-white text-gray-950 hover:bg-gray-100")}>
                   <LayoutDashboard className="w-4 h-4" />
                   Dashboard
                 </Button>
@@ -80,12 +114,12 @@ export default function LandingNavbar() {
             ) : (
               <>
                 <Link to="/login">
-                  <Button size="sm" className="border-none bg-gray-200! text-black! shadow-none px-4 md:h-10 md:px-5">
+                  <Button size="sm" className={cn("border-none shadow-none px-4 md:h-10 md:px-5", useLightNav ? "!bg-white/90 !text-gray-950 hover:!bg-white" : "!bg-gray-200 !text-black")}>
                     Login
                   </Button>
                 </Link>
                 <Link to="/enquire">
-                  <Button size="sm" className="px-4 md:h-10 md:px-5">
+                  <Button size="sm" className={cn("px-4 md:h-10 md:px-5", useLightNav && "bg-brand-500 text-white hover:bg-brand-400")}>
                     Enquire
                   </Button>
                 </Link>
@@ -96,7 +130,12 @@ export default function LandingNavbar() {
           <button
             type="button"
             onClick={() => setIsMobileOpen(true)}
-            className="lg:hidden h-10 w-10 flex items-center justify-center rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className={cn(
+              "lg:hidden h-10 w-10 flex items-center justify-center rounded-full transition-colors",
+              useLightNav
+                ? "text-white hover:bg-white/10"
+                : "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
+            )}
             aria-label="Open menu"
           >
             <Menu className="h-5 w-5" />
@@ -109,6 +148,14 @@ export default function LandingNavbar() {
           <SheetTitle className="sr-only">Menu</SheetTitle>
           <div className="flex flex-col h-full pt-10">
             <div className="flex flex-col gap-1">
+              <Link
+                to="/partners"
+                onClick={() => setIsMobileOpen(false)}
+                className="mb-3 rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3 text-brand-900 dark:border-brand-800 dark:bg-brand-950/40 dark:text-brand-100"
+              >
+                <span className="block text-base font-bold">Partner With Us</span>
+                <span className="mt-1 block text-xs font-semibold text-brand-600 dark:text-brand-300">Earn 30% recurring commission</span>
+              </Link>
               {navLinks.map((link) =>
                 renderLink(
                   link,

@@ -29,7 +29,7 @@ export default function DocsIndexPage() {
             <h2 className="text-lg font-semibold">{category}</h2>
             <div className="grid gap-3 md:grid-cols-2">
               {articles.map((article) => (
-                <Link key={article.slug} to={`/docs/${article.slug}`}>
+                <Link key={article.slug} to={`/training/docs/${article.slug}`}>
                   <Card className="h-full rounded-[10px] hover:shadow-md hover:border-[hsl(var(--chart-5))]/40 transition-all">
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between gap-2">

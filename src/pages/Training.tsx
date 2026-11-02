@@ -716,7 +716,7 @@ const TrainingPage = () => {
 
         <div className="hidden md:flex gap-2">
           <Button variant="outline" className="rounded-[10px] gap-2 h-9 text-xs sm:text-sm font-medium" asChild>
-            <Link to="/docs">
+            <Link to="/training/docs">
               <BookOpen className="h-3.5 w-3.5" /> Documentation
             </Link>
           </Button>
@@ -736,7 +736,7 @@ const TrainingPage = () => {
       {activeTab === 'modules' && (
         <>
         <Link
-          to="/docs"
+          to="/training/docs"
           className="flex items-center justify-between gap-4 rounded-[10px] p-4 mb-4 bg-[hsl(var(--chart-5))]/10 border border-[hsl(var(--chart-5))]/20 hover:bg-[hsl(var(--chart-5))]/15 transition-colors"
         >
           <div className="flex items-center gap-3">
@@ -780,7 +780,7 @@ const TrainingPage = () => {
                           <span className="text-[11px] text-muted-foreground leading-relaxed">{topic.content}</span>
                           {topic.docSlug && (
                             <Link
-                              to={`/docs/${topic.docSlug}`}
+                              to={`/training/docs/${topic.docSlug}`}
                               className="inline-flex items-center gap-0.5 text-[11px] font-medium text-primary hover:underline mt-1"
                               onClick={(e) => e.stopPropagation()}
                             >
