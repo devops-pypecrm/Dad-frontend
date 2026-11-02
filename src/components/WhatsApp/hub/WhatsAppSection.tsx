@@ -13,17 +13,17 @@ interface Props {
   className?: string;
 }
 
-/** Card with a dashboard-style header (green icon + Poppins title). */
+/** White panel with a titled header, used across the WhatsApp (and Instagram) pages. */
 export function WhatsAppSection({ title, description, icon, actions, children, flush, className }: Props) {
   return (
     <div className={cn(WA_CARD, className)}>
       <div className="flex items-start justify-between gap-3 px-5 pt-4 pb-3">
-        <div>
-          <h2 className="text-lg font-medium font-poppins text-black flex items-center gap-2">
+        <div className="min-w-0">
+          <h2 className="text-[17px] font-normal text-foreground flex items-center gap-2">
             {icon && <span className="text-[hsl(var(--chart-5))] [&>svg]:h-5 [&>svg]:w-5">{icon}</span>}
             {title}
           </h2>
-          {description && <p className="text-xs font-poppins text-muted-foreground mt-0.5">{description}</p>}
+          {description && <p className="text-[13px] text-muted-foreground mt-0.5">{description}</p>}
         </div>
         {actions}
       </div>

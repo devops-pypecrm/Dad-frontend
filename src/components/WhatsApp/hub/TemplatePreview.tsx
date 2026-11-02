@@ -20,7 +20,7 @@ const fill = (text: string, samples: Record<string, string> = {}) =>
 /** WhatsApp-style bubble so users see what the customer will receive. */
 export function TemplatePreview({ header, body, footer, buttons = [], samples }: Props) {
   return (
-    <div className="rounded-xl bg-[#e5ddd5] dark:bg-muted/40 p-4">
+    <div className="rounded-xl bg-[#efeae2] dark:bg-muted/40 p-4">
       <div className="max-w-[300px] rounded-lg rounded-tl-none bg-white dark:bg-card shadow-sm overflow-hidden">
         <div className="p-3 space-y-1.5">
           {header && <p className="text-sm font-bold text-foreground">{fill(header, samples)}</p>}
