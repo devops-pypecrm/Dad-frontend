@@ -31,7 +31,7 @@ export default function AutomationPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['workflows', searchQuery],
-    queryFn: () => getWorkflows({}),
+    queryFn: () => getWorkflows({ excludeTriggerEntity: 'WhatsAppMessage' }),
   })
 
   const workflows = data?.workflows || []

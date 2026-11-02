@@ -53,7 +53,7 @@ export default function WorkflowsPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['workflows'],
-    queryFn: async () => getWorkflows({}),
+    queryFn: async () => getWorkflows({ excludeTriggerEntity: 'WhatsAppMessage' }),
   });
 
   const { data: leadsData } = useQuery({
