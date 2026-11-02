@@ -10,7 +10,7 @@ interface CardProps { icon: React.ReactNode; tone: 'pink' | 'purple' | 'red' | '
 
 const TONE = {
   pink: { chip: 'bg-pink-500 text-white', ring: 'border-pink-400 ring-2 ring-pink-200' },
-  purple: { chip: 'bg-violet-500 text-white', ring: 'border-violet-400 ring-2 ring-violet-200' },
+  purple: { chip: 'bg-[#0095f6] text-white', ring: 'border-[#0095f6] ring-2 ring-[#b2dffc]' },
   red: { chip: 'bg-red-500 text-white', ring: 'border-red-400 ring-2 ring-red-200' },
   green: { chip: 'bg-emerald-500 text-white', ring: 'border-emerald-400 ring-2 ring-emerald-200' },
 };
@@ -24,7 +24,7 @@ function StepCard({ icon, tone, title, subtitle, warning, selected, onEdit, onDe
       <div className="flex items-center gap-3">
         {draggable && <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground/60" />}
         <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg [&>svg]:h-4 [&>svg]:w-4', TONE[tone].chip)}>{icon}</div>
-        <div className="min-w-0 flex-1"><p className="text-sm font-medium font-poppins text-black">{title}</p><p className="truncate text-xs text-muted-foreground">{subtitle}</p></div>
+        <div className="min-w-0 flex-1"><p className="text-sm font-medium text-black">{title}</p><p className="truncate text-xs text-muted-foreground">{subtitle}</p></div>
         <button aria-label={`Edit ${title}`} onClick={onEdit} className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"><Settings className="h-4 w-4" /></button>
         {onDelete && <button aria-label={deleteIcon === 'trash' ? `Delete ${title}` : `Reset ${title}`} onClick={onDelete} className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-destructive">{deleteIcon === 'trash' ? <Trash2 className="h-4 w-4" /> : <RotateCcw className="h-4 w-4" />}</button>}
       </div>
@@ -83,7 +83,7 @@ export function WorkflowCanvas({ draft, onChange, editing, onEdit, dragging, set
 
       <div className="flex min-h-full justify-center px-6 py-14" style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}>
         <div className="flex flex-col items-center">
-          <div className="flex items-center gap-2 rounded-[10px] border border-border bg-white px-4 py-2 text-sm font-medium font-poppins shadow-sm"><span className="flex h-7 w-7 items-center justify-center rounded-md bg-violet-500 text-white"><Layers className="h-4 w-4" /></span>Start Flow</div>
+          <div className="flex items-center gap-2 rounded-[10px] border border-border bg-white px-4 py-2 text-sm font-medium shadow-sm"><span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#0095f6] text-white"><Layers className="h-4 w-4" /></span>Start Flow</div>
           <Connector />
           <StepCard tone="pink" icon={<Zap />} title="Trigger" subtitle={draft.matchType === 'exact' ? 'Exact keyword match' : 'Keyword response trigger'} selected={is('trigger')} onEdit={() => onEdit({ kind: 'trigger' })} onDelete={() => onChange({ ...draft, matchType: 'contains' })} deleteIcon="reset" />
           <Connector />

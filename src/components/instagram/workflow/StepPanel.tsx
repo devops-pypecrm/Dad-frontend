@@ -19,7 +19,7 @@ function PaletteItem({ icon, title, subtitle, tone, disabled, draggable, onDragS
       title={disabled ? 'Already part of this workflow' : 'Drag onto the canvas, or click to add'}
     >
       <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white [&>svg]:h-4 [&>svg]:w-4', tone)}>{icon}</div>
-      <div className="min-w-0"><p className="text-sm font-medium font-poppins text-black">{title}</p><p className="truncate text-xs text-muted-foreground">{subtitle}</p></div>
+      <div className="min-w-0"><p className="text-sm font-medium text-black">{title}</p><p className="truncate text-xs text-muted-foreground">{subtitle}</p></div>
     </div>
   );
 }
@@ -40,9 +40,9 @@ export function StepPanel({ draft, onChange, editing, onEdit, setDragging }: Pro
   if (!editing) {
     return (
       <div className="space-y-3 p-4">
-        <p className="text-sm font-medium font-poppins text-black">Workflow Steps</p>
+        <p className="text-sm font-medium text-black">Workflow Steps</p>
         <PaletteItem tone="bg-pink-500" icon={<Zap />} title="Trigger" subtitle="Keyword response trigger" disabled />
-        <PaletteItem tone="bg-violet-500" icon={<KeyRound />} title="Keywords" subtitle="Match keywords" disabled />
+        <PaletteItem tone="bg-[#0095f6]" icon={<KeyRound />} title="Keywords" subtitle="Match keywords" disabled />
         <PaletteItem tone="bg-red-500" icon={<Clock />} title="Chat Window" subtitle="Set time limit" disabled />
         <PaletteItem
           tone="bg-emerald-500" icon={<MessageSquareText />} title="Freeform Message" subtitle="Compose & send message" draggable
@@ -55,7 +55,7 @@ export function StepPanel({ draft, onChange, editing, onEdit, setDragging }: Pro
   }
 
   const back = (title: string) => (
-    <button onClick={() => onEdit(null)} className="mb-3 flex items-center gap-1.5 text-xs font-poppins text-muted-foreground hover:text-foreground"><ArrowLeft className="h-3.5 w-3.5" />Back to steps<span className="ml-auto font-medium text-black">{title}</span></button>
+    <button onClick={() => onEdit(null)} className="mb-3 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"><ArrowLeft className="h-3.5 w-3.5" />Back to steps<span className="ml-auto font-medium text-black">{title}</span></button>
   );
 
   if (editing.kind === 'trigger') {
@@ -77,7 +77,7 @@ export function StepPanel({ draft, onChange, editing, onEdit, setDragging }: Pro
         <Label className="text-xs">Add keywords (comma separated)</Label>
         <div className="flex gap-2"><Input className="rounded-[10px]" placeholder="price, pricing, cost" value={kw} onChange={e => setKw(e.target.value)} onKeyDown={e => e.key === 'Enter' && addKeywords()} /><Button variant="outline" className={WA_OUTLINE_BTN} onClick={addKeywords}><Plus className="h-4 w-4" /></Button></div>
         <div className="flex flex-wrap gap-1.5">
-          {draft.keywords.map(k => <span key={k} className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-1 text-xs text-violet-700">{k}<button aria-label={`Remove ${k}`} onClick={() => onChange({ ...draft, keywords: draft.keywords.filter(x => x !== k) })}><X className="h-3 w-3" /></button></span>)}
+          {draft.keywords.map(k => <span key={k} className="inline-flex items-center gap-1 rounded-full bg-[#e0f1ff] px-2.5 py-1 text-xs text-[#0095f6]">{k}<button aria-label={`Remove ${k}`} onClick={() => onChange({ ...draft, keywords: draft.keywords.filter(x => x !== k) })}><X className="h-3 w-3" /></button></span>)}
           {draft.keywords.length === 0 && <p className="text-xs text-muted-foreground">No keywords yet. The chatbot needs at least one.</p>}
         </div>
         <p className="text-[11px] text-muted-foreground">Matching ignores capital letters.</p>

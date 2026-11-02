@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Instagram, Unplug } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import { InstagramPage } from '@/components/instagram/InstagramPage';
 import { InstagramConnectionGate } from '@/components/instagram/InstagramConnectionGate';
 import { IgConversationList } from '@/components/instagram/inbox/IgConversationList';
@@ -13,7 +12,7 @@ import { INSTAGRAM_CONNECTION_KEY, useInstagramConnection } from '@/hooks/useIns
 import { instagramConnectionApi } from '@/services/instagramService';
 import { apiErrorMessage } from '@/lib/apiError';
 import { isAdmin } from '@/lib/utils';
-import { WA_CARD, WA_OUTLINE_BTN } from '@/components/WhatsApp/hub/whatsappStyles';
+import { IG } from '@/components/instagram/inbox/ig';
 import { cn } from '@/lib/utils';
 
 export default function InstagramSharedInbox() {
@@ -36,26 +35,26 @@ export default function InstagramSharedInbox() {
       title="Shared Inbox"
       subtitle="Reply to your Instagram DMs together, from inside the CRM."
       actions={conn?.connected && isAdmin(user) && (
-        <Button variant="outline" className={WA_OUTLINE_BTN} disabled={disconnect.isPending} onClick={() => window.confirm('Disconnect Instagram? Chatbots and Ask-to-Follow bots will be switched off.') && disconnect.mutate()}><Unplug className="h-4 w-4 mr-1.5" />Disconnect</Button>
+        <button className="inline-flex items-center rounded-lg px-4 py-1.5 text-[14px] font-semibold disabled:opacity-50" style={{ background: IG.soft, color: IG.text }} disabled={disconnect.isPending} onClick={() => window.confirm('Disconnect Instagram? Chatbots and Ask-to-Follow bots will be switched off.') && disconnect.mutate()}><Unplug className="mr-1.5 h-4 w-4" />Disconnect</button>
       )}
     >
       <InstagramConnectionGate returnPath="/instagram/inbox">
-        <div className={cn(WA_CARD, 'flex flex-1 min-h-0')}>
-          <div className={cn('w-full md:w-[340px] lg:w-[380px] shrink-0 flex-col border-r border-border bg-white', selectedId ? 'hidden md:flex' : 'flex')}>
+        <div className="flex min-h-0 flex-1">
+          <div style={{ borderColor: IG.line }} className={cn('w-full shrink-0 flex-col border-r bg-white md:w-[340px] lg:w-[400px]', selectedId ? 'hidden md:flex' : 'flex')}>
             <IgConversationList selectedId={selectedId} onSelect={c => setSelectedId(c.id)} />
           </div>
           <div className={cn('flex-1 min-w-0 flex-col', !selectedId ? 'hidden md:flex' : 'flex')}>
             {selectedId ? (
               <IgThread key={selectedId} conversationId={selectedId} onBack={() => setSelectedId(null)} detailsOpen={detailsOpen} onToggleDetails={() => setDetailsOpen(o => !o)} />
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#f6f6f4]">
-                <div className="h-24 w-24 rounded-[26px] bg-gradient-to-tr from-[#feda75] via-[#d62976] to-[#4f5bd5] flex items-center justify-center text-white mb-5"><Instagram className="h-11 w-11" /></div>
-                <h3 className="text-xl font-medium font-poppins text-black mb-1">Instagram Shared Inbox</h3>
-                <p className="max-w-sm text-sm font-poppins text-muted-foreground">Select a conversation to read and reply. New DMs appear here instantly.</p>
+              <div className="flex flex-1 flex-col items-center justify-center bg-white p-8 text-center">
+                <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full border-2 text-[#262626]"><Instagram className="h-11 w-11" style={{ color: IG.text }} /></div>
+                <h3 className="mb-1 text-[20px] font-semibold" style={{ color: IG.text }}>Your messages</h3>
+                <p className="max-w-sm text-[14px]" style={{ color: IG.sub }}>Select a conversation to read and reply. New DMs appear here instantly.</p>
               </div>
             )}
           </div>
-          {selectedId && detailsOpen && <div className="hidden lg:block w-[300px] shrink-0 border-l border-border"><IgDetails conversationId={selectedId} /></div>}
+          {selectedId && detailsOpen && <div style={{ borderColor: IG.line }} className="hidden w-[320px] shrink-0 border-l lg:block"><IgDetails conversationId={selectedId} /></div>}
         </div>
       </InstagramConnectionGate>
     </InstagramPage>

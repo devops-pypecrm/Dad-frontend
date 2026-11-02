@@ -923,3 +923,73 @@ body.wa-theme [data-pill="muted"] { background: #f0f2f5; color: #667781; }
 body.wa-theme table thead tr { background: #f0f2f5; }
 body.wa-theme table th { color: #667781; font-weight: 500; }
 body.wa-theme table tbody tr { border-color: #e9edef; }
+
+/* ==========================================================================
+   Instagram theme: switched on (body.ig-theme) while any /instagram/* page is open.
+   Instagram's neutrals (#262626 / #737373 / #dbdbdb / #efefef), its blue (#0095f6) for actions,
+   flat 8px controls, uppercase profile tabs. Dialogs and dropdowns inherit it via <body>.
+   ========================================================================== */
+body.ig-theme {
+  --ig-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --background: 0 0% 100%;
+  --foreground: 0 0% 15%;             /* #262626 */
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 15%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 15%;
+  --primary: 204 100% 48%;            /* #0095f6 */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 94%;              /* #efefef */
+  --secondary-foreground: 0 0% 15%;
+  --muted: 0 0% 94%;
+  --muted-foreground: 0 0% 45%;       /* #737373 */
+  --accent: 0 0% 96%;
+  --accent-foreground: 0 0% 15%;
+  --border: 0 0% 86%;                 /* #dbdbdb */
+  --input: 0 0% 86%;
+  --ring: 204 100% 48%;
+  --radius: 0.5rem;
+  --chart-5: 204 100% 48%;            /* the accent the Instagram pages use */
+  --btn-radius: 8px;
+  --card-radius: 12px;
+  --card-shadow: none;
+  --page-bg: #ffffff;
+  font-family: var(--ig-font);
+}
+body.ig-theme .font-poppins,
+body.ig-theme .font-sans { font-family: var(--ig-font); }
+
+/* buttons: flat Instagram controls */
+body.ig-theme button.bg-primary, body.ig-theme a.bg-primary { box-shadow: none; border-radius: 8px; font-weight: 600; }
+body.ig-theme button.bg-primary:hover, body.ig-theme a.bg-primary:hover { background-color: #1877f2; }
+body.ig-theme button.border-input:not([role="combobox"]) { border-radius: 8px; border-color: #dbdbdb; background: #efefef; color: #262626; font-weight: 600; }
+body.ig-theme button.border-input:not([role="combobox"]):hover { background: #dbdbdb; }
+
+/* dialogs / menus */
+body.ig-theme [role="dialog"] { border-radius: 12px; border-color: transparent; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+body.ig-theme [role="dialog"] h2 { font-weight: 600; letter-spacing: 0; color: #262626; }
+body.ig-theme [role="menu"], body.ig-theme [role="listbox"] { border-radius: 12px; border-color: #dbdbdb; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+body.ig-theme [role="option"][data-highlighted], body.ig-theme [role="menuitem"][data-highlighted] { background: #fafafa; color: #262626; }
+
+/* inputs: Instagram's pale field with a hairline border */
+body.ig-theme input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]),
+body.ig-theme textarea,
+body.ig-theme [role="combobox"] { background-color: #fafafa; border: 1px solid #dbdbdb; border-radius: 8px; }
+body.ig-theme input:focus-visible, body.ig-theme textarea:focus-visible, body.ig-theme [role="combobox"]:focus-visible { border-color: #a8a8a8; outline: none; box-shadow: none; }
+
+/* tabs: Instagram profile tabs (uppercase, spaced, black marker on TOP of the active tab) */
+body.ig-theme [role="tablist"] { background: transparent !important; border-radius: 0 !important; padding: 0 !important; height: auto !important; border-top: 1px solid #dbdbdb; gap: 48px; justify-content: center; }
+body.ig-theme [role="tab"] { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; padding: 16px 0 !important; margin-top: -1px; border-top: 1px solid transparent; color: #8e8e8e !important; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+body.ig-theme [role="tab"][data-state="active"] { color: #262626 !important; border-top-color: #262626; }
+
+/* status chips */
+body.ig-theme [data-pill="success"] { background: #e6f4ea; color: #1a7f37; }
+body.ig-theme [data-pill="warning"] { background: #fff4e0; color: #9a6a00; }
+body.ig-theme [data-pill="danger"] { background: #ffe8ec; color: #ed4956; }
+body.ig-theme [data-pill="info"] { background: #e0f1ff; color: #0074cc; }
+body.ig-theme [data-pill="muted"] { background: #efefef; color: #737373; }
+
+/* tables */
+body.ig-theme table thead tr { background: #fafafa; }
+body.ig-theme table th { color: #737373; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+body.ig-theme table tbody tr { border-color: #efefef; }

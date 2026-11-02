@@ -105,7 +105,7 @@ function GateBotForm({ id, isNew, start, botThumb, botCaption }: { id?: string; 
     <div key="2" className="space-y-3">
       <p className="text-xs text-muted-foreground">The bot runs when a comment contains one of these keywords. Leave empty to run for every comment.</p>
       <div className="flex gap-2"><Input className="rounded-[10px]" placeholder="link, guide, price" value={kw} onChange={e => setKw(e.target.value)} onKeyDown={e => e.key === 'Enter' && addKeywords()} /><Button variant="outline" className={WA_OUTLINE_BTN} onClick={addKeywords}><Plus className="h-4 w-4" /></Button></div>
-      <div className="flex flex-wrap gap-1.5">{form.keywords.map(k => <span key={k} className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-1 text-xs text-violet-700">{k}<button aria-label={`Remove ${k}`} onClick={() => set({ keywords: form.keywords.filter(x => x !== k) })}><X className="h-3 w-3" /></button></span>)}{form.keywords.length === 0 && <span className="text-xs text-muted-foreground">Any comment will trigger the bot.</span>}</div>
+      <div className="flex flex-wrap gap-1.5">{form.keywords.map(k => <span key={k} className="inline-flex items-center gap-1 rounded-full bg-[#e0f1ff] px-2.5 py-1 text-xs text-[#0095f6]">{k}<button aria-label={`Remove ${k}`} onClick={() => set({ keywords: form.keywords.filter(x => x !== k) })}><X className="h-3 w-3" /></button></span>)}{form.keywords.length === 0 && <span className="text-xs text-muted-foreground">Any comment will trigger the bot.</span>}</div>
     </div>,
     // 3
     <div key="3" className="space-y-3">
@@ -135,26 +135,26 @@ function GateBotForm({ id, isNew, start, botThumb, botCaption }: { id?: string; 
     <div className="flex h-full flex-col bg-white">
       <div className="relative flex items-center border-b border-border px-4 py-3">
         <Button variant="ghost" size="icon" onClick={() => navigate('/instagram/ask-to-follow')} aria-label="Back"><ArrowLeft className="h-5 w-5" /></Button>
-        <h1 className="absolute inset-x-0 text-center text-sm font-medium font-poppins pointer-events-none">{isNew ? 'New Comment-Gate Bot' : 'Edit Comment-Gate Bot'}</h1>
+        <h1 className="absolute inset-x-0 text-center text-sm font-medium pointer-events-none">{isNew ? 'New Comment-Gate Bot' : 'Edit Comment-Gate Bot'}</h1>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <div className="flex flex-1 items-center justify-center overflow-y-auto bg-[#f6f6f8] p-6">
           <div className="w-full max-w-lg space-y-4">
             <div className={cn(WA_CARD, 'p-4 space-y-3')}>
-              <div className="flex items-center gap-2 text-xs font-poppins font-medium"><PenLine className="h-3.5 w-3.5 text-violet-500" />Bot Name</div>
+              <div className="flex items-center gap-2 text-xs font-medium"><PenLine className="h-3.5 w-3.5 text-[#0095f6]" />Bot Name</div>
               <Input className="rounded-[10px] bg-muted/50" placeholder='e.g., "Product Access Bot" or "VIP Gate"' value={form.name} onChange={e => set({ name: e.target.value })} />
-              <div className="flex items-center justify-between"><span className="flex items-center gap-2 text-xs font-poppins font-medium"><Sparkles className="h-3.5 w-3.5 text-violet-500" />Bot status</span><label className="flex items-center gap-2 text-xs text-emerald-600">{form.isActive ? 'Active' : 'Inactive'}<Switch checked={form.isActive} onCheckedChange={v => set({ isActive: v })} /></label></div>
+              <div className="flex items-center justify-between"><span className="flex items-center gap-2 text-xs font-medium"><Sparkles className="h-3.5 w-3.5 text-[#0095f6]" />Bot status</span><label className="flex items-center gap-2 text-xs text-emerald-600">{form.isActive ? 'Active' : 'Inactive'}<Switch checked={form.isActive} onCheckedChange={v => set({ isActive: v })} /></label></div>
             </div>
 
-            <div className="grid grid-cols-5 gap-1.5">{STEPS.map((s, i) => <button key={s} onClick={() => goStep(i)} aria-label={`Step ${i + 1}: ${s}`} className={cn('h-1 rounded-full', i <= step ? 'bg-violet-500' : 'bg-muted-foreground/20')} />)}</div>
+            <div className="grid grid-cols-5 gap-1.5">{STEPS.map((s, i) => <button key={s} onClick={() => goStep(i)} aria-label={`Step ${i + 1}: ${s}`} className={cn('h-1 rounded-full', i <= step ? 'bg-[#0095f6]' : 'bg-muted-foreground/20')} />)}</div>
 
             <div className={cn(WA_CARD, 'p-5 space-y-4')}>
-              <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-100 text-violet-600"><StepIcon className="h-4 w-4" /></span><div><p className="text-sm font-medium font-poppins">{heading[step]}</p><p className="text-[11px] text-muted-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</p></div></div>
+              <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#e0f1ff] text-[#0074cc]"><StepIcon className="h-4 w-4" /></span><div><p className="text-sm font-medium">{heading[step]}</p><p className="text-[11px] text-muted-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</p></div></div>
               {body[step]}
               <div className="flex justify-between pt-2">
                 <Button variant="ghost" disabled={step === 0} onClick={() => goStep(step - 1)}>Back</Button>
-                {step < STEPS.length - 1 ? <Button className="rounded-[10px] bg-violet-600 text-white hover:bg-violet-700" onClick={() => goStep(step + 1)}>Next<ArrowRight className="ml-1.5 h-4 w-4" /></Button> : <Button className={WA_PRIMARY_BTN} disabled={problems.length > 0 || save.isPending} onClick={() => save.mutate(false)}>{save.isPending ? 'Saving…' : 'Save bot'}</Button>}
+                {step < STEPS.length - 1 ? <Button className="rounded-[10px] bg-[#0095f6] text-white hover:bg-[#1877f2]" onClick={() => goStep(step + 1)}>Next<ArrowRight className="ml-1.5 h-4 w-4" /></Button> : <Button className={WA_PRIMARY_BTN} disabled={problems.length > 0 || save.isPending} onClick={() => save.mutate(false)}>{save.isPending ? 'Saving…' : 'Save bot'}</Button>}
               </div>
             </div>
             {problems.length > 0 && step === STEPS.length - 1 && <ul className="list-disc pl-5 text-xs text-amber-700">{problems.map(p => <li key={p}>{p}</li>)}</ul>}
@@ -162,8 +162,8 @@ function GateBotForm({ id, isNew, start, botThumb, botCaption }: { id?: string; 
         </div>
 
         <div className="flex w-full flex-col items-center gap-4 overflow-y-auto bg-[#eef1f2] p-6 lg:w-[460px]">
-          <div className="flex w-full items-center justify-between"><span className="text-xs font-poppins text-muted-foreground">Preview</span>
-            <Button size="sm" className="rounded-[10px] bg-violet-600 text-white hover:bg-violet-700" disabled={problems.length > 0 || save.isPending} title={problems[0]} onClick={() => save.mutate(true)}>Go Live</Button></div>
+          <div className="flex w-full items-center justify-between"><span className="text-xs text-muted-foreground">Preview</span>
+            <Button size="sm" className="rounded-[10px] bg-[#0095f6] text-white hover:bg-[#1877f2]" disabled={problems.length > 0 || save.isPending} title={problems[0]} onClick={() => save.mutate(true)}>Go Live</Button></div>
           <PhonePreview
             tab={tab} onTab={setTab} username={conn?.account?.username || 'username'} avatar={conn?.account?.profilePicUrl} thumb={thumb} caption={selected?.caption || botCaption || ''}
             sampleKeyword={form.keywords[0] || 'link'} publicReply={form.publicReplies[0]} askMessage={form.askMessage} followButton={form.followButton} rewardMessage={form.rewardMessage} rewardLink={form.rewardLink}

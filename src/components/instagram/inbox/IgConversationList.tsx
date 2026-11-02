@@ -1,18 +1,21 @@
 import { useState } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { Clock, Search, UserRound } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ChevronDown, Clock, Search, SquarePen } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { instagramInboxApi, type IgConversation } from '@/services/instagramService';
+import { useInstagramConnection } from '@/hooks/useInstagramConnection';
+import { useLivePoll } from '@/hooks/useLivePoll';
 import { cn } from '@/lib/utils';
 import { useNow, windowLeft } from '@/components/WhatsApp/inbox/useNow';
 import { IgAvatar } from './IgAvatar';
-import { useLivePoll } from '@/hooks/useLivePoll';
+import { IG } from './ig';
 
 const VIEWS = [{ key: 'all', label: 'All' }, { key: 'mine', label: 'Mine' }, { key: 'unassigned', label: 'Unassigned' }, { key: 'unread', label: 'Unread' }] as const;
-const DOT: Record<string, string> = { open: 'bg-emerald-500', pending: 'bg-amber-500', resolved: 'bg-muted-foreground/40' };
+const STATUSES = [{ key: 'active', label: 'Open' }, { key: 'pending', label: 'Pending' }, { key: 'resolved', label: 'Resolved' }];
+
+/** Compact "2h" / "3d" like Instagram's DM list. */
+const short = (iso: string) => formatDistanceToNowStrict(new Date(iso)).replace(/ seconds?/, 's').replace(/ minutes?/, 'm').replace(/ hours?/, 'h').replace(/ days?/, 'd').replace(/ months?/, 'mo').replace(/ years?/, 'y');
 
 export function IgConversationList({ selectedId, onSelect }: { selectedId: string | null; onSelect: (c: IgConversation) => void }) {
   const [view, setView] = useState<(typeof VIEWS)[number]['key']>('all');
@@ -20,6 +23,7 @@ export function IgConversationList({ selectedId, onSelect }: { selectedId: strin
   const [search, setSearch] = useState('');
   const now = useNow();
   const poll = useLivePoll(4000, 15000);
+  const { data: conn } = useInstagramConnection();
 
   const { data: counts } = useQuery({ queryKey: ['instagram', 'inbox', 'counts'], queryFn: instagramInboxApi.counts, refetchInterval: poll, refetchIntervalInBackground: false, refetchOnWindowFocus: true });
   const query = useInfiniteQuery({
@@ -33,57 +37,70 @@ export function IgConversationList({ selectedId, onSelect }: { selectedId: strin
   const conversations = status === 'active' ? all.filter(c => c.status !== 'resolved') : all;
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="px-3 pt-3 space-y-2.5 border-b border-border pb-3">
-        <div className="flex gap-1 rounded-[10px] bg-muted/60 p-1">
-          {VIEWS.map(v => (
-            <button key={v.key} onClick={() => setView(v.key)} className={cn('flex-1 rounded-lg px-2 py-1.5 text-xs font-medium font-poppins transition-colors', view === v.key ? 'bg-white text-black shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
-              {v.label}
-              {counts && counts[v.key] > 0 && <span className={cn('ml-1 rounded-full px-1.5 text-[10px]', v.key === 'unread' ? 'bg-[hsl(var(--chart-5))] text-white' : 'bg-muted-foreground/15')}>{counts[v.key]}</span>}
-            </button>
-          ))}
-        </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input className="pl-9 h-9 rounded-[10px]" placeholder="Search username or message" value={search} onChange={e => setSearch(e.target.value)} />
-        </div>
-        <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="h-8 rounded-[10px] text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent><SelectItem value="active">Open &amp; pending</SelectItem><SelectItem value="open">Open</SelectItem><SelectItem value="pending">Pending</SelectItem><SelectItem value="resolved">Resolved</SelectItem></SelectContent>
-        </Select>
+    <div className="flex h-full flex-col bg-white" style={{ fontFamily: IG.font }}>
+      <div className="flex shrink-0 items-center justify-between px-5 pb-2 pt-6">
+        <button className="flex items-center gap-1.5 text-[20px] font-bold leading-6" style={{ color: IG.text }}>
+          {conn?.account?.username || 'Messages'}<ChevronDown className="h-4 w-4" />
+        </button>
+        <SquarePen className="h-6 w-6" style={{ color: IG.text }} aria-hidden />
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        {query.isLoading && Array.from({ length: 6 }).map((_, i) => <div key={i} className="flex gap-3 p-3"><Skeleton className="h-11 w-11 rounded-full" /><div className="flex-1 space-y-2"><Skeleton className="h-3 w-1/2" /><Skeleton className="h-3 w-3/4" /></div></div>)}
-        {!query.isLoading && conversations.length === 0 && <div className="p-10 text-center text-sm font-poppins text-muted-foreground">No conversations yet. They appear when someone messages your account.</div>}
-        {conversations.map(c => {
-          const name = c.username ? `@${c.username}` : c.displayName || 'Instagram user';
-          const win = windowLeft(c.lastInboundAt, now);
+      <div className="px-5 pb-2">
+        <div className="flex h-9 items-center gap-2 rounded-lg px-3" style={{ background: IG.soft }}>
+          <Search className="h-4 w-4 shrink-0" style={{ color: IG.sub }} />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search" className="w-full border-0 bg-transparent text-[14px] outline-none placeholder:text-[#8e8e8e] focus:ring-0" style={{ color: IG.text }} />
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between px-5 pb-1 pt-2">
+        <span className="text-[16px] font-bold" style={{ color: IG.text }}>Messages</span>
+        <select value={status} onChange={e => setStatus(e.target.value)} aria-label="Status" className="cursor-pointer border-0 bg-transparent text-[14px] font-semibold outline-none focus:ring-0" style={{ color: IG.blue }}>
+          {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+        </select>
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto px-5 pb-3 pt-1">
+        {VIEWS.map(v => {
+          const active = view === v.key;
+          const n = counts?.[v.key] ?? 0;
           return (
-            <button key={c.id} onClick={() => onSelect(c)} className={cn('w-full flex gap-3 px-3 py-3 text-left border-b border-border/60 transition-colors hover:bg-[hsl(var(--chart-5))]/5', selectedId === c.id && 'bg-[hsl(var(--chart-5))]/10')}>
-              <div className="relative shrink-0">
-                <IgAvatar src={c.profilePicUrl} name={name} className="h-11 w-11" />
-                <span className={cn('absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white', DOT[c.status])} title={c.status} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <span className={cn('truncate text-sm font-poppins', c.unreadCount > 0 ? 'font-semibold text-black' : 'font-medium')}>{name}</span>
-                  <span className="shrink-0 text-[10px] text-muted-foreground">{formatDistanceToNowStrict(new Date(c.lastMessageAt))}</span>
-                </div>
-                <div className="flex items-center justify-between gap-2 mt-0.5">
-                  <p className={cn('truncate text-xs', c.unreadCount > 0 ? 'text-foreground' : 'text-muted-foreground')}>{c.lastMessageDirection === 'outgoing' && <span className="opacity-70">You: </span>}{c.lastMessagePreview || '—'}</p>
-                  {c.unreadCount > 0 && <span className="shrink-0 min-w-[18px] rounded-full bg-[hsl(var(--chart-5))] px-1.5 text-center text-[10px] font-bold text-white">{c.unreadCount}</span>}
-                </div>
-                <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                  {c.assigneeName ? <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground"><UserRound className="h-3 w-3" />{c.assigneeName}</span> : <span className="text-[10px] text-amber-600 font-medium">Unassigned</span>}
-                  {win.open && win.msLeft < 3 * 3_600_000 && <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-600"><Clock className="h-3 w-3" />{win.label}</span>}
-                  {c.labels.slice(0, 2).map(l => <span key={l} className="rounded-full bg-muted px-1.5 py-px text-[10px]">{l}</span>)}
-                </div>
-              </div>
+            <button key={v.key} onClick={() => setView(v.key)} className="shrink-0 rounded-lg px-3 py-1.5 text-[14px] font-semibold transition-colors" style={{ background: active ? IG.text : IG.soft, color: active ? '#fff' : IG.text }}>
+              {v.label}{v.key !== 'all' && n > 0 ? ` ${n}` : ''}
             </button>
           );
         })}
-        {query.hasNextPage && <button onClick={() => query.fetchNextPage()} disabled={query.isFetchingNextPage} className="w-full py-3 text-xs font-poppins text-[hsl(var(--chart-5))] hover:underline">{query.isFetchingNextPage ? 'Loading…' : 'Load more'}</button>}
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        {query.isLoading && Array.from({ length: 7 }).map((_, i) => <div key={i} className="flex items-center gap-3 px-5 py-2.5"><Skeleton className="h-14 w-14 rounded-full" /><div className="flex-1 space-y-2"><Skeleton className="h-3 w-1/2" /><Skeleton className="h-3 w-3/4" /></div></div>)}
+        {!query.isLoading && conversations.length === 0 && <p className="px-8 py-12 text-center text-[14px]" style={{ color: IG.sub }}>No messages yet. They show up here when someone messages your account.</p>}
+
+        {conversations.map(c => {
+          const name = c.username || c.displayName || 'Instagram user';
+          const unread = c.unreadCount > 0;
+          const win = windowLeft(c.lastInboundAt, now);
+          const selected = selectedId === c.id;
+          return (
+            <button key={c.id} onClick={() => onSelect(c)} className={cn('flex w-full items-center gap-3 px-5 py-2.5 text-left transition-colors', selected ? 'bg-[#efefef]' : 'hover:bg-[#fafafa]')}>
+              <IgAvatar src={c.profilePicUrl} name={name} ring={unread} className="h-14 w-14" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[14px] leading-[18px]" style={{ color: IG.text, fontWeight: unread ? 600 : 400 }}>{name}</p>
+                <p className="flex items-center gap-1 text-[14px] leading-[18px]" style={{ color: unread ? IG.text : IG.sub, fontWeight: unread ? 600 : 400 }}>
+                  <span className="truncate">{c.lastMessageDirection === 'outgoing' ? 'You: ' : ''}{c.lastMessagePreview || '—'}</span>
+                  <span className="shrink-0" style={{ color: IG.sub, fontWeight: 400 }}>· {short(c.lastMessageAt)}</span>
+                </p>
+                <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[12px] leading-4" style={{ color: IG.faint }}>
+                  {c.assigneeName ? <span>{c.assigneeName}</span> : <span style={{ color: '#ed4956' }}>Unassigned</span>}
+                  {win.open && win.msLeft < 3 * 3_600_000 && <span className="inline-flex items-center gap-0.5"><Clock className="h-3 w-3" />{win.label}</span>}
+                  {c.status !== 'open' && <span className="capitalize">{c.status}</span>}
+                  {c.labels.slice(0, 2).map(l => <span key={l} className="rounded px-1.5" style={{ background: IG.soft }}>{l}</span>)}
+                </p>
+              </div>
+              {unread && <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: IG.blue }} aria-label={`${c.unreadCount} unread`} />}
+            </button>
+          );
+        })}
+        {query.hasNextPage && <button onClick={() => query.fetchNextPage()} disabled={query.isFetchingNextPage} className="w-full py-3 text-[14px] font-semibold" style={{ color: IG.blue }}>{query.isFetchingNextPage ? 'Loading…' : 'Load more'}</button>}
       </div>
     </div>
   );

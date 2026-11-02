@@ -58,8 +58,8 @@ function EditorInner({ id, isNew, initial }: { id?: string; isNew: boolean; init
     <div className="flex h-full flex-col bg-white">
       <div className="flex items-center gap-3 border-b border-border px-4 py-2.5">
         <Button variant="ghost" size="icon" onClick={() => navigate('/instagram/chatbots')} aria-label="Back"><ArrowLeft className="h-5 w-5" /></Button>
-        <div className="flex-1 flex justify-center"><Input value={draft.name} onChange={e => setDraft({ ...draft, name: e.target.value })} className="h-9 max-w-xs rounded-[10px] bg-muted/50 text-center font-poppins" aria-label="Workflow name" /></div>
-        <label className="flex items-center gap-2 text-xs font-poppins text-muted-foreground"><Switch checked={draft.isActive} onCheckedChange={setActive} />{draft.isActive ? 'Active' : 'Inactive'}</label>
+        <div className="flex-1 flex justify-center"><Input value={draft.name} onChange={e => setDraft({ ...draft, name: e.target.value })} className="h-9 max-w-xs rounded-[10px] bg-muted/50 text-center" aria-label="Workflow name" /></div>
+        <label className="flex items-center gap-2 text-xs text-muted-foreground"><Switch checked={draft.isActive} onCheckedChange={setActive} />{draft.isActive ? 'Active' : 'Inactive'}</label>
         <Button className={WA_PRIMARY_BTN} disabled={save.isPending} onClick={() => save.mutate()}><Save className="h-4 w-4 mr-1.5" />{save.isPending ? 'Saving…' : 'Save Workflow'}</Button>
       </div>
 

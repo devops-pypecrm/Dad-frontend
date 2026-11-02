@@ -27,8 +27,8 @@ function PostsConnectPrompt() {
       <div className="absolute inset-0 grid grid-cols-3 gap-1 p-1 opacity-60 blur-md">{Array.from({ length: 9 }).map((_, i) => <div key={i} className="rounded bg-gradient-to-br from-[#feda75]/60 via-[#d62976]/40 to-[#4f5bd5]/60" />)}</div>
       <div className="relative flex min-h-[420px] flex-col items-center justify-center gap-4 p-8 text-center">
         <div className="max-w-sm rounded-[12px] bg-white/90 p-6 shadow-lg">
-          <p className="text-sm font-poppins text-muted-foreground">Connect your Instagram account to see your posts here.</p>
-          <button onClick={go} disabled={busy || !isAdmin(user)} className="mt-4 inline-flex items-center gap-2 rounded-[10px] bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] px-6 py-3 text-sm font-medium font-poppins text-white shadow-md hover:opacity-90 disabled:opacity-50"><Instagram className="h-4 w-4" />{busy ? 'Opening Instagram…' : 'Connect Instagram Business'}</button>
+          <p className="text-sm text-muted-foreground">Connect your Instagram account to see your posts here.</p>
+          <button onClick={go} disabled={busy || !isAdmin(user)} className="mt-4 inline-flex items-center gap-2 rounded-[10px] bg-[#0095f6] hover:bg-[#1877f2] px-6 py-3 text-sm font-medium text-white shadow-md hover:opacity-90 disabled:opacity-50"><Instagram className="h-4 w-4" />{busy ? 'Opening Instagram…' : 'Connect Instagram Business'}</button>
           {!isAdmin(user) && <p className="mt-2 text-xs text-muted-foreground">Ask an organisation admin to connect the account.</p>}
         </div>
       </div>
@@ -66,20 +66,20 @@ export default function InstagramAskToFollow() {
         <div className={cn(WA_CARD, 'flex flex-wrap items-center gap-6 p-5')}>
           <IgAvatar src={acct?.profilePicUrl} name={acct?.username || 'i'} className="h-20 w-20 text-2xl" />
           <div className="min-w-0 flex-1">
-            <p className="text-lg font-medium font-poppins text-[#833ab4]">@{acct?.username}</p>
-            <p className="text-sm font-poppins text-muted-foreground">Ask to follow {acct?.name || acct?.username}</p>
+            <p className="text-lg font-medium text-[#262626]">@{acct?.username}</p>
+            <p className="text-sm text-muted-foreground">Ask to follow {acct?.name || acct?.username}</p>
             <p className="text-xs text-muted-foreground">Auto-DM anyone who comments a keyword on your posts</p>
           </div>
           <div className="flex gap-6 text-center">
             {[['TOTAL BOTS', stats.total, 'text-black'], ['ACTIVE', stats.active, 'text-emerald-600'], ['INACTIVE', stats.inactive, 'text-amber-600']].map(([l, v, c]) => (
-              <div key={l as string}><p className={cn('text-2xl font-medium font-poppins', c as string)}>{v}</p><p className={cn('text-[10px] font-semibold tracking-widest', c as string)}>{l}</p></div>
+              <div key={l as string}><p className={cn('text-2xl font-medium', c as string)}>{v}</p><p className={cn('text-[10px] font-semibold tracking-widest', c as string)}>{l}</p></div>
             ))}
           </div>
         </div>
 
         <div className="flex gap-6 border-b border-border">
           {([['posts', 'POSTS', Grid3x3, media.length], ['bots', 'BOTS', UserPlus, stats.total]] as const).map(([k, label, Icon, n]) => (
-            <button key={k} onClick={() => setTab(k)} className={cn('-mb-px flex items-center gap-1.5 border-b-2 px-1 pb-2.5 text-xs font-semibold tracking-wide font-poppins', tab === k ? 'border-black text-black' : 'border-transparent text-muted-foreground hover:text-foreground')}><Icon className="h-3.5 w-3.5" />{label}<span className="rounded-full bg-muted px-1.5 text-[10px]">{n}</span></button>
+            <button key={k} onClick={() => setTab(k)} className={cn('-mb-px flex items-center gap-1.5 border-b-2 px-1 pb-2.5 text-xs font-semibold tracking-wide', tab === k ? 'border-black text-black' : 'border-transparent text-muted-foreground hover:text-foreground')}><Icon className="h-3.5 w-3.5" />{label}<span className="rounded-full bg-muted px-1.5 text-[10px]">{n}</span></button>
           ))}
         </div>
 
@@ -104,12 +104,12 @@ export default function InstagramAskToFollow() {
           <WhatsAppSection flush title="Your Ask-to-Follow bots" description="Each bot watches the comments on exactly one post." icon={<UserPlus />}>
             {(overview?.bots ?? []).length === 0 ? <EmptyState icon={<UserPlus strokeWidth={1.25} />}>No bots yet. Open a post and create your first one.</EmptyState> : (
               <Table>
-                <TableHeader><TableRow className="bg-muted/30">{['Active', 'Bot', 'Post', 'Keywords', 'Comments', 'Rewarded'].map(h => <TableHead key={h} className="font-poppins text-xs">{h}</TableHead>)}<TableHead className="text-right font-poppins text-xs">Actions</TableHead></TableRow></TableHeader>
+                <TableHeader><TableRow className="bg-muted/30">{['Active', 'Bot', 'Post', 'Keywords', 'Comments', 'Rewarded'].map(h => <TableHead key={h} className=" text-xs">{h}</TableHead>)}<TableHead className="text-right text-xs">Actions</TableHead></TableRow></TableHeader>
                 <TableBody>
                   {overview!.bots.map(b => (
                     <TableRow key={b.id}>
                       <TableCell><Switch checked={b.isActive} disabled={toggle.isPending} onCheckedChange={v => toggle.mutate({ id: b.id, isActive: v })} /></TableCell>
-                      <TableCell className="font-medium font-poppins">{b.name}</TableCell>
+                      <TableCell className="font-medium">{b.name}</TableCell>
                       <TableCell>{b.mediaThumbUrl ? <a href={b.mediaPermalink || '#'} target="_blank" rel="noreferrer"><img src={b.mediaThumbUrl} alt="" referrerPolicy="no-referrer" className="h-10 w-10 rounded object-cover" /></a> : '—'}</TableCell>
                       <TableCell className="text-xs">{b.keywords.length ? b.keywords.join(', ') : 'Any comment'}</TableCell>
                       <TableCell className="text-sm">{b.comments ?? 0}</TableCell>

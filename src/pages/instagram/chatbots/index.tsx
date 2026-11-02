@@ -21,7 +21,7 @@ const TILES = [
   { key: 'messagesSent', label: 'Messages sent', icon: MessageSquare, tone: 'bg-blue-500/10 text-blue-600' },
   { key: 'active', label: 'Active', icon: CheckCircle2, tone: 'bg-emerald-500/10 text-emerald-600' },
   { key: 'inactive', label: 'Inactive', icon: CircleSlash, tone: 'bg-amber-500/10 text-amber-600' },
-  { key: 'custom', label: 'User created', icon: User, tone: 'bg-violet-500/10 text-violet-600' },
+  { key: 'custom', label: 'User created', icon: User, tone: 'bg-[#e0f1ff] text-[#0074cc]' },
   { key: 'templates', label: 'Templates', icon: LayoutGrid, tone: 'bg-[hsl(var(--chart-5))]/10 text-[hsl(var(--chart-5))]' },
 ] as const;
 
@@ -57,8 +57,8 @@ export default function InstagramChatbotList() {
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           {TILES.map(t => (
             <div key={t.key} className={cn(WA_CARD, 'p-4')}>
-              <div className="flex items-center gap-2"><span className={cn('flex h-7 w-7 items-center justify-center rounded-lg', t.tone)}><t.icon className="h-4 w-4" /></span><span className="text-xs font-poppins text-muted-foreground">{t.label}</span></div>
-              {isLoading ? <Skeleton className="mt-3 h-8 w-12" /> : <p className="mt-3 text-3xl font-medium font-poppins text-black">{(data?.stats[t.key] ?? 0).toLocaleString()}</p>}
+              <div className="flex items-center gap-2"><span className={cn('flex h-7 w-7 items-center justify-center rounded-lg', t.tone)}><t.icon className="h-4 w-4" /></span><span className="text-xs text-muted-foreground">{t.label}</span></div>
+              {isLoading ? <Skeleton className="mt-3 h-8 w-12" /> : <p className="mt-3 text-3xl font-medium text-black">{(data?.stats[t.key] ?? 0).toLocaleString()}</p>}
             </div>
           ))}
         </div>
@@ -69,19 +69,19 @@ export default function InstagramChatbotList() {
         >
           {bots.length === 0 ? (
             <EmptyState icon={<Bot strokeWidth={1.25} />}>
-              <p className="text-sm font-medium font-poppins text-black">No chatbots yet</p>
+              <p className="text-sm font-medium text-black">No chatbots yet</p>
               <p className="max-w-xs text-xs">Create your first keyword-triggered chatbot or activate a system template below.</p>
               <Button className={cn('mt-2', WA_PRIMARY_BTN)} onClick={() => navigate('/instagram/chatbots/new')}><Plus className="h-4 w-4 mr-1.5" />Create chatbot</Button>
             </EmptyState>
           ) : (
             <Table>
-              <TableHeader><TableRow className="bg-muted/30">{['Active', 'Name', 'Keywords', 'Chat window', 'Triggered'].map(h => <TableHead key={h} className="font-poppins text-xs">{h}</TableHead>)}<TableHead className="text-right font-poppins text-xs">Actions</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow className="bg-muted/30">{['Active', 'Name', 'Keywords', 'Chat window', 'Triggered'].map(h => <TableHead key={h} className=" text-xs">{h}</TableHead>)}<TableHead className="text-right text-xs">Actions</TableHead></TableRow></TableHeader>
               <TableBody>
                 {bots.map(b => (
                   <TableRow key={b.id} className="hover:bg-[hsl(var(--chart-5))]/5">
                     <TableCell><Switch checked={b.isActive} disabled={toggle.isPending} onCheckedChange={v => toggle.mutate({ id: b.id, isActive: v })} /></TableCell>
-                    <TableCell className="font-medium font-poppins cursor-pointer" onClick={() => navigate(`/instagram/chatbots/${b.id}`)}>{b.name}{b.sourceTemplateKey && <span className="ml-2"><StatusPill tone="info">template</StatusPill></span>}</TableCell>
-                    <TableCell className="text-xs"><div className="flex flex-wrap gap-1">{b.keywords.slice(0, 4).map(k => <span key={k} className="rounded-full bg-violet-100 px-2 py-0.5 text-violet-700">{k}</span>)}{b.keywords.length > 4 && <span className="text-muted-foreground">+{b.keywords.length - 4}</span>}{b.keywords.length === 0 && <span className="text-amber-600">No keywords</span>}</div></TableCell>
+                    <TableCell className="font-medium cursor-pointer" onClick={() => navigate(`/instagram/chatbots/${b.id}`)}>{b.name}{b.sourceTemplateKey && <span className="ml-2"><StatusPill tone="info">template</StatusPill></span>}</TableCell>
+                    <TableCell className="text-xs"><div className="flex flex-wrap gap-1">{b.keywords.slice(0, 4).map(k => <span key={k} className="rounded-full bg-[#e0f1ff] px-2 py-0.5 text-[#0095f6]">{k}</span>)}{b.keywords.length > 4 && <span className="text-muted-foreground">+{b.keywords.length - 4}</span>}{b.keywords.length === 0 && <span className="text-amber-600">No keywords</span>}</div></TableCell>
                     <TableCell className="text-sm">{minutesLabel(b.chatWindowMinutes)}</TableCell>
                     <TableCell className="text-sm">{b.triggered ?? 0}</TableCell>
                     <TableCell className="text-right whitespace-nowrap">
@@ -99,9 +99,9 @@ export default function InstagramChatbotList() {
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {(data?.templates ?? []).map(t => (
               <div key={t.key} className="flex flex-col rounded-[10px] border border-border p-4">
-                <p className="text-sm font-medium font-poppins">{t.name}</p>
+                <p className="text-sm font-medium">{t.name}</p>
                 <p className="mt-1 flex-1 text-xs text-muted-foreground">{t.description}</p>
-                <div className="mt-2 flex flex-wrap gap-1">{t.keywords.slice(0, 4).map(k => <span key={k} className="rounded-full bg-violet-100 px-2 py-0.5 text-[11px] text-violet-700">{k}</span>)}</div>
+                <div className="mt-2 flex flex-wrap gap-1">{t.keywords.slice(0, 4).map(k => <span key={k} className="rounded-full bg-[#e0f1ff] px-2 py-0.5 text-[11px] text-[#0095f6]">{k}</span>)}</div>
                 <Button size="sm" className={cn('mt-3', t.used ? '' : WA_PRIMARY_BTN)} variant={t.used ? 'outline' : 'default'} disabled={t.used || useTpl.isPending} onClick={() => useTpl.mutate(t.key)}>{t.used ? 'Added' : 'Use template'}</Button>
               </div>
             ))}

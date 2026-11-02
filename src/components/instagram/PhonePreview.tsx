@@ -50,7 +50,7 @@ export function PhonePreview(p: Props) {
             <div className="flex-1 space-y-2 overflow-hidden px-3 pt-2">
               <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-neutral-800 px-2.5 py-1.5 text-[10px] leading-snug">{p.askMessage}
                 <div className="mt-1.5 rounded-lg bg-neutral-700 px-2 py-1 text-center text-[10px] font-medium text-sky-400">{p.followButton || "I'm following"}</div></div>
-              <div className="ml-auto w-fit max-w-[70%] rounded-2xl rounded-br-sm bg-gradient-to-r from-violet-600 to-fuchsia-600 px-2.5 py-1.5 text-[10px]">{p.followButton || "I'm following"}</div>
+              <div className="ml-auto w-fit max-w-[70%] rounded-2xl rounded-br-sm bg-[#3797f0] px-2.5 py-1.5 text-[10px]">{p.followButton || "I'm following"}</div>
               <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-neutral-800 px-2.5 py-1.5 text-[10px] leading-snug">{p.rewardMessage}{p.rewardLink && <p className="mt-0.5 text-sky-400 break-all">{p.rewardLink}</p>}</div>
             </div>
             <div className="m-2 rounded-full border border-neutral-700 px-3 py-1.5 text-[10px] text-neutral-500">Message…</div>
@@ -60,7 +60,7 @@ export function PhonePreview(p: Props) {
 
       <div className="grid w-full max-w-[300px] grid-cols-3 rounded-[10px] bg-muted/70 p-1">
         {([['post', 'Post'], ['comments', 'Comments'], ['dm', 'DM']] as const).map(([k, label]) => (
-          <button key={k} onClick={() => p.onTab(k)} className={cn('rounded-lg py-1.5 text-xs font-medium font-poppins transition-colors', p.tab === k ? 'bg-white text-black shadow-sm' : 'text-muted-foreground hover:text-foreground')}>{label}</button>
+          <button key={k} onClick={() => p.onTab(k)} className={cn('rounded-lg py-1.5 text-xs font-medium transition-colors', p.tab === k ? 'bg-white text-black shadow-sm' : 'text-muted-foreground hover:text-foreground')}>{label}</button>
         ))}
       </div>
     </div>

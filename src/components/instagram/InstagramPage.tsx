@@ -1,42 +1,41 @@
 import type { ReactNode } from 'react';
 import { Instagram } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 import { useInstagramConnection } from '@/hooks/useInstagramConnection';
+import { IG } from './inbox/ig';
 
 function ConnectionBadge() {
   const { data, isLoading } = useInstagramConnection();
   if (isLoading) return null;
-  if (!data?.connected) return <Badge variant="outline" className="text-muted-foreground">Not connected</Badge>;
+  if (!data?.connected) return <span className="text-[13px]" style={{ color: IG.sub }}>Not connected</span>;
   const ok = data.healthy !== false;
   return (
-    <Badge variant="outline" className="gap-2 font-medium">
-      <span className={cn('h-2 w-2 rounded-full', ok ? 'bg-emerald-500' : 'bg-destructive')} />
-      @{data.account?.username}
-    </Badge>
+    <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold" style={{ color: IG.text }}>
+      <span className={cn('h-2 w-2 rounded-full', ok ? 'bg-[#58c322]' : 'bg-[#ed4956]')} />@{data.account?.username}
+    </span>
   );
 }
 
 interface Props { title: string; subtitle: string; actions?: ReactNode; children: ReactNode; fullHeight?: boolean; showConnection?: boolean }
 
-/** Page chrome mirroring the dashboard header (white canvas, Poppins title, subtitle, actions on the right). */
+/** Page chrome in Instagram's style: white canvas, bold system-font title, hairline divider. */
 export function InstagramPage({ title, subtitle, actions, children, fullHeight, showConnection = true }: Props) {
   return (
-    <div className={cn('bg-white animate-in fade-in duration-500 p-6', fullHeight ? 'flex flex-col h-full gap-4 overflow-hidden' : 'space-y-4 sm:space-y-8')}>
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="h-11 w-11 shrink-0 rounded-[10px] bg-gradient-to-tr from-[#feda75] via-[#d62976] to-[#4f5bd5] flex items-center justify-center text-white"><Instagram className="h-6 w-6" /></div>
-          <div>
-            <h1 className="text-xl sm:text-3xl font-medium font-poppins tracking-tight text-foreground">{title}</h1>
-            <p className="text-gray-600 tracking-tight font-poppins mt-0.5 text-[12px] sm:text-[14px] opacity-80">{subtitle}</p>
+    <div className={cn('animate-in fade-in duration-300 bg-white', fullHeight ? 'flex h-full flex-col overflow-hidden' : 'min-h-full')} style={{ fontFamily: IG.font }}>
+      <div className="flex shrink-0 flex-col items-start justify-between gap-3 border-b px-6 py-4 sm:flex-row sm:items-center" style={{ borderColor: IG.line }}>
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white" style={{ background: IG.story }}><Instagram className="h-5 w-5" /></span>
+          <div className="min-w-0">
+            <h1 className="text-[20px] font-semibold leading-6" style={{ color: IG.text }}>{title}</h1>
+            <p className="text-[13px]" style={{ color: IG.sub }}>{subtitle}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+        <div className="flex flex-wrap items-center gap-3">
           {showConnection && <ConnectionBadge />}
           {actions}
         </div>
       </div>
-      {children}
+      <div className={cn(fullHeight ? 'flex min-h-0 flex-1 flex-col' : 'space-y-6 p-6')}>{children}</div>
     </div>
   );
 }
