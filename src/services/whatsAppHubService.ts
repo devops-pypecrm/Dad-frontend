@@ -214,7 +214,6 @@ export interface WaAccountHealth {
 }
 export interface WaSettingsOverview {
   accounts: WaAccountHealth[]; optOutCount: number; assignmentRules: number;
-  webhook: { callbackUrl: string; verifyTokenConfigured: boolean; appSecretConfigured: boolean; subscribedFields: string[] };
 }
 export interface WaInsights {
   days: number; daily: { day: string; direction: string; count: number }[]; outgoingBySource: { source: string; count: number }[];

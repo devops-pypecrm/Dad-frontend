@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { toast } from 'sonner';
-import { Activity, BarChart3, CheckCircle2, Copy, Link2, Phone, Plus, RefreshCw, Settings as SettingsIcon, ShieldCheck, Star, Trash2, Unplug, XCircle } from 'lucide-react';
+import { Activity, BarChart3, CheckCircle2, Phone, Plus, RefreshCw, Settings as SettingsIcon, ShieldCheck, Star, Trash2, Unplug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
@@ -29,14 +29,6 @@ import { formatIST } from '@/lib/dateUtils';
 
 const QUALITY_TONE: Record<string, PillTone> = { GREEN: 'success', YELLOW: 'warning', RED: 'danger' };
 const tier = (t?: string | null) => (t ? t.replace('TIER_', '').replace('UNLIMITED', '∞') + (/^\d/.test(t.replace('TIER_', '')) ? ' / day' : '') : '—');
-
-function Check({ ok, label }: { ok: boolean; label: string }) {
-  return (
-    <li className="flex items-center gap-2 text-sm font-poppins">
-      {ok ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <XCircle className="h-4 w-4 text-destructive" />}{label}
-    </li>
-  );
-}
 
 export default function WhatsAppSettingsPage() {
   const queryClient = useQueryClient();
@@ -103,8 +95,6 @@ export default function WhatsAppSettingsPage() {
   }, [insights]);
   const maxDay = Math.max(1, ...daily.map(d => d.in + d.out));
 
-  const copy = (t: string) => navigator.clipboard.writeText(t).then(() => toast.success('Copied'));
-
   return (
     <WhatsAppPage
       title="WhatsApp Settings"
@@ -133,7 +123,7 @@ export default function WhatsAppSettingsPage() {
         <TabsList className="rounded-[10px] flex-wrap h-auto">
           <TabsTrigger value="numbers" className="rounded-lg gap-1.5"><Phone className="h-4 w-4" />Numbers</TabsTrigger>
           <TabsTrigger value="inbox" className="rounded-lg gap-1.5"><SettingsIcon className="h-4 w-4" />Inbox tools</TabsTrigger>
-          <TabsTrigger value="compliance" className="rounded-lg gap-1.5"><ShieldCheck className="h-4 w-4" />Webhook &amp; consent</TabsTrigger>
+          <TabsTrigger value="compliance" className="rounded-lg gap-1.5"><ShieldCheck className="h-4 w-4" />Consent</TabsTrigger>
           <TabsTrigger value="insights" className="rounded-lg gap-1.5"><BarChart3 className="h-4 w-4" />Insights</TabsTrigger>
         </TabsList>
 
@@ -190,24 +180,7 @@ export default function WhatsAppSettingsPage() {
 
         {/* ---- webhook & consent ---- */}
         <TabsContent value="compliance" className="mt-0">
-          <div className="grid lg:grid-cols-2 gap-4 items-start">
-            <WhatsAppSection title="Webhook" description="Meta sends messages and delivery updates to this address." icon={<Link2 />}>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Callback URL</p>
-                  <div className="flex gap-2"><Input readOnly className="rounded-[10px] font-mono text-xs" value={overview?.webhook.callbackUrl || ''} /><Button variant="outline" size="icon" onClick={() => copy(overview?.webhook.callbackUrl || '')}><Copy className="h-4 w-4" /></Button></div>
-                </div>
-                <ul className="space-y-2">
-                  <Check ok={!!overview?.webhook.verifyTokenConfigured} label="Verify token configured on the server" />
-                  <Check ok={!!overview?.webhook.appSecretConfigured} label="App secret configured (signatures are verified)" />
-                </ul>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1.5">Subscribe these fields in your Meta app</p>
-                  <div className="flex flex-wrap gap-1.5">{overview?.webhook.subscribedFields.map(f => <code key={f} className="rounded bg-muted px-2 py-0.5 text-[11px]">{f}</code>)}</div>
-                </div>
-              </div>
-            </WhatsAppSection>
-
+          <div className="max-w-3xl">
             <WhatsAppSection title="Opted-out contacts" description="People who replied STOP never receive campaigns, nurturing or auto-responder messages." icon={<ShieldCheck />}>
               <div className="flex gap-2 mb-3">
                 <Input className="rounded-[10px]" placeholder="Add a number, e.g. +919876543210" value={optPhone} onChange={e => setOptPhone(e.target.value)} />
