@@ -28,6 +28,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { User, LogOut } from "lucide-react"
 import { clearAndroidToken } from "@/utils/androidBridge"
+import { ThemeSwitcher } from './ThemeSwitcher'
 
 export function Header({ className }: { className?: string }) {
   const navigate = useNavigate()
@@ -128,6 +129,8 @@ export function Header({ className }: { className?: string }) {
               <TooltipContent>Settings</TooltipContent>
             </Tooltip>
           </div>
+
+          <ThemeSwitcher />
         </TooltipProvider>
 
         <DropdownMenu>

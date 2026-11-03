@@ -300,6 +300,14 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
     })
   })).filter(group => group.items.length > 0);
 
+  // Several feature routes are nested below a broader route (for example
+  // /leads/transfers also starts with /leads). Select only the longest,
+  // most-specific matching menu href so two entries can never be active.
+  const activeMenuHref = filteredGroups
+    .flatMap(group => group.items)
+    .filter(item => pathname === item.href || pathname.startsWith(item.href + '/'))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
+
   return (
     <div className={cn(
       "flex flex-col h-full bg-sidebar-bg text-sidebar-text transition-all duration-300 border-r border-sidebar-border overflow-hidden",
@@ -493,7 +501,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                   {systemExpanded && !isCollapsed && (
                     <div className="pl-4 ml-4 border-l border-sidebar-border/30 space-y-1 mt-1 transition-all duration-200">
                       {group.items.map((item, itemIndex) => {
-                        const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                        const isActive = activeMenuHref === item.href;
                         return (
                           <Link
                             key={itemIndex}
@@ -528,7 +536,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                   </div>
                 )}
                 {group.items.map((item, itemIndex) => {
-                  const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                  const isActive = activeMenuHref === item.href;
                   return (
                     <Link
                       key={itemIndex}

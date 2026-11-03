@@ -1,23 +1,23 @@
 // WhatsApp Web look: colours and wallpaper used by the Team Inbox.
 export const WA = {
   font: '"Segoe UI", "Helvetica Neue", Helvetica, "Lucida Grande", Arial, Ubuntu, Cantarell, "Fira Sans", sans-serif',
-  panel: '#f0f2f5',        // header / composer / empty-state grey
-  chat: '#efeae2',         // chat wallpaper
-  out: '#DCF8C6',          // outgoing bubble (pastel green)
-  inn: '#ffffff',          // incoming bubble
-  text: '#111b21',
-  sub: '#667781',
-  icon: '#54656f',
-  line: '#e9edef',
-  header: '#075E54',       // dark teal top bars
+  panel: 'var(--wa-panel)',
+  chat: 'var(--wa-chat)',
+  out: 'var(--wa-out)',
+  inn: 'var(--wa-in)',
+  text: 'var(--wa-text)',
+  sub: 'var(--wa-sub)',
+  icon: 'var(--wa-icon)',
+  line: 'var(--wa-line)',
+  header: 'var(--wa-header)',
   green: '#128C7E',        // teal accent / buttons
   greenDark: '#075E54',
   unread: '#25D366',       // brand green: badges, active highlights
   tick: '#53bdeb',
-  selected: '#f0f2f5',
-  hover: '#f5f6f6',
-  pill: 'rgba(255,255,255,0.92)',
-  notice: '#ffeecd',
+  selected: 'var(--wa-selected)',
+  hover: 'var(--wa-hover)',
+  pill: 'var(--wa-pill)',
+  notice: 'var(--wa-notice)',
 } as const;
 
 // Subtle doodle tile like WhatsApp's wallpaper (inline SVG, no asset needed).

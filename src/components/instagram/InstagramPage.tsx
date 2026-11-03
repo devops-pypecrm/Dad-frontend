@@ -21,7 +21,7 @@ interface Props { title: string; subtitle: string; actions?: ReactNode; children
 /** Page chrome in Instagram's style: white canvas, bold system-font title, hairline divider. */
 export function InstagramPage({ title, subtitle, actions, children, fullHeight, showConnection = true }: Props) {
   return (
-    <div className={cn('animate-in fade-in duration-300 bg-white', fullHeight ? 'flex h-full flex-col overflow-hidden' : 'min-h-full')} style={{ fontFamily: IG.font }}>
+    <div className={cn('animate-in fade-in duration-300 bg-background text-foreground', fullHeight ? 'flex h-full flex-col overflow-hidden' : 'min-h-full')} style={{ fontFamily: IG.font }}>
       <div className="flex shrink-0 flex-col items-start justify-between gap-3 border-b px-6 py-4 sm:flex-row sm:items-center" style={{ borderColor: IG.line }}>
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white" style={{ background: IG.story }}><Instagram className="h-5 w-5" /></span>

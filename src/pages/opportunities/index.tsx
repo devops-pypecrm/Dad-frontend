@@ -224,7 +224,7 @@ export default function OpportunitiesPage() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-white">
+    <div className="h-full flex flex-col bg-background text-foreground">
 
       {/* ── Header ── */}
       <div className="flex-none px-4 sm:px-6 pt-4 sm:pt-6 pb-2 space-y-3">
@@ -270,7 +270,7 @@ export default function OpportunitiesPage() {
                 size="sm"
                 type="button"
                 onClick={() => { setFilterMode('all'); handleFilterChange('ownerId', '') }}
-                className={`rounded-[8px] h-8 px-2.5 text-xs font-semibold transition-all gap-1.5 ${filterMode === 'all' && !queryParams.ownerId ? 'bg-white text-[hsl(var(--chart-5))] shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                className={`rounded-[8px] h-8 px-2.5 text-xs font-semibold transition-all gap-1.5 ${filterMode === 'all' && !queryParams.ownerId ? 'bg-card text-[hsl(var(--chart-5))] shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 <Users className="h-3.5 w-3.5" />
                 Team
@@ -280,7 +280,7 @@ export default function OpportunitiesPage() {
                 size="sm"
                 type="button"
                 onClick={() => setFilterMode('mine')}
-                className={`rounded-[8px] h-8 px-2.5 text-xs font-semibold transition-all gap-1.5 ${filterMode === 'mine' ? 'bg-white text-[hsl(var(--chart-5))] shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                className={`rounded-[8px] h-8 px-2.5 text-xs font-semibold transition-all gap-1.5 ${filterMode === 'mine' ? 'bg-card text-[hsl(var(--chart-5))] shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 <User className="h-3.5 w-3.5" />
                 Mine
@@ -297,7 +297,7 @@ export default function OpportunitiesPage() {
               onClick={() => setViewMode('list')}
               className={cn(
                 "rounded-[8px] h-8 px-2.5 transition-all",
-                viewMode === 'list' ? 'bg-white text-[hsl(var(--chart-5))] shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                viewMode === 'list' ? 'bg-card text-[hsl(var(--chart-5))] shadow-sm' : 'text-muted-foreground hover:text-foreground'
               )}
               title="List view"
             >
@@ -310,7 +310,7 @@ export default function OpportunitiesPage() {
               onClick={() => setViewMode('board')}
               className={cn(
                 "rounded-[8px] h-8 px-2.5 transition-all",
-                viewMode === 'board' ? 'bg-white text-[hsl(var(--chart-5))] shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                viewMode === 'board' ? 'bg-card text-[hsl(var(--chart-5))] shadow-sm' : 'text-muted-foreground hover:text-foreground'
               )}
               title="Board view"
             >

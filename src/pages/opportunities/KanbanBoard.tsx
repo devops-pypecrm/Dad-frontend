@@ -56,6 +56,11 @@ const STAGES: { id: string; label: string; color: string; mergedFrom?: string[] 
   { id: "closed_lost", label: "Closed Lost", color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300" },
 ];
 
+const readableLabel = (value: string | null | undefined, fallback: string) => {
+  if (!value?.trim()) return fallback;
+  return /\?{3,}|�/.test(value) ? fallback : value;
+};
+
 export function KanbanBoard({ opportunities }: KanbanBoardProps) {
   const navigate = useNavigate();
   const { formatCurrency } = useCurrency();
@@ -154,7 +159,7 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
   };
 
   return (
-    <div className="flex h-full overflow-x-auto snap-x snap-mandatory gap-3 pb-4 px-1 sm:px-2 scrollbar-hide">
+    <div className="flex h-full overflow-x-auto snap-x snap-mandatory gap-4 pb-2 scrollbar-thin">
       <TooltipProvider>
         {STAGES.map((stage) => {
           const stageOpps = columns[stage.id] || [];
@@ -163,11 +168,11 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
           return (
             <div
               key={stage.id}
-              className="flex-shrink-0 w-[280px] sm:w-80 bg-background rounded-xl border border-border flex flex-col snap-center first:ml-2 last:mr-2"
+              className="flex w-[280px] flex-shrink-0 snap-center flex-col overflow-hidden rounded-xl border border-border bg-card/30 sm:w-80 lg:min-w-[300px] lg:flex-1"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, stage.id)}
             >
-              <div className="p-3 border-b border-border flex flex-col gap-2 bg-background/95 backdrop-blur-sm sticky top-0 rounded-t-xl z-10">
+              <div className="sticky top-0 z-10 flex flex-col gap-2 border-b border-border bg-card/95 p-4 backdrop-blur-sm">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className={`${stage.color} font-semibold`}>
@@ -183,14 +188,19 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
                 </div>
               </div>
 
-              <ScrollArea className="flex-1 p-3">
+              <ScrollArea className="min-h-0 flex-1 p-3">
                 <div className="flex flex-col gap-3">
+                  {stageOpps.length === 0 && (
+                    <div className="flex min-h-32 flex-col items-center justify-center rounded-xl border border-dashed border-border bg-background/30 px-5 text-center">
+                      <p className="text-sm font-medium text-muted-foreground">No {stage.label.toLowerCase()} opportunities</p>
+                      <p className="mt-1 text-xs text-muted-foreground/70">Drag a deal here when it reaches this stage.</p>
+                    </div>
+                  )}
                   {stageOpps.map((opp) => {
                     const daysInStage = differenceInDays(new Date(), new Date(opp.updatedAt));
-                    const isStagnant = daysInStage > 30;
-                    const isWarning = daysInStage > 14 && daysInStage <= 30;
-
                     const isTerminal = opp.stage === 'closed_won' || opp.stage === 'closed_lost';
+                    const isStagnant = !isTerminal && daysInStage > 30;
+                    const isWarning = !isTerminal && daysInStage > 14 && daysInStage <= 30;
 
                     return (
                       <Card
@@ -198,7 +208,7 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
                         draggable={!isTerminal}
                         onDragStart={(e) => !isTerminal && handleDragStart(e, opp.id)}
                         onClick={() => navigate(`/opportunities/${opp.id}`)}
-                        className={`${!isTerminal ? 'cursor-move hover:shadow-md' : 'cursor-not-allowed opacity-90'} transition-all duration-200 border-border shadow-sm bg-card group ${isStagnant ? 'border-l-4 border-l-destructive' : isWarning ? 'border-l-4 border-l-warning' : ''
+                        className={`${!isTerminal ? 'cursor-move' : 'cursor-pointer'} group rounded-xl border-border bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[hsl(var(--chart-5))]/35 hover:shadow-md ${isStagnant ? 'border-l-4 border-l-destructive' : isWarning ? 'border-l-4 border-l-warning' : ''
                           }`}
                       >
                         <CardContent className="p-3 space-y-3">
@@ -206,12 +216,12 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
                             <div className="space-y-1">
                               {opp.account && (
                                 <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide truncate max-w-[150px]">
-                                  {opp.account.name}
+                                  {readableLabel(opp.account.name, 'Unnamed account')}
                                 </div>
                               )}
                               <div className="flex items-start gap-2">
                                 <h4 className="font-semibold text-sm line-clamp-2 text-card-foreground leading-tight">
-                                  {opp.name}
+                                  {readableLabel(opp.name, 'Untitled opportunity')}
                                 </h4>
                                 {opp.paymentStatus === 'paid' && (
                                   <Tooltip>

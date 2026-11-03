@@ -35,7 +35,7 @@ export function EmailCampaigns() {
           <p className="text-sm text-muted-foreground">Manage your newsletters and automated sequences.</p>
         </div>
         <Link to="/marketing/campaigns/new">
-          <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25 rounded-xl">
+          <Button size="sm" className="rounded-xl bg-[hsl(var(--chart-5))] text-white shadow-lg shadow-[hsl(var(--chart-5))]/20 hover:bg-[hsl(var(--chart-5))]/90">
             <Plus className="mr-2 h-4 w-4" />
             Create Campaign
           </Button>
@@ -83,7 +83,7 @@ export function EmailCampaigns() {
         {isLoading ? (
           <div className="flex items-center justify-center p-12">
             <div className="flex flex-col items-center gap-3">
-              <div className="h-10 w-10 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
+              <div className="h-10 w-10 animate-spin rounded-full border-4 border-[hsl(var(--chart-5))] border-t-transparent" />
               <p className="text-sm text-muted-foreground">Loading campaigns...</p>
             </div>
           </div>
@@ -121,7 +121,7 @@ export function EmailCampaigns() {
             ))}
             {campaigns.length === 0 && (
               <div className="text-center py-12 bg-card rounded-xl border border-dashed border-border">
-                <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-4 text-blue-600 dark:text-blue-400">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-[hsl(var(--chart-5))]/25 bg-[hsl(var(--chart-5))]/10 text-[hsl(var(--chart-5))]">
                   <Mail className="h-6 w-6" />
                 </div>
                 <h3 className="text-lg font-medium mb-1">No campaigns yet</h3>

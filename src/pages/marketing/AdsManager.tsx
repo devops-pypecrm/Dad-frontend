@@ -466,23 +466,15 @@ const AdsManager: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-[10px] p-4 flex items-start gap-3" role="alert">
-        <div className="bg-blue-100 dark:bg-blue-800 p-1 rounded-full mt-0.5 shrink-0">
-          <Target className="h-4 w-4 text-blue-600 dark:text-blue-300" />
-        </div>
-        <div>
-          <p className="font-semibold text-blue-800 dark:text-blue-300">Campaign Management</p>
-          <p className="text-blue-700 dark:text-blue-400 text-sm mt-1">
-            Campaigns and ads are now managed directly in your <strong>Meta Ads Manager</strong> account.
-            Incoming leads will automatically sync to your CRM leads list.
-          </p>
-        </div>
-      </div>
-
       {!metaConnected && (
-        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-[10px] p-4" role="alert">
-          <p className="font-semibold text-amber-800 dark:text-amber-300">Meta Account Not Connected</p>
-          <p className="text-amber-700 dark:text-amber-400 text-sm mt-1">Please connect your Facebook account in Settings → Integrations to manage ads.</p>
+        <div className="flex flex-col gap-3 rounded-lg border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between" role="status">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground">Meta account not connected</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">Connect Facebook in Integrations to load ad accounts and sync leads.</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => navigate('/settings/integrations')} className="h-9 shrink-0 rounded-lg px-3 text-sm font-medium">
+            Go to Integrations
+          </Button>
         </div>
       )}
 

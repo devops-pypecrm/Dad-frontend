@@ -30,15 +30,18 @@ export interface IgConversationDetail extends IgConversation { assignee: { id: s
 export interface IgMessage {
   id: string; direction: 'incoming' | 'outgoing'; messageType: string; status: 'sent' | 'received' | 'read' | 'failed'; errorMessage?: string | null;
   source?: string | null; createdAt: string;
-  content: { text?: string; mediaUrl?: string; buttons?: { title: string; url?: string }[] } | null;
+  content: {
+    text?: string; mediaUrl?: string; thumbnailUrl?: string; permalink?: string; title?: string; mediaType?: string;
+    buttons?: { title: string; url?: string }[];
+  } | null;
 }
 export interface IgCounts { all: number; mine: number; unassigned: number; unread: number }
 export interface IgNote { id: string; body: string; authorName: string; createdAt: string }
 
 export const instagramInboxApi = {
-  list: async (q: { view?: string; status?: string; search?: string; cursor?: string }) =>
+  list: async (q: { view?: string; status?: string; search?: string; assigneeId?: string; cursor?: string }) =>
     (await api.get<{ conversations: IgConversation[]; nextCursor: string | null }>('/instagram/inbox/conversations', { params: q })).data,
-  counts: async () => (await api.get<IgCounts>('/instagram/inbox/counts')).data,
+  counts: async (assigneeId?: string) => (await api.get<IgCounts>('/instagram/inbox/counts', { params: assigneeId ? { assigneeId } : undefined })).data,
   get: async (id: string) => (await api.get<IgConversationDetail>(`/instagram/inbox/conversations/${id}`)).data,
   messages: async (id: string) => (await api.get<{ messages: IgMessage[]; window: IgWindow }>(`/instagram/inbox/conversations/${id}/messages`)).data,
   send: async (id: string, text: string) => (await api.post(`/instagram/inbox/conversations/${id}/messages`, { text })).data,
@@ -78,7 +81,7 @@ export interface IgGateBot {
   comments?: number; rewarded?: number; createdAt: string;
 }
 export interface IgGateOverview {
-  connected: boolean; account: { username: string; name: string | null; profilePicUrl: string | null; followersCount: number | null } | null;
+  connected: boolean; account: { username: string; name: string | null; biography: string | null; profilePicUrl: string | null; followersCount: number | null; followingCount: number | null; mediaCount: number | null } | null;
   stats: { total: number; active: number; inactive: number }; bots: IgGateBot[];
 }
 export interface IgMedia { id: string; caption: string; mediaType: string; thumbnailUrl: string; permalink: string; timestamp: string; commentsCount?: number; likeCount?: number; bots: number; activeBots: number }

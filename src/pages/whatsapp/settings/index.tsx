@@ -120,7 +120,7 @@ export default function WhatsAppSettingsPage() {
       />
 
       <Tabs defaultValue="numbers" className="space-y-4">
-        <TabsList className="rounded-[10px] flex-wrap h-auto">
+        <TabsList className="grid h-auto w-full grid-cols-2 rounded-[10px] sm:grid-cols-4">
           <TabsTrigger value="numbers" className="rounded-lg gap-1.5"><Phone className="h-4 w-4" />Numbers</TabsTrigger>
           <TabsTrigger value="inbox" className="rounded-lg gap-1.5"><SettingsIcon className="h-4 w-4" />Inbox tools</TabsTrigger>
           <TabsTrigger value="compliance" className="rounded-lg gap-1.5"><ShieldCheck className="h-4 w-4" />Consent</TabsTrigger>
@@ -158,13 +158,15 @@ export default function WhatsAppSettingsPage() {
                         <TableCell><StatusPill tone={a.status === 'active' ? 'success' : 'muted'}>{a.status}</StatusPill></TableCell>
                         <TableCell><Button variant="ghost" size="sm" className="h-8 gap-1" disabled={!row} onClick={() => row && setRuleAccount(row)}><SettingsIcon className="h-3 w-3" />{a.assignmentRules.length ? `${a.assignmentRules.length} rule(s)` : 'Add rule'}</Button></TableCell>
                         <TableCell className="text-right whitespace-nowrap">
-                          {!a.isDefault && <Button variant="ghost" size="icon" title="Make default" onClick={() => makeDefault.mutate(a.id)}><Star className="h-4 w-4" /></Button>}
-                          {a.provider === 'meta' && <Button variant="ghost" size="icon" title="Check with Meta" disabled={healthOne.isPending} onClick={() => healthOne.mutate(a.id)}><Activity className="h-4 w-4" /></Button>}
-                          {a.connectionType === 'oauth' && a.phoneNumberId ? (
-                            <Button variant="ghost" size="sm" className="h-8 text-xs text-destructive" onClick={() => window.confirm('Disconnect this number? Rules for it will be deactivated.') && disconnect.mutate(a.phoneNumberId!)}><Unplug className="h-3.5 w-3.5 mr-1" />Disconnect</Button>
-                          ) : (
-                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => window.confirm('Remove this number?') && remove.mutate(a.id)}><Trash2 className="h-4 w-4" /></Button>
-                          )}
+                          <div className="flex items-center justify-end gap-1.5">
+                            {!a.isDefault && <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" title="Make default" onClick={() => makeDefault.mutate(a.id)}><Star className="h-4 w-4" /></Button>}
+                            {a.provider === 'meta' && <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" title="Check with Meta" disabled={healthOne.isPending} onClick={() => healthOne.mutate(a.id)}><Activity className="h-4 w-4" /></Button>}
+                            {a.connectionType === 'oauth' && a.phoneNumberId ? (
+                              <Button variant="outline" size="sm" className="h-8 rounded-lg border-destructive/30 px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => window.confirm('Disconnect this number? Rules for it will be deactivated.') && disconnect.mutate(a.phoneNumberId!)}><Unplug className="mr-1.5 h-3.5 w-3.5" />Disconnect</Button>
+                            ) : (
+                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => window.confirm('Remove this number?') && remove.mutate(a.id)}><Trash2 className="h-4 w-4" /></Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -180,7 +182,7 @@ export default function WhatsAppSettingsPage() {
 
         {/* ---- webhook & consent ---- */}
         <TabsContent value="compliance" className="mt-0">
-          <div className="max-w-3xl">
+          <div className="w-full">
             <WhatsAppSection title="Opted-out contacts" description="People who replied STOP never receive campaigns, nurturing or auto-responder messages." icon={<ShieldCheck />}>
               <div className="flex gap-2 mb-3">
                 <Input className="rounded-[10px]" placeholder="Add a number, e.g. +919876543210" value={optPhone} onChange={e => setOptPhone(e.target.value)} />

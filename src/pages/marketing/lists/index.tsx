@@ -69,12 +69,12 @@ export default function EmailListsPage() {
     <div className="space-y-6 p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Email Lists</h1>
+          <h1 className="text-3xl font-bold text-foreground">Email Lists</h1>
           <p className="text-muted-foreground mt-1">Manage subscriber lists for your marketing campaigns.</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-500/25">
+            <Button className="bg-[hsl(var(--chart-5))] text-white shadow-lg shadow-[hsl(var(--chart-5))]/20 hover:bg-[hsl(var(--chart-5))]/90">
               <Plus className="h-4 w-4 mr-2" />
               Create List
             </Button>

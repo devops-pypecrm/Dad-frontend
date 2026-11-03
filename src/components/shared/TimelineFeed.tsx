@@ -134,25 +134,32 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
     }
   };
 
+  const displayTitle = (item: TimelineItem) => {
+    const title = item.title.trim();
+    if (/^update lead(?: lead)?$/i.test(title)) return 'Lead updated';
+    if (/^create lead(?: lead)?$/i.test(title)) return 'Lead created';
+    return title.replace(/\s+(Lead|Contact|Account|Opportunity)\s*$/i, '');
+  };
+
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <Card className="overflow-hidden border-border bg-card shadow-none">
+      <CardHeader className="border-b border-border pb-4">
         <CardTitle className="text-lg font-medium flex items-center gap-2">
           <HistoryIcon className="h-5 w-5 text-muted-foreground" />
           Activity Timeline
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="relative pl-6 border-l-2 border-border space-y-8">
+      <CardContent className="pt-5">
+        <div className="relative space-y-6 border-l border-border pl-7">
           {timeline.filter((item: any) => !(item.type === 'interaction' && item.subType === 'whatsapp')).map((item: TimelineItem) => (
             <div key={item.id} className="relative">
-              <div className={`absolute -left-[2.15rem] p-2 rounded-full ring-4 ring-background ${getColor(item)}`}>
+              <div className={`absolute -left-[2.85rem] flex h-9 w-9 items-center justify-center rounded-full border border-border ring-4 ring-card ${getColor(item)}`}>
                 {getIcon(item)}
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
                 <div>
                   <h4 className="text-sm font-semibold text-foreground">
-                    {item.title}
+                    {displayTitle(item)}
                   </h4>
                   <p className="text-sm text-muted-foreground mt-1 max-w-xl">
                     {item.description || 'No description'}

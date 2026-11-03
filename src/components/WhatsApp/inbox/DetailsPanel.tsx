@@ -11,7 +11,7 @@ import { WaAvatar } from './WaAvatar';
 import { WA } from './wa';
 
 const Section = ({ title, icon, children }: { title: string; icon?: ReactNode; children: ReactNode }) => (
-  <section className="mt-2 bg-white px-[30px] py-4 shadow-[0_1px_3px_rgba(11,20,26,0.08)]">
+  <section className="mt-2 bg-card px-[30px] py-4 shadow-[0_1px_3px_rgba(11,20,26,0.08)]">
     <h3 className="mb-3 flex items-center gap-2 text-[14px]" style={{ color: WA.sub }}>{icon}{title}</h3>
     {children}
   </section>
@@ -49,7 +49,7 @@ export function DetailsPanel({ conversationId, onClose }: { conversationId: stri
       <div className="flex-1 overflow-y-auto">
         {convo && (
           <>
-            <section className="flex flex-col items-center bg-white px-6 pb-5 pt-7 shadow-[0_1px_3px_rgba(11,20,26,0.08)]">
+            <section className="flex flex-col items-center bg-card px-6 pb-5 pt-7 shadow-[0_1px_3px_rgba(11,20,26,0.08)]">
               <WaAvatar name={name} className="h-[200px] w-[200px] text-[90px]" />
               <h2 className="mt-3 text-center text-[22px] leading-7" style={{ color: WA.text }}>{name}</h2>
               <p className="text-[16px]" style={{ color: WA.sub }}>+{convo.phoneNumber}</p>

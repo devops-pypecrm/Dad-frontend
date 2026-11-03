@@ -96,26 +96,26 @@
   }
 
   .dark {
-    /* Dark Mode - Deep Indigo */
-    --background: 240 10% 4%;
+    /* Dark Mode - neutral black/charcoal with the PypeCRM green accent */
+    --background: 0 0% 4%;
     --foreground: 0 0% 98%;
 
-    --card: 240 10% 6%;
+    --card: 0 0% 7%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 240 10% 6%;
+    --popover: 0 0% 8%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 217 91% 60%;
+    --primary: 94 48% 44%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 240 4% 16%;
+    --secondary: 0 0% 12%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 240 4% 16%;
-    --muted-foreground: 240 5% 65%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 64%;
 
-    --accent: 240 4% 16%;
+    --accent: 0 0% 14%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 63% 31%;
@@ -130,23 +130,23 @@
     --info: 199 89% 48%;
     --info-foreground: 0 0% 98%;
 
-    --border: 240 4% 16%;
-    --input: 240 4% 16%;
-    --ring: 217 91% 60%;
+    --border: 0 0% 17%;
+    --input: 0 0% 17%;
+    --ring: 94 48% 44%;
 
-    /* Sidebar - Dark mode deep indigo */
-    --sidebar-bg: 243 47% 20%;
+    /* Sidebar - neutral near-black, never blue/indigo */
+    --sidebar-bg: 0 0% 7%;
     --sidebar-text: 0 0% 98%;
-    --sidebar-active: 94 48% 55%;
-    --sidebar-hover: 243 47% 25%;
-    --sidebar-border: 243 47% 25%;
+    --sidebar-active: 94 48% 48%;
+    --sidebar-hover: 0 0% 12%;
+    --sidebar-border: 0 0% 15%;
 
-    /* Chart colors - Same vibrant palette */
-    --chart-1: 217 91% 60%;
+    /* Charts remain distinct, while primary controls stay on-brand green. */
+    --chart-1: 94 48% 48%;
     --chart-2: 142 76% 36%;
     --chart-3: 38 92% 50%;
     --chart-4: 280 87% 65%;
-    --chart-5: 94 48% 44%;
+    --chart-5: 94 48% 48%;
   }
 }
 
@@ -879,7 +879,52 @@ body.wa-theme {
   --card-radius: 8px;
   --card-shadow: 0 1px 3px rgba(11, 20, 26, 0.08);
   --page-bg: #f0f2f5;
+  --wa-panel: #f0f2f5;
+  --wa-chat: #efeae2;
+  --wa-out: #dcf8c6;
+  --wa-in: #ffffff;
+  --wa-text: #111b21;
+  --wa-sub: #667781;
+  --wa-icon: #54656f;
+  --wa-line: #e9edef;
+  --wa-header: #075e54;
+  --wa-selected: #f0f2f5;
+  --wa-hover: #f5f6f6;
+  --wa-pill: rgba(255, 255, 255, 0.92);
+  --wa-notice: #ffeecd;
   font-family: var(--wa-font);
+}
+
+/* WhatsApp Web's native dark palette. */
+.dark body.wa-theme {
+  --background: 202 31% 7%;
+  --foreground: 200 18% 90%;
+  --card: 200 24% 12%;
+  --card-foreground: 200 18% 90%;
+  --popover: 200 24% 12%;
+  --popover-foreground: 200 18% 90%;
+  --secondary: 200 18% 16%;
+  --secondary-foreground: 200 18% 90%;
+  --muted: 200 18% 16%;
+  --muted-foreground: 200 10% 61%;
+  --accent: 200 18% 16%;
+  --accent-foreground: 200 18% 90%;
+  --border: 200 18% 18%;
+  --input: 200 18% 20%;
+  --page-bg: #0b141a;
+  --wa-panel: #202c33;
+  --wa-chat: #0b141a;
+  --wa-out: #005c4b;
+  --wa-in: #202c33;
+  --wa-text: #e9edef;
+  --wa-sub: #8696a0;
+  --wa-icon: #aebac1;
+  --wa-line: #222d34;
+  --wa-header: #202c33;
+  --wa-selected: #2a3942;
+  --wa-hover: #202c33;
+  --wa-pill: rgba(17, 27, 33, 0.94);
+  --wa-notice: #182229;
 }
 body.wa-theme .font-poppins,
 body.wa-theme .font-sans { font-family: var(--wa-font); }
@@ -924,6 +969,20 @@ body.wa-theme table thead tr { background: #f0f2f5; }
 body.wa-theme table th { color: #667781; font-weight: 500; }
 body.wa-theme table tbody tr { border-color: #e9edef; }
 
+.dark body.wa-theme button.border-input:not([role="combobox"]) { border-color: #3b4a54; color: #e9edef; }
+.dark body.wa-theme button.border-input:not([role="combobox"]):hover { background-color: #2a3942; }
+.dark body.wa-theme [role="dialog"] h2 { color: #e9edef; }
+.dark body.wa-theme [role="menu"], .dark body.wa-theme [role="listbox"] { border-color: #2a3942; }
+.dark body.wa-theme [role="option"][data-highlighted], .dark body.wa-theme [role="menuitem"][data-highlighted] { background: #2a3942; color: #e9edef; }
+.dark body.wa-theme input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]),
+.dark body.wa-theme textarea,
+.dark body.wa-theme [role="combobox"],
+.dark body.wa-theme [role="dialog"] input:not([type="checkbox"]):not([type="radio"]),
+.dark body.wa-theme [role="dialog"] textarea { background-color: #2a3942; color: #e9edef; }
+.dark body.wa-theme table thead tr { background: #202c33; }
+.dark body.wa-theme table th { color: #8696a0; }
+.dark body.wa-theme table tbody tr { border-color: #222d34; }
+
 /* ==========================================================================
    Instagram theme: switched on (body.ig-theme) while any /instagram/* page is open.
    Instagram's neutrals (#262626 / #737373 / #dbdbdb / #efefef), its blue (#0095f6) for actions,
@@ -954,7 +1013,38 @@ body.ig-theme {
   --card-radius: 12px;
   --card-shadow: none;
   --page-bg: #ffffff;
+  --ig-text: #262626;
+  --ig-sub: #737373;
+  --ig-faint: #8e8e8e;
+  --ig-line: #dbdbdb;
+  --ig-soft: #efefef;
+  --ig-panel: #fafafa;
   font-family: var(--ig-font);
+}
+
+/* Instagram's near-black native dark surfaces. */
+.dark body.ig-theme {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 96%;
+  --card: 0 0% 7%;
+  --card-foreground: 0 0% 96%;
+  --popover: 0 0% 7%;
+  --popover-foreground: 0 0% 96%;
+  --secondary: 0 0% 15%;
+  --secondary-foreground: 0 0% 96%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 66%;
+  --accent: 0 0% 12%;
+  --accent-foreground: 0 0% 96%;
+  --border: 0 0% 22%;
+  --input: 0 0% 22%;
+  --page-bg: #000000;
+  --ig-text: #f5f5f5;
+  --ig-sub: #a8a8a8;
+  --ig-faint: #737373;
+  --ig-line: #363636;
+  --ig-soft: #262626;
+  --ig-panel: #121212;
 }
 body.ig-theme .font-poppins,
 body.ig-theme .font-sans { font-family: var(--ig-font); }
@@ -995,3 +1085,26 @@ body.ig-theme [data-pill="muted"] { background: #efefef; color: #737373; }
 body.ig-theme table thead tr { background: #fafafa; }
 body.ig-theme table th { color: #737373; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
 body.ig-theme table tbody tr { border-color: #efefef; }
+
+.dark body.ig-theme button.border-input:not([role="combobox"]) { border-color: #363636; background: #262626; color: #f5f5f5; }
+.dark body.ig-theme button.border-input:not([role="combobox"]):hover { background: #363636; }
+.dark body.ig-theme [role="dialog"] h2 { color: #f5f5f5; }
+.dark body.ig-theme [role="menu"], .dark body.ig-theme [role="listbox"] { border-color: #363636; }
+.dark body.ig-theme [role="option"][data-highlighted], .dark body.ig-theme [role="menuitem"][data-highlighted] { background: #262626; color: #f5f5f5; }
+.dark body.ig-theme input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]),
+.dark body.ig-theme textarea,
+.dark body.ig-theme [role="combobox"] { background-color: #121212; border-color: #363636; color: #f5f5f5; }
+.dark body.ig-theme [role="tablist"] { border-color: #363636; }
+.dark body.ig-theme [role="tab"][data-state="active"] { color: #f5f5f5 !important; border-top-color: #f5f5f5; }
+.dark body.ig-theme table thead tr { background: #121212; }
+.dark body.ig-theme table th { color: #a8a8a8; }
+.dark body.ig-theme table tbody tr { border-color: #262626; }
+
+/* Compatibility layer for older admin screens that predate semantic colour tokens. */
+html.dark .bg-white:not([class*="dark:bg-"]) { background-color: hsl(var(--card)); }
+html.dark .bg-gray-50:not([class*="dark:bg-"]) { background-color: hsl(var(--background)); }
+html.dark [class~="text-gray-900"]:not([class*="dark:text-"]),
+html.dark [class~="text-black"]:not([class*="dark:text-"]) { color: hsl(var(--foreground)); }
+html.dark [class~="text-gray-700"]:not([class*="dark:text-"]) { color: hsl(var(--foreground) / 0.82); }
+html.dark [class~="text-gray-500"]:not([class*="dark:text-"]) { color: hsl(var(--muted-foreground)); }
+html.dark [class~="border-gray-200"]:not([class*="dark:border-"]) { border-color: hsl(var(--border)); }

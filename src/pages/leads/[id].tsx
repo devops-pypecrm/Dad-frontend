@@ -48,6 +48,13 @@ const ITEM_CARD = "overflow-hidden rounded-[10px] border border-border bg-card s
 const EMPTY_STATE = V2.emptyState
 const SECTION_TITLE = V2.cardTitle
 const ICON_TILE = "flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-[hsl(var(--chart-5))]/10 text-[hsl(var(--chart-5))]"
+const ACTIVITY_TABS = [
+  { value: 'timeline', label: 'Timeline' },
+  { value: 'whatsapp', label: 'WhatsApp Messages' },
+  { value: 'whatsapp-calls', label: 'WhatsApp Calls' },
+  { value: 'calls', label: 'Call History' },
+  { value: 'history', label: 'Ownership History' },
+] as const
 
 const DraggableActivity = ({ type, icon: Icon, label, onDragStart, onClick }: { type: string; icon: React.ElementType; label: string; onDragStart: (e: React.DragEvent, type: string) => void; onClick: (type: string) => void }) => (
   <div
@@ -105,6 +112,7 @@ export default function LeadDetailPage() {
   const [isQuickWonOpen, setIsQuickWonOpen] = useState(false)
   const [isQuickLostOpen, setIsQuickLostOpen] = useState(false)
   const [dragOver, setDragOver] = useState(false)
+  const [activityTab, setActivityTab] = useState('timeline')
   const { statuses, selectableStatuses, getStatusDetails } = useLeadStatuses()
   const queryClient = useQueryClient()
 
@@ -428,10 +436,12 @@ export default function LeadDetailPage() {
                 ))}
               </div>
             </div>
-            <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-              <Building className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="truncate">{lead.company}</span>
-            </div>
+            {lead.company?.trim() && (
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                <Building className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="truncate">{lead.company}</span>
+              </div>
+            )}
           </div>
 
           <div className="hidden sm:flex flex-col items-end shrink-0">
@@ -444,7 +454,7 @@ export default function LeadDetailPage() {
         </div>
 
         {/* Mobile Dashboard Actions / Desktop Full Actions */}
-        <div className="flex flex-wrap items-center gap-2 px-2 sm:px-0">
+        <div className="flex flex-wrap items-start gap-2 px-2 sm:px-0">
           <div className="flex-1 min-w-[140px] sm:hidden">
             <Select value={lead.status || "new"} onValueChange={(val) => updateStatusMutation.mutate(val)}>
               <SelectTrigger className="w-full h-9 text-xs rounded-[10px]">
@@ -487,7 +497,7 @@ export default function LeadDetailPage() {
             </Select>
           </div>
 
-          <div className="flex items-center gap-1.5 ml-auto sm:ml-0 overflow-x-auto pb-1 no-scrollbar">
+          <div className="flex items-start gap-1.5 ml-auto sm:ml-0 overflow-x-auto pb-1 no-scrollbar">
             <Button
               variant="outline"
               size="sm"
@@ -550,7 +560,7 @@ export default function LeadDetailPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1 h-8 text-[10px] rounded-[10px] bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                    className="flex-1 h-8 text-[10px] rounded-[10px] bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-transparent dark:text-green-400 dark:border-green-500/60 dark:hover:bg-green-500/10"
                     onClick={() => setIsQuickWonOpen(true)}
                   >
                     Closed Won
@@ -558,7 +568,7 @@ export default function LeadDetailPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1 h-8 text-[10px] rounded-[10px] bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+                    className="flex-1 h-8 text-[10px] rounded-[10px] bg-red-50 text-red-700 border-red-200 hover:bg-red-100 dark:bg-transparent dark:text-red-400 dark:border-red-500/60 dark:hover:bg-red-500/10"
                     onClick={() => setIsQuickLostOpen(true)}
                   >
                     Closed Lost
@@ -785,13 +795,24 @@ export default function LeadDetailPage() {
 
         {/* Main Content */}
         <div className="md:col-span-2">
-          <Tabs defaultValue="timeline">
-            <TabsList className="mb-4 h-auto w-full flex-wrap justify-start gap-1 rounded-[10px] border border-border bg-card p-1">
-              <TabsTrigger className="rounded-[8px] px-4 text-xs sm:text-sm font-medium font-poppins data-[state=active]:bg-[hsl(var(--chart-5))] data-[state=active]:text-white data-[state=active]:shadow-none" value="timeline">Timeline</TabsTrigger>
-              <TabsTrigger className="rounded-[8px] px-4 text-xs sm:text-sm font-medium font-poppins data-[state=active]:bg-[hsl(var(--chart-5))] data-[state=active]:text-white data-[state=active]:shadow-none" value="whatsapp">WhatsApp Messages</TabsTrigger>
-              <TabsTrigger className="rounded-[8px] px-4 text-xs sm:text-sm font-medium font-poppins data-[state=active]:bg-[hsl(var(--chart-5))] data-[state=active]:text-white data-[state=active]:shadow-none" value="whatsapp-calls">WhatsApp Calls</TabsTrigger>
-              <TabsTrigger className="rounded-[8px] px-4 text-xs sm:text-sm font-medium font-poppins data-[state=active]:bg-[hsl(var(--chart-5))] data-[state=active]:text-white data-[state=active]:shadow-none" value="calls">Call History</TabsTrigger>
-              <TabsTrigger className="rounded-[8px] px-4 text-xs sm:text-sm font-medium font-poppins data-[state=active]:bg-[hsl(var(--chart-5))] data-[state=active]:text-white data-[state=active]:shadow-none" value="history">Ownership History</TabsTrigger>
+          <Tabs value={activityTab} onValueChange={setActivityTab}>
+            <TabsList className="mb-4 grid h-auto w-full grid-cols-5 gap-0 rounded-[10px] border border-border bg-card p-1">
+              {ACTIVITY_TABS.map(tab => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="relative isolate min-w-0 rounded-[8px] bg-transparent px-3 text-xs font-medium font-poppins shadow-none transition-colors data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none sm:text-sm"
+                >
+                  {activityTab === tab.value && (
+                    <motion.span
+                      layoutId="lead-activity-tab"
+                      className="absolute inset-0 -z-10 rounded-[8px] bg-[hsl(var(--chart-5))]"
+                      transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                    />
+                  )}
+                  <span className="truncate">{tab.label}</span>
+                </TabsTrigger>
+              ))}
             </TabsList>
 
             <TabsContent value="timeline" className="space-y-4">

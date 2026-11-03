@@ -30,8 +30,8 @@ export function InboxToolsPanel() {
   const delLabel = useMutation({ mutationFn: inboxApi.deleteLabel, onSuccess: refresh, onError });
 
   return (
-    <div className="grid lg:grid-cols-2 gap-4 items-start">
-      <WhatsAppSection title="Quick replies" description="Agents type / in a chat to insert these." icon={<Zap />}>
+    <div className="grid items-stretch gap-4 lg:grid-cols-2">
+      <WhatsAppSection className="h-full" title="Quick replies" description="Agents type / in a chat to insert these." icon={<Zap />}>
         <div className="space-y-2 mb-4">
           <Input className="rounded-[10px]" placeholder="Shortcut, e.g. pricing" value={shortcut} onChange={e => setShortcut(e.target.value)} />
           <Textarea rows={3} className="rounded-[10px]" placeholder="Message text" value={body} onChange={e => setBody(e.target.value)} />
@@ -49,7 +49,7 @@ export function InboxToolsPanel() {
         )}
       </WhatsAppSection>
 
-      <WhatsAppSection title="Labels" description="Tag conversations so your team can filter them." icon={<Tag />}>
+      <WhatsAppSection className="h-full" title="Labels" description="Tag conversations so your team can filter them." icon={<Tag />}>
         <div className="flex gap-2 mb-4">
           <Input className="rounded-[10px]" placeholder="Label name, e.g. Hot lead" value={label} onChange={e => setLabel(e.target.value)} />
           <input type="color" aria-label="Label colour" className="h-10 w-12 shrink-0 cursor-pointer rounded-[10px] border border-border bg-white p-1" value={color} onChange={e => setColor(e.target.value)} />

@@ -23,10 +23,14 @@ import { whatsAppFlowService } from '@/services/whatsAppFlowService';
 import { apiErrorMessage } from '@/lib/apiError';
 import { cn } from '@/lib/utils';
 
-const BADGE_TONE = { 'High Impact': 'text-[hsl(var(--chart-5))] bg-[hsl(var(--chart-5))]/10', Useful: 'text-blue-600 bg-blue-500/10', Essential: 'text-rose-600 bg-rose-500/10' } as const;
+const BADGE_TONE = {
+  'High Impact': 'text-[hsl(var(--chart-5))] bg-[hsl(var(--chart-5))]/10',
+  Useful: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10',
+  Essential: 'text-teal-600 dark:text-teal-400 bg-teal-500/10',
+} as const;
 const CATEGORY_BAR: Record<string, string> = {
-  'Real Estate': 'bg-blue-500', Healthcare: 'bg-rose-500', Education: 'bg-amber-500', Finance: 'bg-emerald-600', Beauty: 'bg-pink-500',
-  'Food & Beverage': 'bg-orange-500', Fitness: 'bg-lime-600', Travel: 'bg-sky-500', Automotive: 'bg-slate-600',
+  'Real Estate': 'bg-emerald-500', Healthcare: 'bg-teal-500', Education: 'bg-green-500', Finance: 'bg-emerald-600', Beauty: 'bg-teal-400',
+  'Food & Beverage': 'bg-green-600', Fitness: 'bg-lime-600', Travel: 'bg-emerald-400', Automotive: 'bg-teal-600',
 };
 const PAGE = 8;
 
@@ -94,7 +98,7 @@ export default function WhatsAppChatbotPage() {
             <WhatsAppSection title="Ready-made chatbots" description="Trigger-based chatbots you can switch on in minutes — then edit freely." icon={<Zap />}>
               <div className="flex flex-wrap gap-1.5 mb-4">
                 {categories.map(c => (
-                  <button key={c} onClick={() => { setCategory(c); setShown(PAGE); }} className={cn('rounded-full border px-3 py-1 text-xs font-poppins transition-colors', category === c ? 'bg-[hsl(var(--chart-5))] border-transparent text-white' : 'bg-white hover:bg-muted')}>{c}</button>
+                  <button key={c} onClick={() => { setCategory(c); setShown(PAGE); }} className={cn('rounded-full border px-3 py-1 text-xs font-poppins transition-colors', category === c ? 'bg-[hsl(var(--chart-5))] border-transparent text-white' : 'bg-card text-muted-foreground hover:bg-muted hover:text-foreground')}>{c}</button>
                 ))}
               </div>
               <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -106,7 +110,7 @@ export default function WhatsAppChatbotPage() {
                         <div><p className="text-sm font-medium font-poppins leading-snug">{b.name}</p><p className="text-[11px] text-muted-foreground">{b.category}</p></div>
                         <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium', BADGE_TONE[b.badge])}>{b.badge}</span>
                       </div>
-                      <StatusPill tone="info">Trigger-based</StatusPill>
+                      <StatusPill tone="success">Trigger-based</StatusPill>
                       <p className="text-xs text-muted-foreground leading-snug">{b.description}</p>
                       <div className="flex flex-wrap gap-1">{b.tags.map(t => <span key={t} className="rounded bg-muted px-1.5 py-0.5 text-[10px]">{t}</span>)}</div>
                       <p className="text-[11px] text-muted-foreground">Triggers: {b.triggerKeywords.map(k => `“${k}”`).join(', ')}</p>

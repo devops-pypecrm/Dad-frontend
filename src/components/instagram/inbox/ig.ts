@@ -1,12 +1,12 @@
 // Instagram look: colours and DM gradient used by the Instagram inbox.
 export const IG = {
   font: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-  text: '#262626',
-  sub: '#737373',
-  faint: '#8e8e8e',
-  line: '#dbdbdb',
-  soft: '#efefef',
-  panel: '#fafafa',
+  text: 'var(--ig-text)',
+  sub: 'var(--ig-sub)',
+  faint: 'var(--ig-faint)',
+  line: 'var(--ig-line)',
+  soft: 'var(--ig-soft)',
+  panel: 'var(--ig-panel)',
   blue: '#0095f6',
   blueDark: '#1877f2',
   red: '#ed4956',

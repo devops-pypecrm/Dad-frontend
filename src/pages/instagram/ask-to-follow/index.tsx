@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { InstagramPage } from '@/components/instagram/InstagramPage';
 import { InstagramConnectionGate } from '@/components/instagram/InstagramConnectionGate';
 import { IgAvatar } from '@/components/instagram/inbox/IgAvatar';
+import { IG } from '@/components/instagram/inbox/ig';
 import { EmptyState } from '@/components/WhatsApp/hub/EmptyRow';
 import { WhatsAppSection } from '@/components/WhatsApp/hub/WhatsAppSection';
 import { WA_CARD } from '@/components/WhatsApp/hub/whatsappStyles';
@@ -26,7 +27,7 @@ function PostsConnectPrompt() {
     <div className={cn(WA_CARD, 'relative min-h-[420px]')}>
       <div className="absolute inset-0 grid grid-cols-3 gap-1 p-1 opacity-60 blur-md">{Array.from({ length: 9 }).map((_, i) => <div key={i} className="rounded bg-gradient-to-br from-[#feda75]/60 via-[#d62976]/40 to-[#4f5bd5]/60" />)}</div>
       <div className="relative flex min-h-[420px] flex-col items-center justify-center gap-4 p-8 text-center">
-        <div className="max-w-sm rounded-[12px] bg-white/90 p-6 shadow-lg">
+        <div className="max-w-sm rounded-[12px] bg-card/90 p-6 shadow-lg">
           <p className="text-sm text-muted-foreground">Connect your Instagram account to see your posts here.</p>
           <button onClick={go} disabled={busy || !isAdmin(user)} className="mt-4 inline-flex items-center gap-2 rounded-[10px] bg-[#0095f6] hover:bg-[#1877f2] px-6 py-3 text-sm font-medium text-white shadow-md hover:opacity-90 disabled:opacity-50"><Instagram className="h-4 w-4" />{busy ? 'Opening Instagram…' : 'Connect Instagram Business'}</button>
           {!isAdmin(user) && <p className="mt-2 text-xs text-muted-foreground">Ask an organisation admin to connect the account.</p>}
@@ -49,7 +50,8 @@ export default function InstagramAskToFollow() {
   const remove = useMutation({ mutationFn: instagramGateApi.remove, onSuccess: () => { toast.success('Bot deleted'); refresh(); }, onError: e => toast.error(apiErrorMessage(e, 'Could not delete')) });
 
   const acct = overview?.account;
-  const stats = overview?.stats ?? { total: 0, active: 0, inactive: 0 };
+  const postCount = acct?.mediaCount ?? media.length;
+  const formatCount = (value: number | null | undefined) => value == null ? '—' : new Intl.NumberFormat().format(value);
 
   return (
     <InstagramPage
@@ -64,31 +66,31 @@ export default function InstagramAskToFollow() {
             </div>
             <div className="min-w-0 flex-1 space-y-4">
               <div className="flex flex-wrap items-center gap-3">
-                <h2 className="text-[20px] font-normal leading-6 text-[#262626]">{acct?.username}</h2>
+                <h2 className="text-[20px] font-normal leading-6" style={{ color: IG.text }}>{acct?.username}</h2>
                 <button disabled={!overview?.connected} onClick={() => navigate('/instagram/ask-to-follow/new')} className="rounded-lg bg-[#0095f6] px-4 py-1.5 text-[14px] font-semibold text-white hover:bg-[#1877f2] disabled:opacity-50">Create bot</button>
-                <button onClick={() => { refetch(); queryClient.invalidateQueries({ queryKey: ['instagram', 'gate', 'media'] }); }} aria-label="Refresh" className="rounded-lg bg-[#efefef] px-4 py-1.5 text-[14px] font-semibold text-[#262626] hover:bg-[#dbdbdb]"><RefreshCw className={cn('inline h-4 w-4', isFetching && 'animate-spin')} /></button>
+                <button onClick={() => { refetch(); queryClient.invalidateQueries({ queryKey: ['instagram', 'gate', 'media'] }); }} aria-label="Refresh" className="rounded-lg px-4 py-1.5 text-[14px] font-semibold hover:opacity-80" style={{ background: IG.soft, color: IG.text }}><RefreshCw className={cn('inline h-4 w-4', isFetching && 'animate-spin')} /></button>
               </div>
-              <ul className="hidden gap-10 text-[16px] text-[#262626] sm:flex">
-                <li><b className="font-semibold">{media.length}</b> posts</li>
-                <li><b className="font-semibold">{stats.active}</b> active bots</li>
-                <li><b className="font-semibold">{stats.inactive}</b> inactive</li>
+              <ul className="hidden gap-10 text-[16px] sm:flex" style={{ color: IG.text }}>
+                <li><b className="font-semibold">{formatCount(postCount)}</b> posts</li>
+                <li><b className="font-semibold">{formatCount(acct?.followersCount)}</b> followers</li>
+                <li><b className="font-semibold">{formatCount(acct?.followingCount)}</b> following</li>
               </ul>
-              <div className="text-[14px] leading-5 text-[#262626]">
+              <div className="text-[14px] leading-5" style={{ color: IG.text }}>
                 <p className="font-semibold">{acct?.name || acct?.username}</p>
-                <p className="text-[#737373]">Ask to follow</p>
+                {acct?.biography && <p className="whitespace-pre-line">{acct.biography}</p>}
                 <p>Auto-DM anyone who comments a keyword on your posts.</p>
               </div>
             </div>
           </header>
-          <ul className="flex justify-around border-t border-[#dbdbdb] py-3 text-center text-[14px] text-[#737373] sm:hidden">
-            <li><b className="block font-semibold text-[#262626]">{media.length}</b>posts</li>
-            <li><b className="block font-semibold text-[#262626]">{stats.active}</b>active</li>
-            <li><b className="block font-semibold text-[#262626]">{stats.inactive}</b>inactive</li>
+          <ul className="flex justify-around border-t py-3 text-center text-[14px] sm:hidden" style={{ borderColor: IG.line, color: IG.sub }}>
+            <li><b className="block font-semibold" style={{ color: IG.text }}>{formatCount(postCount)}</b>posts</li>
+            <li><b className="block font-semibold" style={{ color: IG.text }}>{formatCount(acct?.followersCount)}</b>followers</li>
+            <li><b className="block font-semibold" style={{ color: IG.text }}>{formatCount(acct?.followingCount)}</b>following</li>
           </ul>
 
-          <div className="flex justify-center gap-14 border-t border-[#dbdbdb]">
+          <div className="flex justify-center gap-14 border-t" style={{ borderColor: IG.line }}>
             {([['posts', 'Posts', Grid3x3], ['bots', 'Bots', UserPlus]] as const).map(([k, label, Icon]) => (
-              <button key={k} onClick={() => setTab(k)} className={cn('-mt-px flex items-center gap-1.5 border-t py-4 text-[12px] font-semibold uppercase tracking-[1px]', tab === k ? 'border-[#262626] text-[#262626]' : 'border-transparent text-[#8e8e8e]')}><Icon className="h-3 w-3" />{label}</button>
+              <button key={k} onClick={() => setTab(k)} className="-mt-px flex items-center gap-1.5 border-t py-4 text-[12px] font-semibold uppercase tracking-[1px]" style={{ borderColor: tab === k ? IG.text : 'transparent', color: tab === k ? IG.text : IG.faint }}><Icon className="h-3 w-3" />{label}</button>
             ))}
           </div>
 

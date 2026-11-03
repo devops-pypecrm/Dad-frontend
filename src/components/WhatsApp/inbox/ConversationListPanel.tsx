@@ -52,7 +52,7 @@ export function ConversationListPanel({ selectedId, onSelect, onNewChat }: Props
   const conversations = status === 'active' ? all.filter(c => c.status !== 'resolved') : all;
 
   return (
-    <div className="flex h-full flex-col bg-white" style={{ fontFamily: WA.font }}>
+    <div className="flex h-full flex-col bg-card" style={{ fontFamily: WA.font }}>
       {/* header */}
       <div className="flex h-[59px] shrink-0 items-center justify-between px-4" style={{ background: WA.header }}>
         <div className="flex min-w-0 items-center gap-3">

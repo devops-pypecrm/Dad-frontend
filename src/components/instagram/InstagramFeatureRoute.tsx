@@ -11,7 +11,7 @@ export function InstagramFeatureRoute() {
   useBodyClass('ig-theme'); // Instagram look for every /instagram/* page, dialog and dropdown
   if (enabled) return <Outlet />;
   return (
-    <div className="bg-white p-6 animate-in fade-in duration-500">
+    <div className="bg-background p-6 text-foreground animate-in fade-in duration-500">
       <div className={`${WA_CARD} mx-auto mt-10 max-w-lg p-10 text-center`}>
         <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[hsl(var(--chart-5))]/10"><Lock className="h-7 w-7 text-[hsl(var(--chart-5))]" /></div>
         <h1 className="text-xl font-medium tracking-tight text-black">Instagram is not enabled</h1>

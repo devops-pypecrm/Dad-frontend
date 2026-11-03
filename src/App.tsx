@@ -18,6 +18,7 @@ import DailySummaryView from './pages/public/DailySummaryView';
 import { PageLoader } from './components/ui/page-loader';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { Toaster } from 'sonner'; 
+import { ThemeProvider, useTheme } from 'next-themes';
 import { SocketProvider } from './contexts/SocketContext';
 import { CurrencyProvider } from './contexts/CurrencyContext';
 import SSOCallback from './pages/SSOCallback';
@@ -517,25 +518,33 @@ function AppContent() {
 
 import { HelmetProvider } from 'react-helmet-async';
 
+function ThemedToaster() {
+ const { resolvedTheme } = useTheme();
+ return (
+  <Toaster
+   theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
+   position="bottom-right"
+   expand={true}
+   richColors
+   closeButton
+   duration={4000}
+   toastOptions={{ style: { borderRadius: '12px' } }}
+  />
+ );
+}
+
 function App() {
  return (
-  <HelmetProvider>
-   <CurrencyProvider>
-    <QueryClientProvider client={queryClient}>
-     <AppContent />
-     <Toaster
-      position="bottom-right"
-      expand={true}
-      richColors
-      closeButton
-      duration={4000}
-      toastOptions={{
-       style: { borderRadius: '12px' },
-      }}
-     />
-    </QueryClientProvider>
-   </CurrencyProvider>
-  </HelmetProvider>
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+   <HelmetProvider>
+    <CurrencyProvider>
+     <QueryClientProvider client={queryClient}>
+      <AppContent />
+      <ThemedToaster />
+     </QueryClientProvider>
+    </CurrencyProvider>
+   </HelmetProvider>
+  </ThemeProvider>
  );
 }
 

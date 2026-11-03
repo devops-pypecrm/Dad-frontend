@@ -76,12 +76,12 @@ export default function SMSCampaignsPage() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">SMS Campaigns</h1>
-          <p className="text-gray-500 mt-1">Manage and track your text message marketing campaigns.</p>
+          <h1 className="text-3xl font-bold text-foreground">SMS Campaigns</h1>
+          <p className="text-muted-foreground mt-1">Manage and track your text message marketing campaigns.</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25 rounded-xl">
+            <Button className="rounded-xl bg-[hsl(var(--chart-5))] text-white shadow-lg shadow-[hsl(var(--chart-5))]/20 hover:bg-[hsl(var(--chart-5))]/90">
               <Plus className="h-4 w-4 mr-2" />
               New Campaign
             </Button>
@@ -174,7 +174,7 @@ export default function SMSCampaignsPage() {
                             item.status === 'sent' ? 'default' :
                               item.status === 'scheduled' ? 'secondary' : 'outline'
                           }
-                          className={item.status === 'sent' ? 'bg-indigo-600' : ''}
+                          className={item.status === 'sent' ? 'bg-[hsl(var(--chart-5))] text-white' : ''}
                         >
                           {item.status}
                         </Badge>

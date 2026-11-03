@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Instagram, Unplug } from 'lucide-react';
+import { Send, Unplug } from 'lucide-react';
 import { toast } from 'sonner';
 import { InstagramPage } from '@/components/instagram/InstagramPage';
 import { InstagramConnectionGate } from '@/components/instagram/InstagramConnectionGate';
@@ -40,17 +40,17 @@ export default function InstagramSharedInbox() {
     >
       <InstagramConnectionGate returnPath="/instagram/inbox">
         <div className="flex min-h-0 flex-1">
-          <div style={{ borderColor: IG.line }} className={cn('w-full shrink-0 flex-col border-r bg-white md:w-[340px] lg:w-[400px]', selectedId ? 'hidden md:flex' : 'flex')}>
+          <div style={{ borderColor: IG.line }} className={cn('w-full shrink-0 flex-col border-r bg-background md:w-[360px] lg:w-[397px]', selectedId ? 'hidden md:flex' : 'flex')}>
             <IgConversationList selectedId={selectedId} onSelect={c => setSelectedId(c.id)} />
           </div>
           <div className={cn('flex-1 min-w-0 flex-col', !selectedId ? 'hidden md:flex' : 'flex')}>
             {selectedId ? (
               <IgThread key={selectedId} conversationId={selectedId} onBack={() => setSelectedId(null)} detailsOpen={detailsOpen} onToggleDetails={() => setDetailsOpen(o => !o)} />
             ) : (
-              <div className="flex flex-1 flex-col items-center justify-center bg-white p-8 text-center">
-                <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full border-2 text-[#262626]"><Instagram className="h-11 w-11" style={{ color: IG.text }} /></div>
-                <h3 className="mb-1 text-[20px] font-semibold" style={{ color: IG.text }}>Your messages</h3>
-                <p className="max-w-sm text-[14px]" style={{ color: IG.sub }}>Select a conversation to read and reply. New DMs appear here instantly.</p>
+              <div className="flex flex-1 flex-col items-center justify-center bg-background p-8 text-center" style={{ fontFamily: IG.font }}>
+                <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full border-2" style={{ borderColor: IG.text, color: IG.text }}><Send className="h-10 w-10 -rotate-12" strokeWidth={1.5} /></div>
+                <h3 className="mb-1 text-[20px] font-normal" style={{ color: IG.text }}>Your messages</h3>
+                <p className="max-w-sm text-[14px] leading-5" style={{ color: IG.sub }}>Send private photos and messages to a friend or group.</p>
               </div>
             )}
           </div>

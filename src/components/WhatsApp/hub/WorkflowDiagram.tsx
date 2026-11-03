@@ -6,8 +6,8 @@ export interface DiagramStep { icon: ReactNode; title: string; detail?: string; 
 
 const TONE = {
   green: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-  blue: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-  amber: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+  blue: 'bg-[hsl(var(--chart-5))]/10 text-[hsl(var(--chart-5))] border-[hsl(var(--chart-5))]/25',
+  amber: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/25',
   red: 'bg-destructive/10 text-destructive border-destructive/20',
   muted: 'bg-muted text-muted-foreground border-border',
 };

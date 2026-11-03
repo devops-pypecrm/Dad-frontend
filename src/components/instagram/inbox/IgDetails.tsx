@@ -25,7 +25,7 @@ export function IgDetails({ conversationId }: { conversationId: string }) {
   const addLabel = () => { if (!label.trim()) return; setLabels.mutate([...convo.labels, label.trim()]); setLabel(''); };
 
   return (
-    <div className="h-full space-y-6 overflow-y-auto bg-white p-5" style={{ fontFamily: IG.font }}>
+    <div className="scrollbar-hide h-full space-y-6 overflow-y-auto bg-background p-5" style={{ fontFamily: IG.font }}>
       <h2 className="text-[16px] font-semibold" style={{ color: IG.text }}>Details</h2>
       <section className="flex flex-col items-center gap-1 text-center">
         <IgAvatar src={convo.profilePicUrl} name={name} className="h-20 w-20" />
