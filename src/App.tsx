@@ -99,6 +99,7 @@ const TerritoriesSettingsPage = lazy(() => import('./pages/settings/territories'
 const SuperAdminDashboard = lazy(() => import('./pages/super-admin'));
 const OrganisationDetailPage = lazy(() => import('./pages/super-admin/organisation/[id]'));
 const SeoSettingsPage = lazy(() => import('./pages/super-admin/seo'));
+const SuperAdminBillingPage = lazy(() => import('./pages/super-admin/billing'));
 const SuperAdminRestorePage = lazy(() => import('./pages/super-admin/restore'));
 const OrganisationSettingsPage = lazy(() => import('./pages/settings/organisation'));
 const LeadScoringSettingsPage = lazy(() => import('./pages/settings/lead-scoring'));
@@ -471,6 +472,7 @@ function AppContent() {
        <Route path="/super-admin" element={<SuperAdminDashboard />} />
        <Route path="/super-admin/organisation/:id" element={<OrganisationDetailPage />} />
        <Route path="/super-admin/seo" element={<SeoSettingsPage />} />
+       <Route path="/super-admin/billing" element={<SuperAdminBillingPage />} />
        <Route path="/super-admin/restore" element={<SuperAdminRestorePage />} />
        <Route path="/super-admin/issues" element={<SuperAdminIssuesPage />} />
        <Route path="/super-admin/enquiries" element={<SuperAdminEnquiriesPage />} />

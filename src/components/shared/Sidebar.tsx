@@ -52,7 +52,8 @@ import {
   ToggleRight,
   Instagram as InstagramIcon,
   UserPlus as UserPlusIcon,
-  History
+  History,
+  Receipt
 } from "lucide-react";
 import { WhatsAppLogo } from "@/components/icons/BrandLogos";
 import Logo from "./Logo";
@@ -379,6 +380,14 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
               )}>
                 <ToggleRight className={cn("h-5 w-5 shrink-0 transition-colors stroke-[1.75]", location.search.includes('tab=features') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>Feature Settings</span>}
+              </Link>
+              <Link to="/super-admin/billing" className={cn(
+                "group flex items-center gap-3 rounded-[10px] px-4 py-3 text-sm font-medium transition-all duration-200",
+                pathname.startsWith('/super-admin/billing') ? "bg-sidebar-active text-white" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
+              )}>
+                <Receipt className={cn("h-5 w-5 shrink-0 transition-colors stroke-[1.75]", pathname.startsWith('/super-admin/billing') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                {!isCollapsed && <span>Billing</span>}
               </Link>
               <Link to="/super-admin/seo" className={cn(
                 "group flex items-center gap-3 rounded-[10px] px-4 py-3 text-sm font-medium transition-all duration-200",
