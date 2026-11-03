@@ -196,6 +196,30 @@ export const getLeadTransferLog = async (params?: LeadTransferLogParams) => {
     return response.data;
 };
 
+export interface ReEnquiryEvent {
+    eventIndex: number;
+    date: string;
+    name: string | null;
+    phone: string | null;
+    email: string | null;
+    source: string | null;
+    details: Record<string, any> | null;
+    hasFullSnapshot: boolean;
+    alreadySplitLeadId: string | null;
+}
+export interface ReEnquiryHistory {
+    leadId: string;
+    currentName: string;
+    currentPhone: string;
+    currentEmail?: string | null;
+    reEnquiryCount: number;
+    events: ReEnquiryEvent[];
+}
+export const getReEnquiryHistory = async (leadId: string): Promise<ReEnquiryHistory> => {
+    const response = await api.get(`/leads/${leadId}/re-enquiry-history`);
+    return response.data;
+};
+
 export const getReEnquiryLeads = async () => {
     const response = await api.get('/leads/re-enquiries');
     return response.data;

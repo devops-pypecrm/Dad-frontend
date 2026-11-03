@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select"
 import { DateRangeDropdown, type DateRangeValue } from "@/components/dashboard-v2/DateRangeDropdown"
 import { NameCell } from "@/pages/leads/NameCell"
+import { ReEnquiryDetailDialog, sourceLabel } from "./ReEnquiryDetailDialog"
 import { FILTER_CARD_CLASS, FILTER_ICON_CLASS, FILTER_LABEL_CLASS, FILTER_TRIGGER_CLASS } from "@/pages/leads/filterStyles"
 import {
   RefreshCw,
@@ -27,6 +28,7 @@ import {
   X,
   ShieldAlert,
   MapPin,
+  Megaphone,
 } from "lucide-react"
 import { isManager, getUserInfo } from "@/lib/utils"
 
@@ -46,6 +48,7 @@ export default function ReEnquiriesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [dateRange, setDateRange] = useState<DateRangeValue>({ period: "allTime" })
   const [sortBy, setSortBy] = useState<SortOption>("recent")
+  const [detailLead, setDetailLead] = useState<Lead | null>(null)
   const [user] = useState(() => getUserInfo())
   const hasAccess = isManager(user)
 
@@ -272,7 +275,7 @@ export default function ReEnquiriesPage() {
             return (
               <div
                 key={lead.id}
-                onClick={() => navigate(`/leads/${lead.id}`)}
+                onClick={() => setDetailLead(lead)}
                 className="group relative flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 rounded-[10px] border border-border bg-card overflow-hidden px-4 py-3.5 cursor-pointer hover:border-[hsl(var(--chart-5))]/30 hover:bg-[hsl(var(--chart-5))]/[0.03] transition-colors"
               >
                 <span className={`absolute top-0 left-0 bottom-0 w-1 ${urgency.bar}`} />
@@ -306,6 +309,15 @@ export default function ReEnquiriesPage() {
                       {lead.country}
                     </span>
                   )}
+                  {(() => {
+                    const evs: any[] = (lead.sourceDetails as any)?.reEnquiries || []
+                    const last = evs[evs.length - 1]
+                    return last?.source ? (
+                      <span className="flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-2 py-0.5 text-[11px] font-semibold">
+                        <Megaphone className="h-3 w-3" />Latest via {sourceLabel(last.source, last.details)}
+                      </span>
+                    ) : null
+                  })()}
                   {lead.assignedTo && (
                     <span className="flex items-center gap-1.5">
                       <span className="text-muted-foreground">Owner:</span>
@@ -331,6 +343,7 @@ export default function ReEnquiriesPage() {
           })}
         </div>
       )}
+      <ReEnquiryDetailDialog lead={detailLead} onClose={() => setDetailLead(null)} />
     </div>
   )
 }
