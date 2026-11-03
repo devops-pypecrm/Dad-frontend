@@ -38,7 +38,10 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog"
-import { formatCurrency, formatRoleName } from '@/lib/utils'
+import { formatRoleName } from '@/lib/utils'
+
+// Platform billing is always in rupees (the old shared formatter fell back to the viewer's org currency, showing $)
+const formatCurrency = (v: number, _currency?: string) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(v || 0)
 import { formatIST } from '@/lib/dateUtils'
 import { AssignPlanDialog } from '@/components/super-admin/AssignPlanDialog'
 import { EditOrganisationDialog } from '@/components/super-admin/EditOrganisationDialog'
