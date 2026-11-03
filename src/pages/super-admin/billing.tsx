@@ -15,6 +15,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { billingApi, type BillingInvoice, type BillingOrg } from '@/services/superAdminBillingService'
 import { InvoiceView } from './InvoiceView'
 
+/** Prints only the invoice, from an isolated iframe (printing the page itself clipped everything below the header inside the dialog). */
+function printInvoice(title?: string) {
+  const el = document.getElementById('invoice-print')
+  if (!el) return
+  const iframe = document.createElement('iframe')
+  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0'
+  document.body.appendChild(iframe)
+  const doc = iframe.contentDocument!
+  const clone = el.cloneNode(true) as HTMLElement
+  clone.querySelectorAll('style').forEach((n) => n.remove())
+  clone.style.maxWidth = 'none'
+  clone.style.padding = '0'
+  doc.open()
+  doc.write(`<!doctype html><html><head><meta charset="utf-8"><title>${title || 'Invoice'}</title><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}html,body{margin:0;background:#fff}@page{size:A4;margin:12mm}</style></head><body>${clone.outerHTML}</body></html>`)
+  doc.close()
+  const go = () => { iframe.contentWindow?.focus(); iframe.contentWindow?.print(); setTimeout(() => iframe.remove(), 2000) }
+  setTimeout(go, 600)
+}
+
 const inr = (v: number) => `₹${Math.round(v).toLocaleString('en-IN')}`
 const fmtDate = (v: string) => new Date(v).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })
 const periodLabel = (i: BillingInvoice) => (i.months === 1 ? i.lines[0]?.label : `${i.lines[0]?.label} – ${i.lines[i.lines.length - 1]?.label}`)
@@ -202,7 +221,7 @@ function InvoiceDialog({ id, onClose, onChanged }: { id: string | null; onClose:
           <DialogTitle className="text-base">{inv?.invoiceNumber || 'Invoice'}</DialogTitle>
           <div className="flex gap-2 mr-8">
             {inv && <Button size="sm" variant="outline" onClick={() => m.mutate(inv.status === 'paid' ? 'pending' : 'paid')}>{inv.status === 'paid' ? 'Mark pending' : 'Mark paid'}</Button>}
-            <Button size="sm" onClick={() => window.print()}><Printer className="h-4 w-4 mr-1" />Print / PDF</Button>
+            <Button size="sm" onClick={() => printInvoice(inv?.invoiceNumber)}><Printer className="h-4 w-4 mr-1" />Print / PDF</Button>
           </div>
         </div>
         {inv ? <InvoiceView invoice={inv} /> : <div className="p-10 text-center text-muted-foreground">Loading…</div>}
