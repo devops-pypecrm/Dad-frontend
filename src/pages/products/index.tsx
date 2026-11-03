@@ -33,10 +33,20 @@ import { FILTER_CARD_CLASS, FILTER_ICON_CLASS, FILTER_LABEL_CLASS, FILTER_TRIGGE
 
 type StatusFilter = "all" | "active" | "inactive"
 
+const PRODUCT_CURRENCIES = ["USD","INR","AED","EUR","GBP","SAR","QAR","KWD","OMR","BHD","SGD","MYR","AUD","CAD","NZD","CHF","JPY","CNY","HKD","ZAR","NGN","KES","LKR","BDT","PKR","NPR","PHP","IDR","THB","TRY"]
+
+function CurrencySelect({ defaultValue }: { defaultValue: string }) {
+  return (
+    <select name="currency" defaultValue={defaultValue} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+      {PRODUCT_CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+    </select>
+  )
+}
+
 export default function ProductsPage() {
   const user = getUserInfo();
   const orgAdmin = isOrgAdmin(user);
-  const { formatCurrency } = useCurrency()
+  const { formatCurrency, currency } = useCurrency()
   const queryClient = useQueryClient()
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -177,6 +187,7 @@ export default function ProductsPage() {
       name: formData.get('name') as string,
       sku: formData.get('sku') as string || undefined,
       basePrice: parseFloat(formData.get('basePrice') as string) || 0,
+      currency: (formData.get('currency') as string) || undefined,
       category: formData.get('category') as string || undefined,
       description: formData.get('description') as string || undefined,
       isCustom: formData.get('isCustom') === 'on',
@@ -212,6 +223,7 @@ export default function ProductsPage() {
       name: formData.get('name') as string,
       sku: formData.get('sku') as string || undefined,
       basePrice: parseFloat(formData.get('basePrice') as string) || 0,
+      currency: (formData.get('currency') as string) || undefined,
       category: formData.get('category') as string || undefined,
       description: formData.get('description') as string || undefined,
       isCustom: formData.get('isCustom') === 'on',
@@ -381,7 +393,10 @@ export default function ProductsPage() {
                     <div><Label>Name</Label><Input name="name" required /></div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div><Label>SKU</Label><Input name="sku" placeholder="Optional" /></div>
-                      <div><Label>Price</Label><Input name="basePrice" type="number" step="0.01" required /></div>
+                      <div className="grid grid-cols-[1fr_96px] gap-2">
+                        <div><Label>Price</Label><Input name="basePrice" type="number" step="0.01" required /></div>
+                        <div><Label>Currency</Label><CurrencySelect defaultValue={currency} /></div>
+                      </div>
                     </div>
                     <div><Label>Category</Label><Input name="category" /></div>
                     <div><Label>Description</Label><Input name="description" /></div>
@@ -432,7 +447,10 @@ export default function ProductsPage() {
                   <div><Label>Name</Label><Input name="name" defaultValue={editingProduct?.name} required /></div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div><Label>SKU</Label><Input name="sku" defaultValue={editingProduct?.sku} placeholder="Optional" /></div>
-                    <div><Label>Price</Label><Input name="basePrice" type="number" step="0.01" defaultValue={editingProduct?.basePrice} required /></div>
+                    <div className="grid grid-cols-[1fr_96px] gap-2">
+                      <div><Label>Price</Label><Input name="basePrice" type="number" step="0.01" defaultValue={editingProduct?.originalPrice ?? editingProduct?.basePrice} required /></div>
+                      <div><Label>Currency</Label><CurrencySelect key={editingProduct?.id} defaultValue={editingProduct?.currency || currency} /></div>
+                    </div>
                   </div>
                   <div><Label>Category</Label><Input name="category" defaultValue={editingProduct?.category} /></div>
                   <div><Label>Description</Label><Input name="description" defaultValue={editingProduct?.description} /></div>

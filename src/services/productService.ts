@@ -6,6 +6,7 @@ export interface Product {
     sku?: string;
     description?: string;
     basePrice: number;
+    originalPrice?: number; // price as entered, in the product's own currency
     currency: string;
     taxRate: number;
     category?: string;
