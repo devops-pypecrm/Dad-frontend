@@ -16,7 +16,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { setGlobalCurrency } from "@/lib/utils"
+import { setGlobalCurrency, getAssetUrl } from "@/lib/utils"
+import { uploadImage } from "@/services/settingsService"
+import { ImagePlus, Trash2, Loader2 } from "lucide-react"
 import { useCurrency } from "@/contexts/CurrencyContext"
 
 interface UpsellConfig {
@@ -60,6 +62,26 @@ export default function OrganisationSettingsPage() {
   })
 
   const profileFormRef = useRef<HTMLFormElement>(null)
+  const logoInputRef = useRef<HTMLInputElement>(null)
+  const [logoUploading, setLogoUploading] = useState(false)
+
+  const handleLogoSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    if (!file.type.startsWith('image/')) { toast.error('Please choose an image file (PNG, JPG, SVG or WebP)'); return }
+    if (file.size > 5 * 1024 * 1024) { toast.error('Logo must be smaller than 5 MB'); return }
+    setLogoUploading(true)
+    try {
+      const uploaded = await uploadImage(file)
+      await updateMutation.mutateAsync({ logo: uploaded.url })
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } }
+      toast.error(error.response?.data?.message || 'Failed to upload logo')
+    } finally {
+      setLogoUploading(false)
+    }
+  }
   const [isSendingTest, setIsSendingTest] = useState(false)
 
   const buildProfilePayload = (form: HTMLFormElement) => {
@@ -108,6 +130,39 @@ export default function OrganisationSettingsPage() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Organisation Settings</h1>
           <p className="text-gray-500">Manage your company profile.</p>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Company Logo</CardTitle>
+            <CardDescription>Shown at the top of every product page you share with customers.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+              <div className="h-24 w-48 rounded-xl border border-dashed border-border bg-muted/30 flex items-center justify-center overflow-hidden shrink-0">
+                {org?.logo ? (
+                  <img src={getAssetUrl(org.logo)} alt={`${org?.name || 'Company'} logo`} className="max-h-full max-w-full object-contain p-2" />
+                ) : (
+                  <span className="text-xs text-muted-foreground">No logo uploaded</span>
+                )}
+              </div>
+              <div className="space-y-2">
+                <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoSelected} />
+                <div className="flex flex-wrap gap-2">
+                  <Button type="button" variant="outline" disabled={logoUploading} onClick={() => logoInputRef.current?.click()}>
+                    {logoUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImagePlus className="mr-2 h-4 w-4" />}
+                    {org?.logo ? 'Change logo' : 'Upload logo'}
+                  </Button>
+                  {org?.logo && (
+                    <Button type="button" variant="ghost" disabled={logoUploading || updateMutation.isPending} onClick={() => updateMutation.mutate({ logo: null })}>
+                      <Trash2 className="mr-2 h-4 w-4" /> Remove
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">PNG, JPG, SVG or WebP, up to 5 MB. A transparent PNG on a wide canvas works best.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
