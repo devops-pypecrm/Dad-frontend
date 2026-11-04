@@ -23,7 +23,7 @@ export default function PrivacyPolicy() {
               Privacy Policy - Pype CRM
             </h1>
             <p className="text-gray-500 dark:text-gray-400 text-lg">
-              Last Updated: February 8, 2026
+              Last Updated: November 4, 2026
             </p>
           </div>
 
@@ -71,6 +71,27 @@ export default function PrivacyPolicy() {
               </ul>
             </section>
 
+            <section>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <Lock className="h-6 w-6 text-blue-600" />
+                The Pype CRM mobile app (Android)
+              </h2>
+              <p className="mb-4">
+                Pype CRM is provided by Prohostix LLP. The Pype CRM mobile app is a companion to the web CRM: accounts are created by your organisation's administrator, and you sign in with the email and password you were given. There is no advertising and no third-party analytics or tracking in the app. What the app handles, and why:
+              </p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li><strong>Account and CRM data</strong> — your name, email, role, and the leads, contacts, accounts, opportunities, follow-ups, quotes and notes your organisation manages in Pype CRM. It is shown to you and sent to our servers over HTTPS. Your organisation's administrators can see data entered by users in that organisation.</li>
+                <li><strong>Sign-in token</strong> — after you sign in, a session token is kept in the phone's secure storage so you stay signed in. Signing out removes it.</li>
+                <li><strong>Location</strong> — only when you tap Check-in (field visits), the app reads the phone's precise location once and sends it with the check-in. The app does not track your location in the background.</li>
+                <li><strong>Camera and photos</strong> — only when you choose to take or attach a photo (for example a check-in photo or profile picture). The photo is uploaded to our servers.</li>
+                <li><strong>Device information and push notifications</strong> — the app registers a push token and basic device details (model and a device identifier) so we can deliver notifications (for example "a lead was assigned to you") to the phones you are signed in on, and so you can see and sign out your devices. Notification delivery uses Google Firebase Cloud Messaging, which receives the token and the notification text.</li>
+                <li><strong>On-device storage</strong> — some data is cached on the phone to make the app faster; signing out clears the sign-in state.</li>
+                <li><strong>Phone, WhatsApp and email</strong> — tapping a call, WhatsApp or email button opens the corresponding app on your phone. The app does not read your call log, SMS or contacts.</li>
+              </ul>
+              <p className="mt-4">
+                We do not sell personal data. Data is shared only with your organisation's Pype CRM users according to their roles, and with the service providers needed to run the product (hosting, Google Firebase Cloud Messaging for push notifications). Data is kept while your organisation's account is active and removed on a valid deletion request as described below. The app is intended for working adults and is not directed at children.
+              </p>
+            </section>
             <section>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <Shield className="h-6 w-6 text-blue-600" />
