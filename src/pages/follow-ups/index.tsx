@@ -309,12 +309,12 @@ export default function FollowUpsPage() {
   }
 
   return (
-    <div className="bg-white min-h-screen p-4 sm:p-8 space-y-6 animate-in fade-in duration-300 font-poppins">
+    <div className="min-h-screen space-y-6 bg-background p-4 font-poppins animate-in fade-in duration-300 sm:p-8">
       {/* ── Page Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border/40">
         <div>
           <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
               <Calendar className="h-5 w-5" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
@@ -346,14 +346,14 @@ export default function FollowUpsPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <div
           className={cn(
-            "cursor-pointer rounded-[14px] border border-border/60 bg-card p-4 sm:p-5 shadow-xs transition-all hover:border-border hover:-translate-y-0.5 active:scale-95",
-            !filterParam && "ring-2 ring-primary/60",
+            "cursor-pointer rounded-[14px] border border-border/60 bg-card p-4 shadow-xs transition-colors hover:border-border sm:p-5",
+            !filterParam && "border-foreground/30 bg-muted/30",
           )}
           onClick={() => navigate("/follow-ups")}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Active</span>
-            <div className="h-8 w-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
               <Calendar className="h-4 w-4" />
             </div>
           </div>
@@ -365,59 +365,59 @@ export default function FollowUpsPage() {
 
         <div
           className={cn(
-            "cursor-pointer rounded-[14px] border border-destructive/20 bg-destructive/5 p-4 sm:p-5 shadow-xs transition-all hover:border-destructive/30 hover:-translate-y-0.5 active:scale-95",
-            filterParam === "overdue" && "ring-2 ring-destructive/60",
+            "cursor-pointer rounded-[14px] border border-border/60 bg-card p-4 shadow-xs transition-colors hover:border-border sm:p-5",
+            filterParam === "overdue" && "border-foreground/30 bg-muted/30",
           )}
           onClick={() => navigate("/follow-ups?filter=overdue")}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-destructive uppercase tracking-wider">Overdue</span>
-            <div className="h-8 w-8 rounded-[10px] bg-destructive/15 text-destructive flex items-center justify-center">
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Overdue</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
               <Clock className="h-4 w-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight text-destructive">
+          <div className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {overdueCount}
           </div>
-          <p className="text-[11px] text-destructive/80 mt-1">Past due date</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">Past due date</p>
         </div>
 
         <div
           className={cn(
-            "cursor-pointer rounded-[14px] border border-amber-500/20 bg-amber-500/5 p-4 sm:p-5 shadow-xs transition-all hover:border-amber-500/30 hover:-translate-y-0.5 active:scale-95",
-            filterParam === "today" && "ring-2 ring-amber-500/60",
+            "cursor-pointer rounded-[14px] border border-border/60 bg-card p-4 shadow-xs transition-colors hover:border-border sm:p-5",
+            filterParam === "today" && "border-foreground/30 bg-muted/30",
           )}
           onClick={() => navigate("/follow-ups?filter=today")}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-amber-700 dark:text-amber-400 uppercase tracking-wider">Today</span>
-            <div className="h-8 w-8 rounded-[10px] bg-amber-500/15 text-amber-600 flex items-center justify-center">
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Today</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
               <Calendar className="h-4 w-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight text-amber-700 dark:text-amber-400">
+          <div className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {todayCount}
           </div>
-          <p className="text-[11px] text-amber-600/80 mt-1">Due today</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">Due today</p>
         </div>
 
         <div
           className={cn(
-            "cursor-pointer rounded-[14px] border border-emerald-500/20 bg-emerald-500/5 p-4 sm:p-5 shadow-xs transition-all hover:border-emerald-500/30 hover:-translate-y-0.5 active:scale-95",
-            filterParam === "upcoming" && "ring-2 ring-emerald-500/60",
+            "cursor-pointer rounded-[14px] border border-border/60 bg-card p-4 shadow-xs transition-colors hover:border-border sm:p-5",
+            filterParam === "upcoming" && "border-foreground/30 bg-muted/30",
           )}
           onClick={() => navigate("/follow-ups?filter=upcoming")}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Upcoming</span>
-            <div className="h-8 w-8 rounded-[10px] bg-emerald-500/15 text-emerald-600 flex items-center justify-center">
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Upcoming</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
               <Calendar className="h-4 w-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight text-emerald-700 dark:text-emerald-400">
+          <div className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {upcomingCount}
           </div>
-          <p className="text-[11px] text-emerald-600/80 mt-1">Future</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">Future</p>
         </div>
       </div>
 

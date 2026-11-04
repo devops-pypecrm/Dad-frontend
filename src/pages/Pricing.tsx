@@ -19,12 +19,12 @@ export default function Pricing() {
       <PageTransition><main>
         <section className="px-6 pb-4 pt-32 text-center sm:px-8 md:pt-40">
           <div className="mx-auto max-w-3xl">
-            <p className="mb-4 text-sm font-bold uppercase tracking-[0.2em] text-brand-600">Simple pricing</p>
+            <p className="mb-4 text-sm font-bold uppercase tracking-[0.2em] text-brand-600">Simple per-user pricing</p>
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
-              A plan that grows with your team
+              Enterprise CRM without enterprise complexity
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-600 dark:text-gray-300">
-              Start with the tools you need today and scale your CRM as your sales operation grows.
+              Every billing option includes the complete feature set. Choose the term that works for your team and start with a 14-day free trial.
             </p>
           </div>
         </section>

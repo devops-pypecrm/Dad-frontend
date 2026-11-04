@@ -167,12 +167,12 @@ export default function CallsPage() {
   };
 
   return (
-    <div className="bg-white min-h-screen p-4 sm:p-8 space-y-6 animate-in fade-in duration-300 font-poppins">
+    <div className="min-h-screen space-y-6 bg-background p-4 font-poppins animate-in fade-in duration-300 sm:p-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-border/40">
         <div>
           <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
               <Phone className="h-5 w-5" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
@@ -188,7 +188,7 @@ export default function CallsPage() {
           <DateRangeDropdown
             value={range}
             onChange={setRange}
-            variant="accent"
+            variant="default"
             presets={['today', 'yesterday', 'week', 'thisMonth', 'lastMonth', 'custom', 'allTime']}
           />
           {userIsAdmin && (
@@ -207,7 +207,7 @@ export default function CallsPage() {
         <div className="rounded-[14px] border border-border/60 bg-card p-4 sm:p-5 shadow-xs transition-all hover:border-border">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Calls</span>
-            <div className="h-8 w-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
               <Phone className="h-4 w-4" />
             </div>
           </div>
@@ -220,7 +220,7 @@ export default function CallsPage() {
         <div className="rounded-[14px] border border-border/60 bg-card p-4 sm:p-5 shadow-xs transition-all hover:border-border">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Avg Duration</span>
-            <div className="h-8 w-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
               <Clock className="h-4 w-4" />
             </div>
           </div>
@@ -230,32 +230,32 @@ export default function CallsPage() {
           <p className="text-[11px] text-muted-foreground mt-1">minutes:seconds</p>
         </div>
 
-        <div className="rounded-[14px] border border-destructive/20 bg-destructive/5 p-4 sm:p-5 shadow-xs transition-all hover:border-destructive/30">
+        <div className="rounded-[14px] border border-border/60 bg-card p-4 shadow-xs transition-colors hover:border-border sm:p-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-destructive uppercase tracking-wider">Missed Calls</span>
-            <div className="h-8 w-8 rounded-[10px] bg-destructive/15 text-destructive flex items-center justify-center">
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Missed Calls</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
               <PhoneMissed className="h-4 w-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight text-destructive">
+          <div className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {stats?.missedCalls ?? '-'}
           </div>
-          <p className="text-[11px] text-destructive/80 mt-1">
+          <p className="mt-1 text-[11px] text-muted-foreground">
             {stats?.totalCalls ? ((stats.missedCalls / stats.totalCalls) * 100).toFixed(0) : 0}% of total
           </p>
         </div>
 
-        <div className="rounded-[14px] border border-emerald-500/20 bg-emerald-500/5 p-4 sm:p-5 shadow-xs transition-all hover:border-emerald-500/30">
+        <div className="rounded-[14px] border border-border/60 bg-card p-4 shadow-xs transition-colors hover:border-border sm:p-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Recordings</span>
-            <div className="h-8 w-8 rounded-[10px] bg-emerald-500/15 text-emerald-600 flex items-center justify-center">
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Recordings</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
               <Mic className="h-4 w-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight text-emerald-700 dark:text-emerald-400">
+          <div className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {stats?.callsWithRecording ?? '-'}
           </div>
-          <p className="text-[11px] text-emerald-600/80 mt-1">calls with recordings</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">Calls with recordings</p>
         </div>
       </div>
 

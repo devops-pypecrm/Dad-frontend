@@ -61,12 +61,12 @@ export default function LeadTransferLogPage() {
   const isManual = (reason?: string | null) => !!reason && /\bby\s/i.test(reason);
 
   return (
-    <div className="bg-white min-h-screen p-4 sm:p-8 space-y-6 animate-in fade-in duration-300 font-poppins">
+    <div className="min-h-screen space-y-6 bg-background p-4 font-poppins animate-in fade-in duration-300 sm:p-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-border/40">
         <div>
           <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
               <History className="h-5 w-5" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
@@ -93,7 +93,7 @@ export default function LeadTransferLogPage() {
         <div className="rounded-[14px] border border-border/60 bg-card p-4 sm:p-5 shadow-xs transition-all hover:border-border">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Transfers</span>
-            <div className="h-8 w-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
               <History className="h-4 w-4" />
             </div>
           </div>
@@ -106,7 +106,7 @@ export default function LeadTransferLogPage() {
         <div className="rounded-[14px] border border-border/60 bg-card p-4 sm:p-5 shadow-xs transition-all hover:border-border">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Manual</span>
-            <div className="h-8 w-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
               <UserIcon className="h-4 w-4" />
             </div>
           </div>
@@ -119,7 +119,7 @@ export default function LeadTransferLogPage() {
         <div className="rounded-[14px] border border-border/60 bg-card p-4 sm:p-5 shadow-xs transition-all hover:border-border">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Automatic</span>
-            <div className="h-8 w-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
               <Bot className="h-4 w-4" />
             </div>
           </div>
@@ -129,17 +129,17 @@ export default function LeadTransferLogPage() {
           <p className="text-[11px] text-muted-foreground mt-1">System-generated (shuffler, rotation)</p>
         </div>
 
-        <div className="rounded-[14px] border border-emerald-500/20 bg-emerald-500/5 p-4 sm:p-5 shadow-xs transition-all hover:border-emerald-500/30">
+        <div className="rounded-[14px] border border-border/60 bg-card p-4 shadow-xs transition-colors hover:border-border sm:p-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Today</span>
-            <div className="h-8 w-8 rounded-[10px] bg-emerald-500/15 text-emerald-600 flex items-center justify-center">
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Today</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
               <Calendar className="h-4 w-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight text-emerald-700 dark:text-emerald-400">
+          <div className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {stats.today.toLocaleString()}
           </div>
-          <p className="text-[11px] text-emerald-600/80 mt-1">Transfers made today</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">Transfers made today</p>
         </div>
       </div>
 

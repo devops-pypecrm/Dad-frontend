@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/select";
 import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog";
 import { FILTER_CARD_CLASS, FILTER_ICON_CLASS, FILTER_LABEL_CLASS, FILTER_TRIGGER_CLASS } from "@/pages/leads/filterStyles";
+import { IncentiveSettingsDialog } from "./IncentiveSettingsDialog";
 
 const EMPTY_FORM = {
   userId: "",
@@ -50,7 +51,7 @@ const EMPTY_FORM = {
 };
 
 type StatusFilter = "all" | "pending" | "approved" | "paid" | "rejected";
-type TypeFilter = "all" | "commission" | "bonus" | "adjustment";
+type TypeFilter = "all" | "commission" | "incentive" | "bonus" | "adjustment";
 
 function initials(firstName?: string, lastName?: string) {
   return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase() || "?";
@@ -238,14 +239,14 @@ export default function CommissionsPage() {
           </div>
           <div className="min-w-0">
             <h1 className="text-2xl sm:text-3xl font-bold font-poppins text-foreground tracking-tight flex items-center gap-2.5">
-              {canManage ? "Sales Commissions" : "My Commissions"}
+              {canManage ? "Commissions & Incentives" : "My Incentives"}
               <span className="bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-sm font-bold">
                 {commissions.length.toLocaleString()}
               </span>
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
               {canManage
-                ? "Award and track commissions or bonuses for your sales team"
+                ? "Calculate, review and track sales incentives for your team"
                 : "Track your commissions, bonuses, and incentive payouts"}
             </p>
           </div>
@@ -260,6 +261,10 @@ export default function CommissionsPage() {
             <Download className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Export</span>
           </Button>
+
+          {canManage && (
+            <IncentiveSettingsDialog />
+          )}
 
           {canManage && (
             <Dialog open={isDialogOpen} onOpenChange={(open) => {
@@ -430,6 +435,7 @@ export default function CommissionsPage() {
               <SelectContent className="rounded-xl shadow-2xl border-border/50">
                 <SelectItem value="all" className="rounded-lg">All Types</SelectItem>
                 <SelectItem value="commission" className="rounded-lg">Commission</SelectItem>
+                <SelectItem value="incentive" className="rounded-lg">Automatic incentive</SelectItem>
                 <SelectItem value="bonus" className="rounded-lg">Bonus</SelectItem>
                 <SelectItem value="adjustment" className="rounded-lg">Adjustment</SelectItem>
               </SelectContent>

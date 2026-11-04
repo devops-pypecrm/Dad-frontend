@@ -35,7 +35,7 @@ const LeadTableRowComponent = ({
         }
       }}
       className={cn(
-        "flex w-full border-b border-border transition-colors hover:bg-[hsl(var(--chart-5))]/5 group data-[state=selected]:bg-[#69A63B]/40 shrink-0 cursor-pointer",
+        "flex w-full border-b border-border/60 transition-colors hover:bg-muted/35 group data-[state=selected]:bg-muted/60 shrink-0 cursor-pointer",
         dragOverRowId === row.id && "bg-accent border-primary"
       )}
     >

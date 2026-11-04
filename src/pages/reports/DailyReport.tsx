@@ -39,9 +39,29 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
 } from 'recharts';
 import { CHART_COLORS } from '@/components/dashboard-v2/chartColors';
+
+const OUTCOME_COLORS: Record<string, string> = {
+  Connected: 'hsl(var(--primary))',
+  Unconnected: 'hsl(var(--muted-foreground))',
+  Won: 'hsl(var(--chart-2))',
+  Lost: 'hsl(var(--destructive))',
+};
+
+function OutcomeTooltip({ active, payload }: { active?: boolean; payload?: Array<{ name?: string; value?: number; payload?: { name?: string; value?: number } }> }) {
+  if (!active || !payload?.length) return null;
+  const item = payload[0]?.payload || payload[0];
+  return (
+    <div className="min-w-[150px] rounded-lg border border-border bg-popover px-3 py-2 shadow-xl">
+      <div className="flex items-center justify-between gap-5">
+        <span className="text-xs text-muted-foreground">{item.name}</span>
+        <span className="text-sm font-semibold text-popover-foreground">{Number(item.value || 0).toLocaleString()}</span>
+      </div>
+      <p className="mt-0.5 text-[10px] text-muted-foreground">calls</p>
+    </div>
+  );
+}
 
 export default function DailyReportPage() {
   const reportRef = useRef<HTMLDivElement>(null);
@@ -150,6 +170,7 @@ export default function DailyReportPage() {
     ].filter(d => d.value > 0),
     [tableData]
   );
+  const outcomeTotal = useMemo(() => outcomeChartData.reduce((sum, item) => sum + item.value, 0), [outcomeChartData]);
 
   const handleDownloadPDF = async () => {
     if (!reportRef.current) return;
@@ -441,11 +462,11 @@ export default function DailyReportPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="rounded-[14px] border border-border/60 bg-card shadow-xs p-4 sm:p-5">
               <h3 className="text-sm font-semibold text-foreground mb-3">Top Callers</h3>
-              <ResponsiveContainer width="100%" height={Math.max(220, topCallersChartData.length * 36)}>
-                <BarChart data={topCallersChartData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+              <ResponsiveContainer width="100%" height={Math.max(240, topCallersChartData.length * 52)}>
+                <BarChart data={topCallersChartData} layout="vertical" margin={{ top: 8, right: 20, left: 4, bottom: 8 }} barCategoryGap="48%">
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 11, fontFamily: 'Poppins, sans-serif', fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <YAxis dataKey="name" type="category" width={110} tick={{ fontSize: 11, fontFamily: 'Poppins, sans-serif', fill: 'hsl(var(--foreground))' }} axisLine={false} tickLine={false} />
+                  <YAxis dataKey="name" type="category" width={145} tickMargin={12} tick={{ fontSize: 11, fontFamily: 'Poppins, sans-serif', fill: 'hsl(var(--foreground))' }} axisLine={false} tickLine={false} />
                   <Tooltip
                     cursor={{ fill: 'hsl(var(--muted))' }}
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px', fontFamily: 'Poppins, sans-serif' }}
@@ -457,23 +478,37 @@ export default function DailyReportPage() {
               </ResponsiveContainer>
             </div>
 
-            <div className="rounded-[14px] border border-border/60 bg-card shadow-xs p-4 sm:p-5">
-              <h3 className="text-sm font-semibold text-foreground mb-3">Call Outcomes</h3>
+            <div className="rounded-[14px] border border-border/60 bg-card p-4 shadow-xs sm:p-5">
+              <div className="mb-3">
+                <h3 className="text-sm font-semibold text-foreground">Call outcomes</h3>
+                <p className="mt-0.5 text-xs text-muted-foreground">Distribution across all recorded calls</p>
+              </div>
               {outcomeChartData.length === 0 ? (
                 <div className="h-[220px] flex items-center justify-center text-sm text-muted-foreground">No data yet</div>
               ) : (
-                <ResponsiveContainer width="100%" height={260}>
-                  <PieChart>
-                    <Pie data={outcomeChartData} cx="50%" cy="50%" innerRadius={50} outerRadius={85} paddingAngle={3} dataKey="value" nameKey="name">
-                      {outcomeChartData.map((_, index) => <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />)}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px', fontFamily: 'Poppins, sans-serif' }}
-                      formatter={(value?: number, name?: string) => [`${value ?? 0} calls`, name ?? '']}
-                    />
-                    <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: 12, fontFamily: 'Poppins, sans-serif' }} />
-                  </PieChart>
-                </ResponsiveContainer>
+                <div>
+                  <div className="[&_.recharts-surface]:outline-none [&_.recharts-wrapper]:outline-none">
+                    <ResponsiveContainer width="100%" height={250}>
+                      <PieChart>
+                        <Pie data={outcomeChartData} cx="50%" cy="50%" innerRadius={50} outerRadius={92} paddingAngle={2} cornerRadius={3} dataKey="value" nameKey="name" stroke="hsl(var(--card))" strokeWidth={3}>
+                          {outcomeChartData.map((item) => <Cell key={item.name} fill={OUTCOME_COLORS[item.name] || 'hsl(var(--muted-foreground))'} />)}
+                        </Pie>
+                        <Tooltip content={<OutcomeTooltip />} cursor={false} />
+                        <text x="50%" y="47%" textAnchor="middle" dominantBaseline="middle" fill="hsl(var(--foreground))" className="text-[22px] font-semibold">{outcomeTotal.toLocaleString()}</text>
+                        <text x="50%" y="57%" textAnchor="middle" dominantBaseline="middle" fill="hsl(var(--muted-foreground))" className="text-[10px]">total calls</text>
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-5 gap-y-2 border-t border-border/60 pt-3 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
+                    {outcomeChartData.map((item) => (
+                      <div key={item.name} className="flex min-w-0 items-center gap-2">
+                        <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: OUTCOME_COLORS[item.name] }} />
+                        <span className="truncate text-xs text-muted-foreground">{item.name}</span>
+                        <span className="ml-auto text-xs font-semibold text-foreground">{item.value.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           </div>
