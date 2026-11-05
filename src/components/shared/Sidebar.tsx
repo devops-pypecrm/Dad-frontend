@@ -53,7 +53,8 @@ import {
   Instagram as InstagramIcon,
   UserPlus as UserPlusIcon,
   History,
-  Receipt
+  Receipt,
+  BellRing,
 } from "lucide-react";
 import { WhatsAppLogo } from "@/components/icons/BrandLogos";
 import Logo from "./Logo";
@@ -444,6 +445,14 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
               )}>
                 <PhoneCall className={cn("h-5 w-5 shrink-0 transition-colors stroke-[1.75]", pathname.startsWith('/super-admin/helper-logs') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>Helper Logs</span>}
+              </Link>
+              <Link to="/super-admin/notification-audit" className={cn(
+                "group flex items-center gap-3 rounded-[10px] px-4 py-3 text-sm font-medium transition-all duration-200",
+                pathname.startsWith('/super-admin/notification-audit') ? "bg-sidebar-active text-white" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
+              )}>
+                <BellRing className={cn("h-5 w-5 shrink-0 transition-colors stroke-[1.75]", pathname.startsWith('/super-admin/notification-audit') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                {!isCollapsed && <span>Notification Audit</span>}
               </Link>
               <Link to="/super-admin/ai-integration" className={cn(
                 "group flex items-center gap-3 rounded-[10px] px-4 py-3 text-sm font-medium transition-all duration-200",
