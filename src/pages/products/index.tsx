@@ -2,7 +2,8 @@ import { copyToClipboard, getUserInfo, isOrgAdmin } from "@/lib/utils";
 import { useMemo, useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import * as XLSX from "xlsx"
-import { getProducts, createProduct, deleteProduct, uploadBrochure, generateShareLink, updateProduct, type Product, type CreateProductData } from "@/services/productService"
+import { getProducts, createProduct, deleteProduct, uploadBrochure, generateShareLink, updateProduct, emptyPageConfig, type Product, type CreateProductData, type ProductPageConfig } from "@/services/productService"
+import { ProductPageEditor } from "@/components/products/ProductPageEditor"
 import { getLeads, type Lead } from "@/services/leadService"
 import { getBranches } from "@/services/settingsService"
 import { getAssetUrl } from "@/lib/utils"
@@ -61,6 +62,8 @@ export default function ProductsPage() {
   // visible to them (getProducts scopes by branchId, "all" = org-wide/null).
   const [addBranchId, setAddBranchId] = useState<string>(user?.branchId || "all")
   const [editBranchId, setEditBranchId] = useState<string>("all")
+  const [addPageConfig, setAddPageConfig] = useState<ProductPageConfig>(emptyPageConfig())
+  const [editPageConfig, setEditPageConfig] = useState<ProductPageConfig>(emptyPageConfig())
 
   const { data: branches = [] } = useQuery<{ id: string; name: string }[]>({
     queryKey: ['branches', 'list'],
@@ -193,6 +196,7 @@ export default function ProductsPage() {
       isCustom: formData.get('isCustom') === 'on',
       isActive: formData.get('isActive') === 'on',
       brochureUrl,
+      pageConfig: addPageConfig,
       branchId: addBranchId === "all" ? null : addBranchId
     })
   }
@@ -228,6 +232,7 @@ export default function ProductsPage() {
       description: formData.get('description') as string || undefined,
       isCustom: formData.get('isCustom') === 'on',
       isActive: formData.get('isActive') === 'on',
+      pageConfig: editPageConfig,
       branchId: editBranchId === "all" ? null : editBranchId
     };
 
@@ -245,6 +250,7 @@ export default function ProductsPage() {
   const handleEditClick = (product: Product) => {
     setEditingProduct(product)
     setEditBranchId(product.branchId || "all")
+    setEditPageConfig({ ...emptyPageConfig(), ...(product.pageConfig || {}) })
     setIsEditDialogOpen(true)
   }
 
@@ -374,7 +380,7 @@ export default function ProductsPage() {
               open={isDialogOpen}
               onOpenChange={(open) => {
                 setIsDialogOpen(open)
-                if (open) setAddBranchId(user?.branchId || "all")
+                if (open) { setAddBranchId(user?.branchId || "all"); setAddPageConfig(emptyPageConfig()) }
               }}
             >
               <DialogTrigger asChild>
@@ -383,7 +389,7 @@ export default function ProductsPage() {
                   Add Product
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+              <DialogContent className="sm:max-w-[680px] max-h-[90vh] overflow-y-auto">
                 <form onSubmit={handleSubmit}>
                   <DialogHeader>
                     <DialogTitle>Add New Product</DialogTitle>
@@ -428,6 +434,7 @@ export default function ProductsPage() {
                       <Input name="brochure" type="file" accept=".pdf,image/*" className="cursor-pointer" />
                       <p className="text-xs text-muted-foreground mt-1">Upload a product brochure to share with customers.</p>
                     </div>
+                    <ProductPageEditor value={addPageConfig} onChange={setAddPageConfig} />
                   </div>
                   <DialogFooter><Button type="submit" disabled={createMutation.isPending}>{createMutation.isPending ? 'Saving...' : 'Add Product'}</Button></DialogFooter>
                 </form>
@@ -437,7 +444,7 @@ export default function ProductsPage() {
 
           {/* Edit Product Dialog */}
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[680px] max-h-[90vh] overflow-y-auto">
               <form onSubmit={handleEditSubmit}>
                 <DialogHeader>
                   <DialogTitle>Edit Product</DialogTitle>
@@ -500,6 +507,7 @@ export default function ProductsPage() {
                     <Input name="brochure" type="file" accept=".pdf,image/*" className="cursor-pointer" />
                     <p className="text-xs text-muted-foreground mt-1">Upload a new brochure to replace the existing one (optional).</p>
                   </div>
+                  <ProductPageEditor value={editPageConfig} onChange={setEditPageConfig} />
                 </div>
                 <DialogFooter><Button type="submit" disabled={updateMutation.isPending}>{updateMutation.isPending ? 'Updating...' : 'Update Product'}</Button></DialogFooter>
               </form>

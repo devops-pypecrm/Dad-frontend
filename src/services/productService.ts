@@ -1,5 +1,22 @@
 import { api } from './api';
 
+export interface ProductPageConfig {
+    gallery: { url: string; caption?: string; w?: number; h?: number }[];
+    highlights: { title: string; text?: string }[];
+    details: { label: string; value: string }[];
+    sections: { title: string; body: string }[];
+    faqs: { q: string; a: string }[];
+    priceLabel?: string;
+    showPrice: boolean;
+    ctaTitle?: string;
+    ctaText?: string;
+    accentColor?: string;
+}
+
+export const emptyPageConfig = (): ProductPageConfig => ({
+    gallery: [], highlights: [], details: [], sections: [], faqs: [], showPrice: true,
+});
+
 export interface Product {
     id: string;
     name: string;
@@ -16,6 +33,7 @@ export interface Product {
     isCustom: boolean;
     isOrgProduct: boolean;
     brochureUrl?: string;
+    pageConfig?: ProductPageConfig | null;
     validFrom?: string;
     validUntil?: string;
     imageUrl?: string;
@@ -35,6 +53,7 @@ export interface CreateProductData {
     isActive?: boolean;
     isCustom?: boolean;
     brochureUrl?: string; // Add this line
+    pageConfig?: ProductPageConfig;
     branchId?: string | null;
 }
 
