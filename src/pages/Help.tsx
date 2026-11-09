@@ -1,17 +1,21 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import LandingNavbar from "@/components/landing/LandingNavbar";
 import Footer from "@/components/landing/Footer";
 import SEO from "@/components/shared/SEO";
-import { ArrowRight, LifeBuoy } from "lucide-react";
+import { ArrowRight, LifeBuoy, Search } from "lucide-react";
 import { HELP_CATEGORIES, HELP_ARTICLES } from "@/data/helpArticles";
 import { PageTransition, Reveal } from "@/components/shared/MotionReveal";
 
 export default function Help() {
+  const [query, setQuery] = useState("");
+  const q = query.trim().toLowerCase();
+  const matches = (a: (typeof HELP_ARTICLES)[number]) => !q || `${a.title} ${a.summary} ${a.category}`.toLowerCase().includes(q);
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 font-sans">
       <SEO
         title="Documentation"
-        description="Guides for setting up Pype CRM: assignment rules, bulk imports, integrations, and lead visibility — explained plainly."
+        description="Product documentation for Pype CRM: setup, lead assignment, imports, and the WhatsApp and Instagram modules, explained plainly."
         canonical="https://pypecrm.com/docs"
         keywords="pype crm help, crm documentation, crm setup guide"
       />
@@ -28,10 +32,14 @@ export default function Help() {
             <p className="text-lg text-gray-600 dark:text-gray-300">
               Straight answers on setup, assignment rules, imports, and integrations — written by the team that builds it.
             </p>
+            <div className="relative mt-6 max-w-md">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search the documentation" className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-primary dark:border-gray-800 dark:bg-gray-900 dark:text-white" />
+            </div>
           </div>
 
           {HELP_CATEGORIES.map((category) => {
-            const articles = HELP_ARTICLES.filter((a) => a.category === category);
+            const articles = HELP_ARTICLES.filter((a) => a.category === category && matches(a));
             if (articles.length === 0) return null;
             return (
               <Reveal key={category}><div className="mb-12">

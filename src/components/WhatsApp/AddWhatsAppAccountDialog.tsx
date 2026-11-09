@@ -92,6 +92,8 @@ export function AddWhatsAppAccountDialog({ children, open, onOpenChange, account
     },
   })
 
+  const provider = form.watch('provider')
+
   function onSubmit(values: Partial<WhatsAppAccount>) {
     mutation.mutate(values)
   }
@@ -156,10 +158,11 @@ export function AddWhatsAppAccountDialog({ children, open, onOpenChange, account
                     <SelectContent>
                       <SelectItem value="meta">WhatsApp Cloud API (Meta)</SelectItem>
                       <SelectItem value="gallabox">Gallabox</SelectItem>
+                      <SelectItem value="happilee">Happilee</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Only the official WhatsApp Cloud API and Gallabox are supported. For a Meta number, the
+                    Supported: the official WhatsApp Cloud API, Gallabox and Happilee. For Happilee, paste the API key from your Happilee project's Integrations tab; messages are sent as approved templates. For a Meta number, the
                     "Connect via Meta" button is easier — no WABA ID or token needed.
                   </FormDescription>
                   <FormMessage />
@@ -167,7 +170,7 @@ export function AddWhatsAppAccountDialog({ children, open, onOpenChange, account
               )}
             />
 
-            <FormField
+            {provider !== 'happilee' && <FormField
               control={form.control}
               name="phoneNumberId"
               render={({ field }) => (
@@ -179,9 +182,9 @@ export function AddWhatsAppAccountDialog({ children, open, onOpenChange, account
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            />}
 
-            <FormField
+            {provider !== 'happilee' && <FormField
               control={form.control}
               name="wabaId"
               render={({ field }) => (
@@ -193,7 +196,7 @@ export function AddWhatsAppAccountDialog({ children, open, onOpenChange, account
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            />}
 
             <FormField
               control={form.control}
@@ -202,7 +205,7 @@ export function AddWhatsAppAccountDialog({ children, open, onOpenChange, account
                 <FormItem>
                   <FormLabel>Access Token (API Key)</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder={accountToEdit ? "Leave blank to keep existing token" : "Enter access token or API key"} {...field} value={field.value || ''} />
+                    <Input type="password" placeholder={accountToEdit ? "Leave blank to keep existing token" : provider === 'happilee' ? "Happilee API key" : "Enter access token or API key"} {...field} value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

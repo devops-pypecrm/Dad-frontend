@@ -28,6 +28,7 @@ export default function Layout() {
     location.pathname === '/whatsapp/inbox' ||
     location.pathname.startsWith('/whatsapp/chatbot/') ||
     location.pathname === '/instagram/inbox' ||
+    location.pathname === '/instagram/comments' ||
     location.pathname.startsWith('/instagram/chatbots/') ||
     location.pathname.startsWith('/instagram/ask-to-follow/') ||
     location.pathname.startsWith('/communications') ||

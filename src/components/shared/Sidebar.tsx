@@ -55,6 +55,10 @@ import {
   History,
   Receipt,
   BellRing,
+  BarChart3,
+  Wrench,
+  MessageSquare,
+  CalendarClock,
 } from "lucide-react";
 import { WhatsAppLogo } from "@/components/icons/BrandLogos";
 import Logo from "./Logo";
@@ -108,6 +112,8 @@ const menuGroups = [
       { title: "Auto Responder", href: "/whatsapp/responder", icon: Reply, role: "admin" },
       { title: "Lead Nurturing", href: "/whatsapp/nurturing", icon: Sprout, role: "admin" },
       { title: "Automations", href: "/whatsapp/automations", icon: Zap, role: "admin" },
+      { title: "Analytics", href: "/whatsapp/analytics", icon: BarChart3, role: "admin" },
+      { title: "Growth Tools", href: "/whatsapp/tools", icon: Wrench, role: "admin" },
       { title: "WhatsApp Settings", href: "/whatsapp/settings", icon: WhatsAppLogo, role: "admin" },
     ]
   },
@@ -117,6 +123,10 @@ const menuGroups = [
       { title: "Shared Inbox", href: "/instagram/inbox", icon: InstagramIcon },
       { title: "Instagram Chatbots", href: "/instagram/chatbots", icon: Bot, role: "admin" },
       { title: "Ask To Follow", href: "/instagram/ask-to-follow", icon: UserPlusIcon, role: "admin" },
+      { title: "Insights", href: "/instagram/insights", icon: BarChart3, role: "admin" },
+      { title: "Comments", href: "/instagram/comments", icon: MessageSquare, role: "admin" },
+      { title: "Publishing", href: "/instagram/publishing", icon: CalendarClock, role: "admin" },
+      { title: "DM Setup", href: "/instagram/dm-setup", icon: Wrench, role: "admin" },
     ]
   },
   {

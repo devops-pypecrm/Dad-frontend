@@ -1,10 +1,25 @@
+export interface HelpSection {
+  heading: string;
+  paragraphs?: string[];
+  bullets?: string[];
+  steps?: string[];
+  table?: { headers: string[]; rows: string[][] };
+  callout?: { type: "info" | "warning" | "success"; text: string };
+}
+
 export interface HelpArticle {
   slug: string;
   title: string;
   category: string;
   summary: string;
+  /** Plain paragraphs (older articles). Richer articles use `sections` instead. */
   content: string[];
+  sections?: HelpSection[];
+  readTime?: string;
+  related?: string[];
 }
+
+import { CHANNEL_ARTICLES, CHANNEL_CATEGORIES } from "./channelDocs";
 
 export const HELP_CATEGORIES = [
   "Getting Started",
@@ -12,9 +27,10 @@ export const HELP_CATEGORIES = [
   "Importing Data",
   "Integrations",
   "Visibility & Permissions",
+  ...CHANNEL_CATEGORIES,
 ];
 
-export const HELP_ARTICLES: HelpArticle[] = [
+const CORE_ARTICLES: HelpArticle[] = [
   {
     slug: "getting-started",
     title: "Getting started: your first 15 minutes",
@@ -75,5 +91,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
 ];
+
+export const HELP_ARTICLES: HelpArticle[] = [...CORE_ARTICLES, ...CHANNEL_ARTICLES];
 
 export const getHelpArticle = (slug: string) => HELP_ARTICLES.find((a) => a.slug === slug);

@@ -7,7 +7,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { instagramInboxApi, type IgConversation } from '@/services/instagramService';
 import { useInstagramConnection } from '@/hooks/useInstagramConnection';
 import { useLivePoll } from '@/hooks/useLivePoll';
-import { cn } from '@/lib/utils';
 import { IgAvatar } from './IgAvatar';
 import { IG } from './ig';
 import { isAdmin } from '@/lib/utils';

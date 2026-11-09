@@ -85,6 +85,12 @@ import { InstagramFeatureRoute } from './components/instagram/InstagramFeatureRo
 const InstagramSharedInbox = lazy(() => import('./pages/instagram/inbox'));
 const InstagramChatbotList = lazy(() => import('./pages/instagram/chatbots'));
 const InstagramChatbotEditor = lazy(() => import('./pages/instagram/chatbots/editor'));
+const WhatsAppAnalyticsPage = lazy(() => import('./pages/whatsapp/analytics'));
+const WhatsAppGrowthToolsPage = lazy(() => import('./pages/whatsapp/tools'));
+const InstagramInsightsPage = lazy(() => import('./pages/instagram/insights'));
+const InstagramCommentsPage = lazy(() => import('./pages/instagram/comments'));
+const InstagramPublishingPage = lazy(() => import('./pages/instagram/publishing'));
+const InstagramDmSetupPage = lazy(() => import('./pages/instagram/dm-setup'));
 const InstagramAskToFollow = lazy(() => import('./pages/instagram/ask-to-follow'));
 const InstagramGateBotPage = lazy(() => import('./pages/instagram/ask-to-follow/bot'));
 const EmailListsPage = lazy(() => import('./pages/marketing/lists'));
@@ -398,6 +404,10 @@ function AppContent() {
          <Route path="/instagram/chatbots" element={<InstagramChatbotList />} />
          <Route path="/instagram/chatbots/new" element={<InstagramChatbotEditor />} />
          <Route path="/instagram/chatbots/:id" element={<InstagramChatbotEditor />} />
+         <Route path="/instagram/insights" element={<InstagramInsightsPage />} />
+         <Route path="/instagram/comments" element={<InstagramCommentsPage />} />
+         <Route path="/instagram/publishing" element={<InstagramPublishingPage />} />
+         <Route path="/instagram/dm-setup" element={<InstagramDmSetupPage />} />
          <Route path="/instagram/ask-to-follow" element={<InstagramAskToFollow />} />
          <Route path="/instagram/ask-to-follow/new" element={<InstagramGateBotPage />} />
          <Route path="/instagram/ask-to-follow/:id" element={<InstagramGateBotPage />} />
@@ -413,6 +423,8 @@ function AppContent() {
          <Route path="/whatsapp/responder" element={<WhatsAppResponderPage />} />
          <Route path="/whatsapp/nurturing" element={<WhatsAppNurturingPage />} />
          <Route path="/whatsapp/automations" element={<WhatsAppAutomationsPage />} />
+         <Route path="/whatsapp/analytics" element={<WhatsAppAnalyticsPage />} />
+         <Route path="/whatsapp/tools" element={<WhatsAppGrowthToolsPage />} />
          <Route path="/whatsapp/settings" element={<WhatsAppSettingsPage />} />
        </Route>
        <Route path="/calendar" element={<CalendarPage />} />
