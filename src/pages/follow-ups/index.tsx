@@ -28,6 +28,7 @@ export default function FollowUpsPage() {
   const statusFilter = searchParams.get("status") || "all";
   const branchFilter = searchParams.get("branch") || "all";
   const userFilter = searchParams.get("user") || "all";
+  const priorityFilter = searchParams.get("priority") || "all";
   const [searchQuery, setSearchQuery] = useState("");
 
   const updateSearchParams = useCallback(
@@ -115,10 +116,11 @@ export default function FollowUpsPage() {
       statusFilter !== "all" ||
       branchFilter !== "all" ||
       userFilter !== "all" ||
+      priorityFilter !== "all" ||
       sortBy !== "dueDate-asc" ||
       !!filterParam ||
       !!searchQuery,
-    [statusFilter, branchFilter, userFilter, sortBy, filterParam, searchQuery],
+    [statusFilter, branchFilter, userFilter, priorityFilter, sortBy, filterParam, searchQuery],
   );
 
   // ----------------------------------------------------------------
@@ -225,6 +227,19 @@ export default function FollowUpsPage() {
         },
       });
     }
+    if (priorityFilter !== "all") {
+      list.push({
+        key: "priority",
+        label: `Priority: ${priorityFilter.charAt(0).toUpperCase() + priorityFilter.slice(1)}`,
+        clear: (e) => {
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          updateSearchParams({ priority: undefined });
+        },
+      });
+    }
     return list;
   }, [
     filterParam,
@@ -232,6 +247,7 @@ export default function FollowUpsPage() {
     statusFilter,
     branchFilter,
     userFilter,
+    priorityFilter,
     branches,
     users,
     updateSearchParams,
@@ -275,6 +291,10 @@ export default function FollowUpsPage() {
         ? followUps.filter((task: any) => task.status !== "completed")
         : [...followUps];
 
+    if (priorityFilter !== "all") {
+      result = result.filter((task: any) => task.priority === priorityFilter);
+    }
+
     const [field, direction] = sortBy.split("-");
     result.sort((a: any, b: any) => {
       let valA = a[field];
@@ -296,7 +316,7 @@ export default function FollowUpsPage() {
       return 0;
     });
     return result;
-  }, [followUps, filterParam, today, sortBy, statusFilter]);
+  }, [followUps, filterParam, today, sortBy, statusFilter, priorityFilter]);
 
   if (isError) {
     return (
@@ -472,6 +492,22 @@ export default function FollowUpsPage() {
               <SelectItem value="in_progress">In Progress</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
               <SelectItem value="deferred">Deferred</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Priority */}
+          <Select
+            value={priorityFilter}
+            onValueChange={(val) => updateSearchParams({ priority: val })}
+          >
+            <SelectTrigger className="h-10 sm:h-9 w-full sm:w-[145px] bg-background text-sm sm:text-xs rounded-[10px] border-border/60">
+              <SelectValue placeholder="All Priority" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Priority</SelectItem>
+              <SelectItem value="high">High</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="low">Low</SelectItem>
             </SelectContent>
           </Select>
 

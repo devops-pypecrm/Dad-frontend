@@ -36,6 +36,8 @@ interface EditOpportunityDialogProps {
   open?: boolean
   onOpenChange?: (open: boolean) => void
   opportunity: Opportunity
+  /** Called after the opportunity has been successfully saved (plain edit, or via Close Won/Lost) */
+  onSuccess?: () => void
 }
 
 interface EditOpportunityFormData {
@@ -47,7 +49,7 @@ interface EditOpportunityFormData {
   type: 'NEW_BUSINESS' | 'UPSALE'
 }
 
-export function EditOpportunityDialog({ children, open, onOpenChange, opportunity }: EditOpportunityDialogProps) {
+export function EditOpportunityDialog({ children, open, onOpenChange, opportunity, onSuccess }: EditOpportunityDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   // Initialize custom fields from opportunity
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>(() =>
@@ -109,6 +111,7 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
       queryClient.invalidateQueries({ queryKey: ["opportunities"] })
       toast.success("Opportunity updated successfully")
       finalOnOpenChange?.(false)
+      onSuccess?.()
     },
     onError: (error: unknown) => {
       toast.error((error as { response?: { data?: { message?: string } } }).response?.data?.message || "Failed to update opportunity")
@@ -294,6 +297,7 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
           amount={pendingData?.amount || opportunity.amount}
           onSuccess={() => {
             finalOnOpenChange?.(false)
+            onSuccess?.()
           }}
         />
       )}
@@ -306,6 +310,7 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
           opportunityName={opportunity.name}
           onSuccess={() => {
             finalOnOpenChange?.(false)
+            onSuccess?.()
           }}
         />
       )}

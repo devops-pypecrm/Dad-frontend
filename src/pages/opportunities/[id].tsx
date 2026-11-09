@@ -1,7 +1,10 @@
 import { useParams, useNavigate } from "react-router-dom"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { api } from "@/services/api"
-import { Loader2, ArrowLeft, User, Calendar, DollarSign, Target, Package, RefreshCw, ExternalLink } from "lucide-react"
+import {
+  Loader2, ArrowLeft, User, Calendar, DollarSign, Target, Package, RefreshCw, ExternalLink,
+  MoreHorizontal, Pencil, Trash2, XCircle, Contact as ContactIcon, Mail, Phone,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import { useState } from "react"
 import { useCurrency } from "@/contexts/CurrencyContext"
-import { getAssetUrl } from "@/lib/utils"
+import { getAssetUrl, isOrgAdmin, getUserInfo } from "@/lib/utils"
 import { EMISchedulePanel } from "@/components/EMISchedulePanel"
 import TimelineFeed from "@/components/shared/TimelineFeed"
 import { useOpportunityLeadStatuses } from "@/hooks/useLeadStatuses"
@@ -23,6 +26,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent,
+  DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { EditOpportunityDialog } from "@/components/EditOpportunityDialog"
+import { CloseWonDialog } from "@/components/CloseWonDialog"
+import { CloseLostDialog } from "@/components/CloseLostDialog"
+import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog"
+import { deleteOpportunity, updateOpportunity } from "@/services/opportunityService"
+
+const STAGES = [
+  { id: "expected", label: "Expected" },
+  { id: "closed_won", label: "Closed Won" },
+  { id: "closed_lost", label: "Closed Lost" },
+]
 
 export default function OpportunityDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -32,6 +51,12 @@ export default function OpportunityDetailPage() {
   const { selectableStatuses: leadStatuses, getStatusDetails } = useOpportunityLeadStatuses()
   const [noteText, setNoteText] = useState("")
   const [isAddingNote, setIsAddingNote] = useState(false)
+  const user = getUserInfo()
+  const canDelete = isOrgAdmin(user)
+  const [showEdit, setShowEdit] = useState(false)
+  const [showCloseWon, setShowCloseWon] = useState(false)
+  const [showCloseLost, setShowCloseLost] = useState(false)
+  const [showDelete, setShowDelete] = useState(false)
 
   const { data: opportunity, isLoading, isError } = useQuery({
     queryKey: ["opportunity", id],
@@ -53,6 +78,40 @@ export default function OpportunityDetailPage() {
     },
     onError: () => toast.error("Failed to sync amount"),
   })
+
+  const refetchOpportunity = () => {
+    queryClient.invalidateQueries({ queryKey: ["opportunity", id] })
+    queryClient.invalidateQueries({ queryKey: ["opportunities"] })
+  }
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteOpportunity(id as string),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["opportunities"] })
+      toast.success("Opportunity deleted")
+      navigate("/opportunities")
+    },
+    onError: (err: any) => toast.error(err.response?.data?.message || "Failed to delete"),
+  })
+
+  const isTerminal = opportunity?.stage === "closed_won" || opportunity?.stage === "closed_lost"
+
+  const handleMoveStage = async (stageId: string) => {
+    if (isTerminal) {
+      toast.error(`Cannot move a ${opportunity.stage === "closed_won" ? "Won" : "Lost"} opportunity`)
+      return
+    }
+    if (stageId === "closed_won") { setShowCloseWon(true); return }
+    if (stageId === "closed_lost") { setShowCloseLost(true); return }
+    try {
+      const actualStage = stageId === "expected" ? "prospecting" : stageId
+      await updateOpportunity(opportunity.id, { stage: actualStage as any })
+      refetchOpportunity()
+      toast.success(`Moved to ${STAGES.find(s => s.id === stageId)?.label}`)
+    } catch {
+      toast.error("Failed to move stage")
+    }
+  }
 
   const handleAddNote = async () => {
     if (!noteText.trim()) return
@@ -128,10 +187,85 @@ export default function OpportunityDetailPage() {
           <h1 className="text-xl sm:text-2xl font-bold font-poppins text-foreground truncate">{opportunity.name}</h1>
           <p className="text-sm text-muted-foreground font-mono">{getReadableId()}</p>
         </div>
-        <Badge variant="secondary" className="capitalize shrink-0">
-          {opportunity.stage?.replace("_", " ")}
-        </Badge>
+        <div className="flex items-center gap-2 shrink-0">
+          {opportunity.type && (
+            <Badge variant="outline" className="shrink-0">
+              {opportunity.type === "UPSALE" ? "Upsale" : "New Business"}
+            </Badge>
+          )}
+          <Badge variant="secondary" className="capitalize shrink-0">
+            {opportunity.stage?.replace("_", " ")}
+          </Badge>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="h-10 w-10 rounded-[10px] shrink-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setShowEdit(true)}>
+                <Pencil className="mr-2 h-4 w-4" /> Edit
+              </DropdownMenuItem>
+
+              {!isTerminal && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>Move to Stage</DropdownMenuSubTrigger>
+                    <DropdownMenuPortal>
+                      <DropdownMenuSubContent>
+                        {STAGES.map(s => (
+                          <DropdownMenuItem key={s.id} onClick={() => handleMoveStage(s.id)}>
+                            {s.label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuPortal>
+                  </DropdownMenuSub>
+                </>
+              )}
+
+              {opportunity.stage === "closed_won" && opportunity.paymentStatus !== "paid" && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-emerald-600 focus:text-emerald-600 focus:bg-emerald-500/10"
+                    onClick={() => setShowCloseWon(true)}
+                  >
+                    <DollarSign className="mr-2 h-4 w-4" /> Record Payment / EMI
+                  </DropdownMenuItem>
+                </>
+              )}
+
+              {canDelete && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                    onClick={() => setShowDelete(true)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
+
+      {/* Lost reason callout */}
+      {opportunity.stage === "closed_lost" && opportunity.lostReason && (
+        <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/5 border border-destructive/20 text-sm">
+          <XCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+          <div>
+            <span className="font-medium text-destructive">Lost Reason: </span>
+            <span className="text-muted-foreground">{opportunity.lostReason}</span>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <Tabs defaultValue="details" className="w-full">
@@ -287,6 +421,46 @@ export default function OpportunityDetailPage() {
             </div>
           )}
 
+          {/* Contacts */}
+          {opportunity.contacts && opportunity.contacts.length > 0 && (
+            <Card className="border-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <ContactIcon className="w-4 h-4 text-blue-600" />
+                  Contacts
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {opportunity.contacts.map((contact: any) => (
+                  <div
+                    key={contact.id}
+                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors"
+                    onClick={() => navigate(`/contacts/${contact.id}`)}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm">
+                        {contact.firstName} {contact.lastName || ""}
+                      </div>
+                      <div className="flex flex-col gap-0.5 mt-0.5">
+                        {contact.email && (
+                          <div className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Mail className="h-3 w-3" /> {contact.email}
+                          </div>
+                        )}
+                        {contact.phones?.[0]?.number && (
+                          <div className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Phone className="h-3 w-3" /> {contact.phones[0].number}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <ExternalLink className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Associated Products */}
           {opportunity.account?.accountProducts?.length > 0 && (
             <Card className="border-2">
@@ -388,6 +562,44 @@ export default function OpportunityDetailPage() {
           <TimelineFeed type="opportunity" id={opportunity.id} />
         </TabsContent>
       </Tabs>
+
+      {showEdit && (
+        <EditOpportunityDialog
+          open={showEdit}
+          onOpenChange={setShowEdit}
+          opportunity={opportunity}
+          onSuccess={refetchOpportunity}
+        />
+      )}
+      {showCloseWon && (
+        <CloseWonDialog
+          open={showCloseWon}
+          onOpenChange={setShowCloseWon}
+          opportunityId={opportunity.id}
+          opportunityName={opportunity.name}
+          amount={opportunity.amount}
+          onSuccess={refetchOpportunity}
+        />
+      )}
+      {showCloseLost && (
+        <CloseLostDialog
+          open={showCloseLost}
+          onOpenChange={setShowCloseLost}
+          opportunityId={opportunity.id}
+          opportunityName={opportunity.name}
+          onSuccess={refetchOpportunity}
+        />
+      )}
+      {showDelete && (
+        <DeleteConfirmationDialog
+          open={showDelete}
+          onOpenChange={setShowDelete}
+          onConfirm={() => deleteMutation.mutate()}
+          title="Delete Opportunity"
+          description={`Are you sure you want to delete "${opportunity.name}"? This action cannot be undone.`}
+          isDeleting={deleteMutation.isPending}
+        />
+      )}
     </div>
   )
 }

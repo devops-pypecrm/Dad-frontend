@@ -213,11 +213,21 @@ export function OpportunityMobileCard({ opportunity: opp }: Props) {
               </div>
             </div>
 
-            {/* Row 2: Stage + Source badges */}
+            {/* Row 2: Stage + Type + Source badges */}
             <div className="flex flex-wrap items-center gap-1.5">
               <Badge className={cn("text-[10px] h-5 px-2 font-semibold border capitalize", stageBadgeClass)}>
                 {stageLabel}
               </Badge>
+              {opp.stage === "closed_lost" && opp.lostReason && (
+                <span title={opp.lostReason}>
+                  <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" aria-label="Lost reason" />
+                </span>
+              )}
+              {opp.type && (
+                <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal border-border text-muted-foreground">
+                  {opp.type === "UPSALE" ? "Upsale" : "New Business"}
+                </Badge>
+              )}
               {opp.leadSource && (
                 <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal border-border text-muted-foreground capitalize">
                   {opp.leadSource.replace(/_/g, " ")}

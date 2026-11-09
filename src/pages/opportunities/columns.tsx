@@ -1,8 +1,10 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { ArrowUpDown } from "lucide-react"
+import { ArrowUpDown, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { formatIST } from "@/lib/dateUtils"
+import { getAssetUrl } from "@/lib/utils"
 import { OpportunityActions } from "./OpportunityActions"
 import type { Opportunity } from "@/services/opportunityService"
 
@@ -74,7 +76,29 @@ export const createOpportunityColumns = (formatCurrency: (amount: number) => str
         }
       }
 
-      return <Badge variant={variant} className="capitalize">{label}</Badge>
+      return (
+        <div className="flex items-center gap-1.5">
+          <Badge variant={variant} className="capitalize">{label}</Badge>
+          {stage === 'closed_lost' && opportunity.lostReason && (
+            <span title={opportunity.lostReason}>
+              <XCircle className="h-3.5 w-3.5 text-destructive shrink-0" aria-label="Lost reason" />
+            </span>
+          )}
+        </div>
+      )
+    }
+  },
+  {
+    accessorKey: "type",
+    header: "Type",
+    cell: ({ row }) => {
+      const type = row.original.type
+      if (!type) return <span className="text-muted-foreground">-</span>
+      return (
+        <Badge variant="outline" className="text-xs">
+          {type === 'UPSALE' ? 'Upsale' : 'New Business'}
+        </Badge>
+      )
     }
   },
   {
@@ -91,6 +115,28 @@ export const createOpportunityColumns = (formatCurrency: (amount: number) => str
     cell: ({ row }) => {
       const account = row.original.account
       return account ? <span className="font-medium">{account.name}</span> : <span className="text-muted-foreground">-</span>
+    }
+  },
+  {
+    accessorKey: "owner",
+    header: "Owner",
+    cell: ({ row }) => {
+      const owner = row.original.owner
+      if (!owner) return <span className="text-muted-foreground">-</span>
+      return (
+        <div className="flex items-center gap-2">
+          <Avatar className="h-6 w-6">
+            <AvatarImage
+              src={getAssetUrl(owner.profileImage)}
+              onError={(e) => { e.currentTarget.style.display = "none" }}
+            />
+            <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+              {owner.firstName?.[0]}{owner.lastName?.[0] || ""}
+            </AvatarFallback>
+          </Avatar>
+          <span className="text-sm">{owner.firstName} {owner.lastName}</span>
+        </div>
+      )
     }
   },
   {

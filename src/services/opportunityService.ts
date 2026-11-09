@@ -49,6 +49,16 @@ export interface Opportunity {
     leadStatus?: string;
     /** Lead's status just before it was moved into this opportunity (null if unknown) */
     leadStatusAtConversion?: string | null;
+    /** Only populated when stage === 'closed_lost' */
+    lostReason?: string | null;
+    /** Only included on the detail (getOpportunityById) response, not the list */
+    contacts?: {
+        id: string;
+        firstName: string;
+        lastName?: string;
+        email?: string;
+        phones?: { type: string; number: string }[];
+    }[];
 }
 
 export interface OpportunityQueryParams {
