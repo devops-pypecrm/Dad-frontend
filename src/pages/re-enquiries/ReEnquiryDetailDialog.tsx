@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { useNavigate } from "react-router-dom"
 import { format } from "date-fns"
-import { Repeat2, Megaphone, Phone, Mail, User, ExternalLink, MessageSquare, Loader2 } from "lucide-react"
+import { Repeat2, Megaphone, Phone, Mail, User, ExternalLink, MessageSquare, Loader2, CalendarClock, BookOpen } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { getReEnquiryHistory, type Lead } from "@/services/leadService"
@@ -62,11 +62,36 @@ export function ReEnquiryDetailDialog({ lead, onClose }: { lead: Lead | null; on
 
         <div className="space-y-3">
           {data?.events.map((ev, i) => {
+            if (ev.type === "follow_up") {
+              const fu = ev.followUp
+              const assignee = fu?.assignedTo ? `${fu.assignedTo.firstName} ${fu.assignedTo.lastName}`.trim() : null
+              return (
+                <div key={`fu-${fu?.id ?? i}`} className="rounded-[12px] border border-dashed border-border p-4 space-y-2 bg-muted/20">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <span className="h-6 w-6 rounded-full bg-[hsl(var(--chart-2))]/10 text-[hsl(var(--chart-2))] flex items-center justify-center">
+                        <CalendarClock className="h-3.5 w-3.5" />
+                      </span>
+                      <span className="text-sm font-semibold">{format(new Date(ev.date), "dd MMM yyyy, h:mm a")}</span>
+                    </div>
+                    {fu?.status && (
+                      <span className="inline-flex items-center rounded-full bg-[hsl(var(--chart-2))]/10 text-[hsl(var(--chart-2))] px-3 py-1 text-xs font-semibold capitalize">
+                        {fu.status.replace(/_/g, " ")}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm font-medium">{fu?.subject || "Follow-up"}</p>
+                  {fu?.description && <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">{fu.description}</p>}
+                  {assignee && <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><User className="h-3.5 w-3.5" />{assignee}</span>}
+                </div>
+              )
+            }
+
             const message = ev.details?.message as string | undefined
             const rows = detailRows(ev.details)
             const number = data.events.length - i
             return (
-              <div key={ev.eventIndex} className="rounded-[12px] border border-border p-4 space-y-3">
+              <div key={`re-${ev.eventIndex ?? i}`} className="rounded-[12px] border border-border p-4 space-y-3">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-2">
                     <span className="h-6 w-6 rounded-full bg-[hsl(var(--chart-5))]/10 text-[hsl(var(--chart-5))] text-xs font-bold flex items-center justify-center">{number}</span>
@@ -82,6 +107,7 @@ export function ReEnquiryDetailDialog({ lead, onClose }: { lead: Lead | null; on
                   {ev.name && <span className="flex items-center gap-1.5"><User className="h-3.5 w-3.5" />{ev.name}</span>}
                   {ev.phone && <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" />{ev.phone}</span>}
                   {ev.email && <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" />{ev.email}</span>}
+                  {ev.enquiryAbout && <span className="flex items-center gap-1.5"><BookOpen className="h-3.5 w-3.5" />{ev.enquiryAbout}</span>}
                 </div>
 
                 {rows.length > 0 && (

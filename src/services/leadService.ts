@@ -15,6 +15,9 @@ export interface Lead {
     status: string;
     // Won/Lost outcome of the opportunity this lead converted into (null if not converted or still open)
     closedOpportunityStatus?: 'Won' | 'Lost' | null;
+    // Team of the opportunity's owner AT THE MOMENT it was marked closed_won — a
+    // point-in-time snapshot, null if not won or won before this field existed (no backfill).
+    wonTeamName?: string | null;
     // Whether this lead actually has a real Opportunity behind it (only present on GET /leads/:id).
     // Don't infer "converted" from `status` alone — 'won'/'lost'/'converted' can also just be a
     // manually-picked custom status unrelated to any real conversion.
@@ -197,7 +200,10 @@ export const getLeadTransferLog = async (params?: LeadTransferLogParams) => {
 };
 
 export interface ReEnquiryEvent {
-    eventIndex: number;
+    // 're_enquiry' events keep their original eventIndex (used for splitReEnquiryIntoLead);
+    // 'follow_up' events always have eventIndex: null, they can't be split.
+    type: "re_enquiry" | "follow_up";
+    eventIndex: number | null;
     date: string;
     name: string | null;
     phone: string | null;
@@ -206,6 +212,17 @@ export interface ReEnquiryEvent {
     details: Record<string, any> | null;
     hasFullSnapshot: boolean;
     alreadySplitLeadId: string | null;
+    // Only present on 're_enquiry' events.
+    enquiryAbout?: string | null;
+    // Only present on 'follow_up' events.
+    followUp?: {
+        id: string;
+        subject: string | null;
+        description: string | null;
+        status: string | null;
+        priority: string | null;
+        assignedTo: { id: string; firstName: string; lastName: string } | null;
+    } | null;
 }
 export interface ReEnquiryHistory {
     leadId: string;

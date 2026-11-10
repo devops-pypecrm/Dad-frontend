@@ -422,6 +422,15 @@ export default function LeadDetailPage() {
                 >
                   {getStatusDetails(lead.status).label}
                 </Badge>
+                {lead.closedOpportunityStatus === "Won" && lead.wonTeamName && (
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] sm:text-xs font-semibold uppercase tracking-tight h-6 rounded-full px-3"
+                    title={lead.wonTeamName}
+                  >
+                    Won by {lead.wonTeamName}
+                  </Badge>
+                )}
                 {lead.reEnquiryCount > 0 && (
                   <Badge variant="secondary" className="text-[10px] sm:text-xs font-semibold uppercase tracking-tight h-6 rounded-full px-3 bg-orange-100 text-orange-700 hover:bg-orange-100">
                     Re-Enquiry ({lead.reEnquiryCount})

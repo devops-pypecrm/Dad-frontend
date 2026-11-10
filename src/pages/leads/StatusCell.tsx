@@ -2,11 +2,15 @@ import { useLeadStatuses } from "@/hooks/useLeadStatuses";
 
 interface StatusCellProps {
   statusId: string;
+  // Team of the opportunity's owner at the moment it was marked closed_won — only
+  // passed when this lead's closedOpportunityStatus is "Won"; null/undefined (not
+  // yet backfilled, or not won) renders nothing extra.
+  wonTeamName?: string | null;
 }
 
-export const StatusCell = ({ statusId }: StatusCellProps) => {
+export const StatusCell = ({ statusId, wonTeamName }: StatusCellProps) => {
   const { getStatusDetails, isLoading } = useLeadStatuses();
-  
+
   if (isLoading) {
     return <span className="text-xs text-muted-foreground">Loading…</span>;
   }
@@ -14,9 +18,16 @@ export const StatusCell = ({ statusId }: StatusCellProps) => {
   const { label, color } = getStatusDetails(statusId);
 
   return (
-    <span className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
-      <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden="true" />
-      <span className="capitalize">{label}</span>
+    <span className="inline-flex flex-col gap-0.5">
+      <span className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden="true" />
+        <span className="capitalize">{label}</span>
+      </span>
+      {wonTeamName ? (
+        <span className="pl-3.5 text-xs text-muted-foreground truncate" title={wonTeamName}>
+          {wonTeamName}
+        </span>
+      ) : null}
     </span>
   );
 };

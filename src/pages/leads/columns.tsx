@@ -186,6 +186,22 @@ export const columns: ColumnDef<Lead>[] = [
     }
   },
   {
+    id: "enquiryAbout",
+    size: 150,
+    header: "Enquiry",
+    cell: ({ row }) => {
+      const enquiryAbout = row.original.enquiryAbout;
+
+      if (!enquiryAbout) return <span className="text-muted-foreground/30 text-xs italic">-</span>;
+
+      return (
+        <div className="text-xs font-medium truncate max-w-[140px]" title={enquiryAbout}>
+          {enquiryAbout}
+        </div>
+      );
+    }
+  },
+  {
     accessorKey: "nextFollowUp",
     size: 150,
     header: "Next Follow-up",
@@ -209,7 +225,12 @@ export const columns: ColumnDef<Lead>[] = [
     accessorKey: "status",
     size: 120,
     header: "Stage",
-    cell: ({ row }) => <StatusCell statusId={row.getValue("status")} />
+    cell: ({ row }) => (
+      <StatusCell
+        statusId={row.getValue("status")}
+        wonTeamName={row.original.closedOpportunityStatus === "Won" ? row.original.wonTeamName : undefined}
+      />
+    )
   },
   {
     accessorKey: "createdAt",
