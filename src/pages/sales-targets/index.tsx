@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react"
+import { WonDealsList } from './WonDealsList'
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   getMyTargets,
@@ -221,6 +222,7 @@ const TargetNode = ({ node, level = 0, onDelete, onEdit }: { node: TargetTreeNod
           </div>
         </div>
         <Progress value={Math.min(achievementPercent, 100)} className="h-2" />
+        <WonDealsList targetId={node.id} showOwner />
       </div>
 
       {hasChildren && expanded && (
@@ -259,11 +261,20 @@ export default function SalesTargetsPage() {
   const [periodFilter, setPeriodFilter] = useState<'all' | 'monthly' | 'quarterly' | 'yearly'>('all')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed' | 'missed'>('all')
   const [productFilter, setProductFilter] = useState<string>('all')
-  const hasActiveFilters = periodFilter !== 'all' || statusFilter !== 'all' || productFilter !== 'all'
+  const [monthFilter, setMonthFilter] = useState<string>('all') // 'all' or 'YYYY-MM'
+  const monthOptions = useMemo(() => {
+    const base = new Date()
+    return Array.from({ length: 15 }, (_, i) => {
+      const d = new Date(base.getFullYear(), base.getMonth() + 2 - i, 1)
+      return { value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, label: d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) }
+    })
+  }, [])
+  const hasActiveFilters = periodFilter !== 'all' || statusFilter !== 'all' || productFilter !== 'all' || monthFilter !== 'all'
   const clearFilters = () => {
     setPeriodFilter('all')
     setStatusFilter('all')
     setProductFilter('all')
+    setMonthFilter('all')
   }
 
   const queryClient = useQueryClient()
@@ -306,10 +317,17 @@ export default function SalesTargetsPage() {
   const matchesFilters = (t: SalesTarget) =>
     (periodFilter === 'all' || t.period === periodFilter) &&
     (statusFilter === 'all' || t.status === statusFilter) &&
-    (productFilter === 'all' || t.productId === productFilter)
+    (productFilter === 'all' || t.productId === productFilter) &&
+    (monthFilter === 'all' || (() => {
+      const [y, m] = monthFilter.split('-').map(Number)
+      const monthStart = new Date(y, m - 1, 1).getTime()
+      const monthEnd = new Date(y, m, 1).getTime()
+      // The target's period overlaps the selected month (its last day is stored at 00:00, so it runs to the end of that day).
+      return new Date(t.startDate).getTime() < monthEnd && new Date(t.endDate).getTime() + 86400000 > monthStart
+    })())
 
-  const myTargets = useMemo(() => allMyTargets.filter(matchesFilters), [allMyTargets, periodFilter, statusFilter, productFilter])
-  const teamTargets = useMemo(() => allTeamTargets.filter(matchesFilters), [allTeamTargets, periodFilter, statusFilter, productFilter])
+  const myTargets = useMemo(() => allMyTargets.filter(matchesFilters), [allMyTargets, periodFilter, statusFilter, productFilter, monthFilter])
+  const teamTargets = useMemo(() => allTeamTargets.filter(matchesFilters), [allTeamTargets, periodFilter, statusFilter, productFilter, monthFilter])
 
   const targetTree = useMemo(() => buildTargetTree(teamTargets), [teamTargets]);
 
@@ -757,6 +775,22 @@ export default function SalesTargetsPage() {
             {/* Advanced Filters */}
             <div className="flex flex-wrap items-center gap-2">
               <div className={FILTER_CARD_CLASS}>
+                <Calendar className={FILTER_ICON_CLASS} />
+                <div>
+                  <span className={FILTER_LABEL_CLASS}>Month</span>
+                  <Select value={monthFilter} onValueChange={setMonthFilter}>
+                    <SelectTrigger className={FILTER_TRIGGER_CLASS}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Months</SelectItem>
+                      {monthOptions.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className={FILTER_CARD_CLASS}>
                 <Layers className={FILTER_ICON_CLASS} />
                 <div>
                   <span className={FILTER_LABEL_CLASS}>Period</span>
@@ -885,6 +919,7 @@ export default function SalesTargetsPage() {
                                 </div>
                               </div>
                               <Progress value={Math.min(percent, 100)} className="h-2" />
+                              <WonDealsList targetId={target.id} />
                             </div>
                           );
                         })}

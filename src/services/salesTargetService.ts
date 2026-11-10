@@ -114,3 +114,17 @@ export const deleteTarget = async (id: string): Promise<{ message: string }> => 
     const response = await api.delete(`/sales-targets/${id}`);
     return response.data;
 };
+
+export interface TargetWonDeal {
+    id: string;
+    name: string;
+    amount: number;
+    accountName: string | null;
+    ownerName: string | null;
+    closedAt: string;
+}
+
+export const getTargetWonDeals = async (id: string): Promise<{ deals: TargetWonDeal[] }> => {
+    const response = await api.get(`/sales-targets/${id}/won-deals`);
+    return response.data;
+};

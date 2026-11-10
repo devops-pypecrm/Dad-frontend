@@ -205,7 +205,8 @@ export default function CommissionsPage() {
     if (filteredCommissions.length === 0) return;
 
     const excelData = filteredCommissions.map((c) => ({
-      'Date': c.date ? formatIST(c.date, 'yyyy-MM-dd') : '',
+      'Commission Month': c.date ? formatIST(c.date, 'MMMM yyyy') : '',
+      'Added On': c.createdAt ? formatIST(c.createdAt, 'yyyy-MM-dd HH:mm') : '',
       ...(canManage ? { 'Team Member': c.user ? `${c.user.firstName} ${c.user.lastName}` : '' } : {}),
       'Description': c.description || '',
       'Type': c.type,
@@ -526,10 +527,11 @@ export default function CommissionsPage() {
                       {item.status}
                     </Badge>
                   </div>
+                  <div className="text-xs text-muted-foreground">Added on {formatIST(item.createdAt, 'dd MMM yyyy, hh:mm a')}</div>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span className="flex items-center gap-1.5 capitalize">
                       <Calendar className="h-3.5 w-3.5" />
-                      {formatIST(item.date, 'MMM d, yyyy')} · {item.type}
+                      {formatIST(item.date, 'MMMM yyyy')} · {item.type}
                     </span>
                     <span className="text-base font-bold text-foreground">{formatCurrency(item.amount)}</span>
                   </div>
@@ -558,7 +560,8 @@ export default function CommissionsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
+                  <TableHead>Commission Month</TableHead>
+                  <TableHead>Added On</TableHead>
                   {canManage && <TableHead>Team Member</TableHead>}
                   <TableHead>Description</TableHead>
                   <TableHead>Type</TableHead>
@@ -571,10 +574,14 @@ export default function CommissionsPage() {
                 {filteredCommissions.map((item: Commission) => (
                   <TableRow key={item.id}>
                     <TableCell className="whitespace-nowrap">
-                      <div className="flex items-center gap-2 text-sm">
+                      <div className="flex items-center gap-2 text-sm font-medium">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                        {formatIST(item.date, 'MMM d, yyyy')}
+                        {formatIST(item.date, 'MMMM yyyy')}
                       </div>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-sm">
+                      <div>{formatIST(item.createdAt, 'dd MMM yyyy')}</div>
+                      <div className="text-xs text-muted-foreground">{formatIST(item.createdAt, 'hh:mm a')}</div>
                     </TableCell>
                     {canManage && (
                       <TableCell>
