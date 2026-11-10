@@ -3,6 +3,7 @@ import { Bot, Mic, Send, Sparkles, Volume2, VolumeX, MessageSquare, AudioLines, 
 import { Button } from '@/components/ui/button'
 import { cn, getUserInfo, isOrgAdmin } from '@/lib/utils'
 import { API_URL } from '@/config'
+import { api } from '@/services/api'
 
 interface Msg { id: number; role: 'user' | 'assistant'; text: string }
 
@@ -56,6 +57,7 @@ export default function Assistant() {
   const voiceObjRef = useRef<SpeechSynthesisVoice | null>(null)
   const sendRef = useRef<(t: string, v?: boolean) => void>(() => {})
 
+  useEffect(() => { api.get('/ai/assistant/warm').catch(() => {}) }, []) // have the CRM numbers ready before the first question
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }) }, [msgs, interim, phase])
 
   // ---- speech output -------------------------------------------------------
