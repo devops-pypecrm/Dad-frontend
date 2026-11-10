@@ -148,6 +148,7 @@ const SSOLogin = lazy(() => import('./pages/SSOLogin'));
 const ShufflerSettingsPage = lazy(() => import('./pages/settings/shuffler'));
 const TrashPage = lazy(() => import('./pages/trash'));
 
+const AiHubPage = lazy(() => import('./pages/ai-hub'));
 const TrainingPage = lazy(() => import('./pages/Training'));
 const DocsIndexPage = lazy(() => import('./pages/docs'));
 const DocArticlePage = lazy(() => import('./pages/docs/[slug]'));
@@ -461,7 +462,9 @@ function AppContent() {
        <Route path="/quotes" element={<QuotesPage />} />
        <Route path="/field-force" element={<FieldForcePage />} />
        <Route path="/issues" element={<IssuesPage />} />
-       <Route path="/training" element={<TrainingPage />} />
+       <Route path="/ai" element={<Navigate to="/ai/assistant" replace />} />
+      <Route path="/ai/:tab" element={<AiHubPage />} />
+      <Route path="/training" element={<TrainingPage />} />
        <Route path="/training/docs" element={<DocsIndexPage />} />
        <Route path="/training/docs/:slug" element={<DocArticlePage />} />
        <Route path="/trash" element={<TrashPage />} />

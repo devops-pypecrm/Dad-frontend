@@ -27,6 +27,11 @@ import {
   Copy,
   Network,
   Sparkles,
+  Newspaper,
+  Flame,
+  PenLine,
+  TrendingUp,
+  Lightbulb,
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
@@ -150,6 +155,17 @@ const menuGroups = [
       // { title: "Goals", href: "/goals", icon: Trophy, role: "org_admin" },
       { title: "Reports", href: "/reports", icon: FileText },
       // { title: "AI Writer", href: "/ai-writer", icon: Sparkles, role: "org_admin" },
+    ]
+  },
+  {
+    title: "AI",
+    items: [
+      { title: "Assistant", href: "/ai/assistant", icon: Sparkles, role: "org_admin" },
+      { title: "Daily Briefing", href: "/ai/briefing", icon: Newspaper, role: "org_admin" },
+      { title: "Hot Leads", href: "/ai/hot-leads", icon: Flame, role: "org_admin" },
+      { title: "Smart Compose", href: "/ai/compose", icon: PenLine, role: "org_admin" },
+      { title: "Forecast & Risk", href: "/ai/forecast", icon: TrendingUp, role: "org_admin" },
+      { title: "Team Coach", href: "/ai/coach", icon: Lightbulb, role: "org_admin" },
     ]
   },
   {
@@ -298,9 +314,11 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
   const instagramEnabled = Array.isArray(user?.organisation?.enabledFeatures) && user.organisation.enabledFeatures.includes('instagram');
 
+  const aiEnabled = Array.isArray(user?.organisation?.enabledFeatures) && user.organisation.enabledFeatures.includes('ai_assistant');
+
   const orgEnabledFeatures: string[] = Array.isArray(user?.organisation?.enabledFeatures) ? user.organisation.enabledFeatures : [];
 
-  const filteredGroups = userIsSuperAdmin ? [] : menuGroups.filter(g => (g.title !== 'WhatsApp' || whatsAppEnabled) && (g.title !== 'Instagram' || instagramEnabled)).map(group => ({
+  const filteredGroups = userIsSuperAdmin ? [] : menuGroups.filter(g => (g.title !== 'WhatsApp' || whatsAppEnabled) && (g.title !== 'Instagram' || instagramEnabled) && (g.title !== 'AI' || aiEnabled)).map(group => ({
     ...group,
     items: group.items.filter(item => {
       if (item.title === 'Settings') return canAccessSettings(user);
