@@ -68,6 +68,7 @@ interface DataTableProps<TData, TValue> {
     onDrop?: (e: React.DragEvent, row: Row<TData>) => void;
     dragOverRowId?: string | null;
     handleRowClick: (e: React.MouseEvent, row: Row<TData>) => void;
+    isSelected?: boolean;
   }>
 }
 
@@ -384,6 +385,7 @@ export function DataTable<TData, TValue>({
                           onDrop={handleDrop}
                           dragOverRowId={dragOverRowId}
                           handleRowClick={handleRowClick}
+                          isSelected={row.getIsSelected()}
                         />
                       ) : (
                         row.getVisibleCells().map((cell) => {

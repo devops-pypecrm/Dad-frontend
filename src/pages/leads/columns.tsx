@@ -38,6 +38,7 @@ export const columns: ColumnDef<Lead>[] = [
           table.toggleAllPageRowsSelected(!!value)
         }}
         onClick={(e) => e.stopPropagation()}
+        className="data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600 data-[state=checked]:text-white data-[state=indeterminate]:bg-emerald-600 data-[state=indeterminate]:border-emerald-600"
         aria-label="Select all"
       />
     ),
@@ -48,6 +49,7 @@ export const columns: ColumnDef<Lead>[] = [
           row.toggleSelected(!!value)
         }}
         onClick={(e) => e.stopPropagation()}
+        className="data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600 data-[state=checked]:text-white data-[state=indeterminate]:bg-emerald-600 data-[state=indeterminate]:border-emerald-600"
         aria-label="Select row"
       />
     ),
