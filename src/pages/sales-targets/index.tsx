@@ -121,6 +121,14 @@ interface TargetTreeNode extends SalesTarget {
   children: TargetTreeNode[];
 }
 
+// "November 2026" / "Q4 2026" / "2026" — which period a target covers.
+const periodName = (t: { period: string; startDate: string }) => {
+  const d = new Date(t.startDate)
+  if (t.period === 'yearly') return String(d.getFullYear())
+  if (t.period === 'quarterly') return `Q${Math.floor(d.getMonth() / 3) + 1} ${d.getFullYear()}`
+  return d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+}
+
 // Build tree from flat targets list
 const buildTargetTree = (targets: SalesTarget[]): TargetTreeNode[] => {
   const targetMap = new Map<string, TargetTreeNode>();
@@ -175,6 +183,7 @@ const TargetNode = ({ node, level = 0, onDelete, onEdit }: { node: TargetTreeNod
             <div className="min-w-0">
               <p className="font-semibold text-foreground truncate">{node.assignedTo.firstName} {node.assignedTo.lastName}</p>
               <div className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+                <Badge variant="outline" className="text-xs">{periodName(node)}</Badge>
                 {node.autoDistributed && <Badge variant="outline" className="text-xs">Auto-distributed</Badge>}
                 <Badge variant={node.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
                   {node.status}
@@ -244,6 +253,22 @@ export default function SalesTargetsPage() {
   const [selectedSubordinate, setSelectedSubordinate] = useState("")
   const [targetValue, setTargetValue] = useState("")
   const [period, setPeriod] = useState<"monthly" | "quarterly" | "yearly">("monthly")
+  // Which month / quarter / year the new target is for (defaults to the current one).
+  const nowDate = new Date()
+  const [targetYear, setTargetYear] = useState<number>(nowDate.getFullYear())
+  const [targetMonth, setTargetMonth] = useState<number>(nowDate.getMonth() + 1)
+  const [targetQuarter, setTargetQuarter] = useState<number>(Math.floor(nowDate.getMonth() / 3) + 1)
+  const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  const yearOptions = [nowDate.getFullYear(), nowDate.getFullYear() + 1, nowDate.getFullYear() + 2]
+  const isCurrentYear = targetYear === nowDate.getFullYear()
+  const firstMonth = isCurrentYear ? nowDate.getMonth() + 1 : 1          // past months can't take a target
+  const firstQuarter = isCurrentYear ? Math.floor(nowDate.getMonth() / 3) + 1 : 1
+  const changeTargetYear = (y: number) => {
+    setTargetYear(y)
+    const cur = y === nowDate.getFullYear()
+    setTargetMonth((m) => (cur ? Math.max(m, nowDate.getMonth() + 1) : m))
+    setTargetQuarter((q) => (cur ? Math.max(q, Math.floor(nowDate.getMonth() / 3) + 1) : q))
+  }
 
   // New State for Enhanced Targeting
   const [metric, setMetric] = useState<'revenue' | 'units'>('revenue')
@@ -399,7 +424,9 @@ export default function SalesTargetsPage() {
       metric,
       scope,
       productId: selectedProductId === 'ALL' ? undefined : selectedProductId,
-      opportunityType: opportunityType === 'ALL' ? undefined : opportunityType
+      opportunityType: opportunityType === 'ALL' ? undefined : opportunityType,
+      year: targetYear,
+      month: period === 'monthly' ? targetMonth : period === 'quarterly' ? (targetQuarter - 1) * 3 + 1 : 1
     })
   }
 
@@ -554,6 +581,39 @@ export default function SalesTargetsPage() {
                                 onChange={setPeriod}
                                 options={[{ value: 'monthly', label: 'Monthly' }, { value: 'quarterly', label: 'Quarterly' }, { value: 'yearly', label: 'Yearly' }]}
                               />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            {period === 'monthly' && (
+                              <div className="space-y-1.5">
+                                <Label className="font-poppins text-xs text-muted-foreground">Month</Label>
+                                <Select value={String(targetMonth)} onValueChange={(v) => setTargetMonth(Number(v))}>
+                                  <SelectTrigger className="rounded-[10px]"><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    {MONTH_NAMES.map((name, i) => (i + 1 >= firstMonth) && <SelectItem key={name} value={String(i + 1)}>{name}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                            {period === 'quarterly' && (
+                              <div className="space-y-1.5">
+                                <Label className="font-poppins text-xs text-muted-foreground">Quarter</Label>
+                                <Select value={String(targetQuarter)} onValueChange={(v) => setTargetQuarter(Number(v))}>
+                                  <SelectTrigger className="rounded-[10px]"><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    {[1, 2, 3, 4].map((q) => q >= firstQuarter && <SelectItem key={q} value={String(q)}>Q{q} · {MONTH_NAMES[(q - 1) * 3].slice(0, 3)}–{MONTH_NAMES[(q - 1) * 3 + 2].slice(0, 3)}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                            <div className={cn('space-y-1.5', period === 'yearly' && 'col-span-2')}>
+                              <Label className="font-poppins text-xs text-muted-foreground">Year</Label>
+                              <Select value={String(targetYear)} onValueChange={(v) => changeTargetYear(Number(v))}>
+                                <SelectTrigger className="rounded-[10px]"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {yearOptions.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+                                </SelectContent>
+                              </Select>
                             </div>
                           </div>
                           <div className="space-y-1.5">
@@ -888,7 +948,7 @@ export default function SalesTargetsPage() {
                                     {target.status === 'completed' ? <Trophy className="h-5 w-5" /> : <Target className="h-5 w-5" />}
                                   </div>
                                   <div className="min-w-0">
-                                    <p className="font-semibold capitalize text-foreground">{target.period} Target</p>
+                                    <p className="font-semibold text-foreground"><span className="capitalize">{target.period}</span> Target · {periodName(target)}</p>
                                     <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                                       <Badge variant="outline">{target.period}</Badge>
                                       <Calendar className="h-3 w-3" />

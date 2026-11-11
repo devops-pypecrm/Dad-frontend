@@ -61,6 +61,9 @@ export interface AssignTargetInput {
     metric?: 'revenue' | 'units';
     scope?: 'INDIVIDUAL' | 'HIERARCHY';
     opportunityType?: 'NEW_BUSINESS' | 'UPSALE';
+    /** Which period the target is for. month is 1-12 (for quarterly: the quarter's first month). Omitted = current period. */
+    year?: number;
+    month?: number;
 }
 
 export interface UpdateTargetInput {
