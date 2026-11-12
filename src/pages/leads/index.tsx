@@ -948,6 +948,12 @@ export default function LeadsPage() {
     updateSearchParams({ campaignId: campaignId === 'all' ? undefined : campaignId });
   };
 
+// Campaign shown in the lead table: Meta campaign name, or the website address for website-form leads.
+  const leadCampaign = (lead: Lead): string => {
+    const sd: any = (lead as any).sourceDetails || {}
+    return sd.campaignName || sd.metaCampaignName || sd.siteUrl || sd.formName || ''
+  }
+
   // Excel download function - shared by every export path (the "All" scope
   // below, and both the Users/Campaign scoped exports further down).
   const exportLeadsToExcel = (dataToExport: Lead[], fileNameSuffix: string) => {
@@ -959,6 +965,8 @@ export default function LeadsPage() {
       'Company': lead.company || '',
       'Status': lead.status || '',
       'Source': lead.source || '',
+      'Enquiry': (lead as any).enquiryAbout || '',
+      'Campaign': leadCampaign(lead),
       'Lead Score': lead.leadScore || 0,
       'Assigned To': lead.assignedTo ? `${lead.assignedTo.firstName} ${lead.assignedTo.lastName}` : '',
       'Created At': lead.createdAt ? formatIST(lead.createdAt, 'yyyy-MM-dd HH:mm:ss') : '',

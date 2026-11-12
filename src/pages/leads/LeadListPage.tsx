@@ -140,6 +140,8 @@ export function LeadListPage({ title, description, icon, queryKey, queryFn, empt
       'Company': lead.company || '',
       'Status': lead.status || '',
       'Source': lead.source || '',
+      'Enquiry': (lead as any).enquiryAbout || '',
+      'Campaign': ((lead as any).sourceDetails?.campaignName || (lead as any).sourceDetails?.metaCampaignName || (lead as any).sourceDetails?.siteUrl || (lead as any).sourceDetails?.formName || ''),
       'Assigned To': lead.assignedTo ? `${lead.assignedTo.firstName} ${lead.assignedTo.lastName}` : '',
       'Created At': lead.createdAt ? formatIST(lead.createdAt, 'yyyy-MM-dd HH:mm:ss') : '',
     }))
