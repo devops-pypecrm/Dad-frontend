@@ -34,6 +34,17 @@ const HelpArticle = lazy(() => import('./pages/HelpArticle'));
 const Features = lazy(() => import('./pages/Features'));
 const Pricing = lazy(() => import('./pages/Pricing'));
 const Partners = lazy(() => import('./pages/Partners'));
+const learnPage = (name: 'Academy' | 'Demos' | 'Tutorials' | 'Webinars' | 'Guides' | 'SupportCenter' | 'Services' | 'Customers' | 'CustomerStoryPage') =>
+  lazy(() => import('./pages/learn/LearnPages').then((m) => ({ default: m[name] })));
+const AcademyPage = learnPage('Academy');
+const DemosPage = learnPage('Demos');
+const TutorialsPage = learnPage('Tutorials');
+const WebinarsPage = learnPage('Webinars');
+const GuidesPage = learnPage('Guides');
+const SupportCenterPage = learnPage('SupportCenter');
+const ServicesPage = learnPage('Services');
+const CustomersPage = learnPage('Customers');
+const CustomerStoryRoute = learnPage('CustomerStoryPage');
 const LeadsPage = lazy(() => import('./pages/leads'));
 const CreateLeadPage = lazy(() => import('./pages/leads/new'));
 const LeadDetailPage = lazy(() => import('./pages/leads/[id]'));
@@ -141,6 +152,7 @@ const BillingSettingsPage = lazy(() => import('./pages/settings/Billing'));
 const AuditLogsPage = lazy(() => import('./pages/settings/audit-logs'));
 const DeveloperSettingsPage = lazy(() => import('./pages/settings/developer'));
 const GmailCallbackPage = lazy(() => import('./pages/settings/gmail-callback'));
+const GoogleAdsCallbackPage = lazy(() => import('./pages/settings/google-ads-callback'));
 const LeadStatusesSettingsPage = lazy(() => import('./pages/settings/lead-statuses'));
 const BroadcastSettingsPage = lazy(() => import('./pages/settings/broadcast'));
 const SSOLogin = lazy(() => import('./pages/SSOLogin'));
@@ -502,6 +514,7 @@ function AppContent() {
        <Route path="/settings/notifications" element={<NotificationsSettingsPage />} />
        <Route path="/settings/lead-statuses" element={<LeadStatusesSettingsPage />} />
        <Route path="/settings/gmail-callback" element={<GmailCallbackPage />} />
+       <Route path="/settings/google-ads-callback" element={<GoogleAdsCallbackPage />} />
        <Route path="/settings/whatsapp-accounts" element={<Navigate to="/whatsapp/settings" replace />} />
        <Route path="/notifications" element={<NotificationsPage />} />
       </Route>
@@ -518,6 +531,15 @@ function AppContent() {
       <Route path="/features" element={<Features />} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/partners" element={<Partners />} />
+      <Route path="/academy" element={<AcademyPage />} />
+      <Route path="/demos" element={<DemosPage />} />
+      <Route path="/tutorials" element={<TutorialsPage />} />
+      <Route path="/webinars" element={<WebinarsPage />} />
+      <Route path="/guides" element={<GuidesPage />} />
+      <Route path="/support-center" element={<SupportCenterPage />} />
+      <Route path="/services" element={<ServicesPage />} />
+      <Route path="/customers" element={<CustomersPage />} />
+      <Route path="/customers/:slug" element={<CustomerStoryRoute />} />
       <Route path="/download" element={<DownloadApp />} />
       <Route path="/data-deletion" element={<DataDeletion />} />
       <Route path="/shared-product/:slug" element={<SharedProductPage />} />

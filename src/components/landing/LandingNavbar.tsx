@@ -1,25 +1,38 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Menu } from "lucide-react";
+import { ArrowRight, ChevronDown, LayoutDashboard, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { cn, getUserInfo } from "@/lib/utils";
-import { motion, useScroll, useMotionValueEvent } from "framer-motion";
+import { AnimatePresence, motion, useScroll, useMotionValueEvent } from "framer-motion";
+import { CUSTOMER_STORIES, LEARN_COLUMNS } from "@/data/learnContent";
 import Logo from "../shared/Logo";
 
 const navLinks = [
   { label: "Features", href: "/features" },
   { label: "Pricing", href: "/pricing" },
-  { label: "Blog", href: "/blog" },
-  { label: "Documentation", href: "/docs" },
 ];
+
+const featuredStory = CUSTOMER_STORIES[0];
 
 export default function LandingNavbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [learnOpen, setLearnOpen] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const openLearn = () => {
+    clearTimeout(closeTimer.current);
+    setLearnOpen(true);
+  };
+  // Small delay so the pointer can cross the gap between trigger and panel.
+  const closeLearn = () => {
+    closeTimer.current = setTimeout(() => setLearnOpen(false), 120);
+  };
   const { scrollY } = useScroll();
   const { pathname } = useLocation();
-  const useLightNav = pathname === "/partners" && !isScrolled;
+  const useLightNav = pathname === "/partners" && !isScrolled && !learnOpen;
+
+  useEffect(() => setLearnOpen(false), [pathname]);
   // Read once per mount rather than via a state/effect pair - this only
   // needs to reflect whatever was true when the landing page loaded (a
   // login/logout elsewhere triggers a full navigation back here anyway).
@@ -64,6 +77,25 @@ export default function LandingNavbar() {
                 )
               )
             )}
+            <div className="relative" onMouseEnter={openLearn} onMouseLeave={closeLearn}>
+              <button
+                type="button"
+                aria-expanded={learnOpen}
+                aria-haspopup="true"
+                onClick={() => setLearnOpen((v) => !v)}
+                onFocus={openLearn}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-lg px-3 py-1.5 -mx-3 text-sm font-semibold transition-colors",
+                  learnOpen && "bg-gray-100 dark:bg-gray-800",
+                  useLightNav
+                    ? "text-white/75 hover:text-white"
+                    : "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                )}
+              >
+                Learn
+                <ChevronDown className={cn("h-4 w-4 transition-transform", learnOpen && "rotate-180")} />
+              </button>
+            </div>
             <Link
               to="/partners"
               className={cn(
@@ -143,6 +175,48 @@ export default function LandingNavbar() {
         </div>
       </div>
 
+      <AnimatePresence>
+        {learnOpen && (
+          <motion.div
+            key="learn-panel"
+            className="absolute left-0 right-0 top-full hidden border-t border-gray-100 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-950 lg:block"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.18 }}
+            onMouseEnter={openLearn}
+            onMouseLeave={closeLearn}
+          >
+            <div className="container mx-auto grid grid-cols-[1fr_1fr_1fr_1.6fr] gap-10 px-6 py-10 sm:px-8 md:px-12 lg:px-20 xl:px-28">
+              {LEARN_COLUMNS.map((col) => (
+                <div key={col.title}>
+                  <p className="mb-5 font-mono text-xs font-medium uppercase tracking-[0.2em] text-gray-400">{col.title}</p>
+                  <ul className="space-y-4">
+                    {col.links.map((l) => (
+                      <li key={l.label}>
+                        <Link to={l.href} className="text-base font-semibold text-gray-900 transition-colors hover:text-brand-600 dark:text-gray-100">
+                          {l.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+              <div>
+                <p className="mb-5 font-mono text-xs font-medium uppercase tracking-[0.2em] text-gray-400">Customer stories</p>
+                <Link to={`/customers/${featuredStory.slug}`} className="block rounded-2xl bg-gray-50 p-6 transition-colors hover:bg-brand-50 dark:bg-gray-900 dark:hover:bg-gray-800">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-plum-500 text-sm font-bold text-white">{featuredStory.initials}</span>
+                  <p className="mt-4 text-lg font-semibold leading-snug text-gray-900 dark:text-white">“{featuredStory.headline}”</p>
+                  <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-gray-900 dark:text-white">
+                    Read the story <ArrowRight className="h-4 w-4" />
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
         <SheetContent side="right" className="w-72">
           <SheetTitle className="sr-only">Menu</SheetTitle>
@@ -156,6 +230,14 @@ export default function LandingNavbar() {
                 <span className="block text-base font-bold">Partner With Us</span>
                 <span className="mt-1 block text-xs font-semibold text-brand-600 dark:text-brand-300">Earn 30% recurring commission</span>
               </Link>
+              {LEARN_COLUMNS.flatMap((c) => c.links).map((link) =>
+                renderLink(
+                  link,
+                  "px-3 py-2 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors",
+                  () => setIsMobileOpen(false)
+                )
+              )}
+              <div className="my-2 border-t border-gray-100 dark:border-gray-800" />
               {navLinks.map((link) =>
                 renderLink(
                   link,
