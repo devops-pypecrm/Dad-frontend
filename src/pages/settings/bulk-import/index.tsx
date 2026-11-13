@@ -1,4 +1,5 @@
 import { BulkImportLeads } from "@/components/organisation/BulkImportLeads"
+import { ImportHistory } from "@/components/organisation/ImportHistory"
 
 export default function BulkImportSettingsPage() {
   return (
@@ -10,6 +11,7 @@ export default function BulkImportSettingsPage() {
         </div>
 
         <BulkImportLeads />
+        <ImportHistory />
       </div>
     </div>
   )

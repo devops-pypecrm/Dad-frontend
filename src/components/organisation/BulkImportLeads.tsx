@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { importLeads, type CreateLeadData, type ImportLeadsResult } from "@/services/leadService"
+import { importLeads, type CreateLeadData, type ImportLeadsResult, type ImportNotCreatedRow } from "@/services/leadService"
 import { getBranches, getUsers } from "@/services/settingsService"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -35,7 +35,19 @@ const downloadFailedRows = (failed: { lead: unknown; error: string }[]) => {
   URL.revokeObjectURL(url)
 }
 
-type ImportOutcome = ImportLeadsResult & { failedRows: number; failedList: { lead: unknown; error: string }[] }
+type ImportOutcome = ImportLeadsResult & { failedRows: number; failedList: { lead: unknown; error: string }[]; notCreatedList: ImportNotCreatedRow[] }
+
+export const downloadNotCreatedReport = (rows: ImportNotCreatedRow[], fileName = 'import-not-created-report.csv') => {
+  const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`
+  const lines = ['row_in_batch,name,phone,outcome,reason,existing_lead_id']
+  for (const r of rows) lines.push([r.row, r.name, r.phone, r.outcome, r.reason, r.existingLeadId].map(esc).join(','))
+  const url = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' }))
+  const a = document.createElement('a')
+  a.href = url
+  a.download = fileName
+  a.click()
+  URL.revokeObjectURL(url)
+}
 
 // A broken import (tab closed/refreshed, browser crash, network drop) used to
 // lose all progress - the batch loop lives entirely in this component's React
@@ -53,6 +65,7 @@ interface ResumeState {
   totalRows: number
   completedRows: number
   splitStartIndex: number
+  sessionId?: string
   savedAt: number
 }
 
@@ -163,7 +176,8 @@ export function BulkImportLeads() {
       const alreadyDone = resume ? resume.completedRows : 0
       const fingerprint = file ? fileFingerprint(file) : ''
 
-      const totals: ImportOutcome = { created: 0, reEnquiries: 0, duplicates: 0, failedRows: 0, failedList: [] }
+      const totals: ImportOutcome = { created: 0, reEnquiries: 0, duplicates: 0, blocked: 0, failedRows: 0, failedList: [], notCreatedList: [] }
+      const importSessionId = resume?.sessionId || (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : String(Date.now()))
       let splitStartIndex = resume?.splitStartIndex ?? 0
       setProgress({ done: alreadyDone, total: totalRows })
 
@@ -176,6 +190,9 @@ export function BulkImportLeads() {
             applyAssignmentRules: applyRules,
             splitUserIds: selectedUserIds.length > 0 ? selectedUserIds : undefined,
             splitStartIndex,
+            importSessionId,
+            fileName: file?.name,
+            totalRowsInFile: totalRows,
             // Resuming means every row in this first batch may already exist
             // (the last batch before the interruption may or may not have
             // landed) - skip duplicates silently instead of logging a
@@ -194,6 +211,7 @@ export function BulkImportLeads() {
               totalRows,
               completedRows: alreadyDone + start,
               splitStartIndex,
+              sessionId: importSessionId,
               savedAt: Date.now()
             })
           }
@@ -210,6 +228,9 @@ export function BulkImportLeads() {
 
         totals.created += result.created || 0
         totals.reEnquiries += result.reEnquiries || 0
+        totals.duplicates += result.duplicates || 0
+        totals.blocked = (totals.blocked || 0) + (result.blocked || 0)
+        if (result.notCreated) totals.notCreatedList.push(...result.notCreated)
         totals.failedRows += result.errors?.length || 0
         if (result.errors) totals.failedList.push(...result.errors)
         if (typeof result.nextSplitIndex === 'number') splitStartIndex = result.nextSplitIndex
@@ -226,6 +247,7 @@ export function BulkImportLeads() {
             totalRows,
             completedRows: doneSoFar,
             splitStartIndex,
+            sessionId: importSessionId,
             savedAt: Date.now()
           })
         }
@@ -235,14 +257,22 @@ export function BulkImportLeads() {
     },
     onSuccess: (data) => {
       const parts = [`${data.created} new leads`]
-      if (data.reEnquiries > 0) parts.push(`${data.reEnquiries} re-enquiries`)
+      if (data.reEnquiries > 0) parts.push(`${data.reEnquiries} re-enquiries (already in CRM)`)
       toast.success(`Successfully imported ${parts.join(' and ')}`)
-      if (data.failedRows > 0) {
-        toast.warning(`${data.failedRows} rows could not be imported. Download the failed rows to see why.`, {
-          duration: 30000,
-          action: { label: 'Download', onClick: () => downloadFailedRows(data.failedList) }
+      // Rows that did not become new leads used to vanish without a word (skipped duplicates, blocked
+      // numbers). Say so, and offer the full row-by-row report.
+      const skipped = (data.duplicates || 0) + (data.blocked || 0)
+      if (skipped > 0 || data.failedRows > 0) {
+        const bits = []
+        if (data.duplicates) bits.push(`${data.duplicates} skipped as already existing`)
+        if (data.blocked) bits.push(`${data.blocked} blocked numbers`)
+        if (data.failedRows) bits.push(`${data.failedRows} failed`)
+        toast.warning(`Not added as new leads: ${bits.join(', ')}. Download the report to see each row and why.`, {
+          duration: 60000,
+          action: { label: 'Download report', onClick: () => downloadNotCreatedReport(data.notCreatedList.length ? data.notCreatedList : []) }
         })
       }
+      queryClient.invalidateQueries({ queryKey: ['import-jobs'] })
       clearResumeState()
       resetForm()
       // Invalidate all leads queries

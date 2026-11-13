@@ -150,15 +150,55 @@ export interface ImportLeadsOptions {
     splitUserIds?: string[];
     flagAsReEnquiry?: boolean;
     splitStartIndex?: number;
+    // Ties the batches of one file together in the saved import history.
+    importSessionId?: string;
+    fileName?: string;
+    totalRowsInFile?: number;
+}
+
+export interface ImportNotCreatedRow {
+    row: number;
+    name: string;
+    phone: string;
+    outcome: 'blocked' | 'duplicate_skipped' | 're_enquiry' | 'error';
+    reason: string;
+    existingLeadId?: string;
 }
 
 export interface ImportLeadsResult {
     created: number;
     reEnquiries: number;
     duplicates: number;
+    blocked?: number;
     errors?: { lead: unknown; error: string }[];
+    notCreated?: ImportNotCreatedRow[];
+    importJobId?: string;
     nextSplitIndex?: number;
 }
+
+export interface ImportJobSummary {
+    id: string;
+    status: string;
+    total: number;
+    successCount: number;
+    failureCount: number;
+    createdAt: string;
+    createdBy?: { firstName?: string; lastName?: string; email?: string };
+    metadata?: {
+        fileName?: string | null; importSessionId?: string | null; totalRowsInFile?: number | null;
+        created?: number; reEnquiries?: number; duplicatesSkipped?: number; blocked?: number; errored?: number; resumeMode?: boolean;
+    };
+}
+
+export const getImportJobs = async (): Promise<ImportJobSummary[]> => {
+    const response = await api.get('/import/jobs');
+    return response.data.jobs;
+};
+
+export const getImportJobRows = async (id: string): Promise<ImportNotCreatedRow[]> => {
+    const response = await api.get(`/import/job/${id}`);
+    return Array.isArray(response.data?.errors) ? response.data.errors : [];
+};
 
 // The server processes import rows one at a time (duplicate check + assignment
 // rules + insert per row), so a single batch must stay small enough to finish
