@@ -237,6 +237,27 @@ export default function OrganisationSettingsPage() {
 
         <Card>
           <CardHeader>
+            <CardTitle>Duplicate Lead Handling</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border/50 gap-4">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-bold">Create a new lead for repeat enquiries</Label>
+                <p className="text-xs text-muted-foreground">
+                  When on, the same phone number or email enquiring again (any source: manual, import, forms, Meta, Google, WhatsApp, API) is created as a separate new lead instead of being treated as a re-enquiry. Existing leads are not changed. Off by default.
+                </p>
+              </div>
+              <Switch
+                checked={!!org?.allowDuplicateLeads}
+                disabled={updateMutation.isPending}
+                onCheckedChange={(v) => updateMutation.mutate({ allowDuplicateLeads: v })}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Upsell Calculator Settings</CardTitle>
             <CardDescription>Configure labels for the revenue calculator (e.g., "Students", "Tuition").</CardDescription>
           </CardHeader>
