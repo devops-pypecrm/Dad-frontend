@@ -29,6 +29,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { User, LogOut } from "lucide-react"
 import { clearAndroidToken } from "@/utils/androidBridge"
 import { ThemeSwitcher } from './ThemeSwitcher'
+import { OrganisationSwitcher } from './OrganisationSwitcher'
 
 export function Header({ className }: { className?: string }) {
   const navigate = useNavigate()
@@ -77,6 +78,10 @@ export function Header({ className }: { className?: string }) {
 
       <div className="flex items-center gap-1 sm:gap-2">
         <TooltipProvider>
+          <ErrorBoundary name="OrganisationSwitcher">
+            <OrganisationSwitcher />
+          </ErrorBoundary>
+
           {/* Quick Add Lead - Only icon on mobile */}
           <QuickAddLeadDialog>
             <Tooltip>
