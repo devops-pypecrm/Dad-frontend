@@ -436,6 +436,13 @@ export default function LeadDetailPage() {
                     Re-Enquiry ({lead.reEnquiryCount})
                   </Badge>
                 )}
+                {lead.originalLeadId && (
+                  <Link to={`/leads/${lead.originalLeadId}`}>
+                    <Badge variant="secondary" className="text-[10px] sm:text-xs font-semibold h-6 rounded-full px-3 bg-orange-100 text-orange-700 hover:bg-orange-200">
+                      Re-enquiry of earlier lead
+                    </Badge>
+                  </Link>
+                )}
                 {linkedContacts?.contacts?.map((c) => (
                   <Link key={c.id} to={`/contacts/${c.id}`}>
                     <Badge variant="outline" className="text-[10px] sm:text-xs font-semibold h-6 rounded-full px-3 gap-1 border-[hsl(var(--chart-5))]/20 bg-[hsl(var(--chart-5))]/5 text-[hsl(var(--chart-5))] hover:bg-[hsl(var(--chart-5))]/10">

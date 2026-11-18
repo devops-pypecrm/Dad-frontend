@@ -45,6 +45,7 @@ export interface Lead {
     isReEnquiry?: boolean;
     reEnquiryCount?: number;
     lastEnquiryDate?: string;
+    originalLeadId?: string | null; // set when this is a repeat enquiry kept as its own lead (org setting)
     country?: string;
     countryCode?: string;
     phoneCountryCode?: string;
