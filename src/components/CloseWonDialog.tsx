@@ -77,7 +77,9 @@ export function CloseWonDialog({
   })
 
   const handleAddInstallment = () => {
-    setInstallmentRows(prev => [...prev, { dueDate: "", amount: "" }])
+    // Pre-fill the new row with whatever balance is still unallocated
+    const left = Math.round(((paymentType === 'partial' ? (amount - (parseFloat(paidAmount) || 0)) : amount) - installmentRows.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)) * 100) / 100
+    setInstallmentRows(prev => [...prev, { dueDate: "", amount: left > 0 ? String(left) : "" }])
   }
 
   const handleRemoveInstallment = (index: number) => {
@@ -90,6 +92,10 @@ export function CloseWonDialog({
 
   const remainingAmount = amount - (parseFloat(paidAmount) || 0)
   const emiTotal = installmentRows.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
+  // Amount the installments must add up to, and how much of it is still unallocated
+  const emiTarget = paymentType === 'partial' ? remainingAmount : amount
+  const emiBalance = Math.round((emiTarget - emiTotal) * 100) / 100
+  const emiProgress = emiTarget > 0 ? Math.min(100, Math.max(0, (emiTotal / emiTarget) * 100)) : 0
 
   const isEmiValid = paymentType === 'paid' ||
     (paymentType === 'partial' && (Math.abs(remainingAmount - emiTotal) < 0.1 || installmentRows.length === 0)) ||
@@ -227,16 +233,49 @@ export function CloseWonDialog({
                 ))}
               </div>
 
-              {(paymentType === 'partial' || paymentType === 'emi') && installmentRows.length > 0 && (
-                <div className="flex justify-between items-center text-sm pt-1">
-                  <span className="text-muted-foreground">Total EMI: {formatCurrency(emiTotal)}</span>
-                  {Math.abs((paymentType === 'partial' ? remainingAmount : amount) - emiTotal) > 0.1 && (
-                    <span className="text-destructive text-xs font-medium">
-                      Must equal {formatCurrency(paymentType === 'partial' ? remainingAmount : amount)}
-                    </span>
-                  )}
+              <div className="rounded-lg border bg-muted/40 p-3 space-y-2">
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <div className="text-[10px] uppercase text-muted-foreground">To Split</div>
+                    <div className="text-sm font-semibold">{formatCurrency(emiTarget)}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase text-muted-foreground">
+                      Added ({installmentRows.length})
+                    </div>
+                    <div className="text-sm font-semibold">{formatCurrency(emiTotal)}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase text-muted-foreground">Remaining</div>
+                    <div
+                      className={`text-sm font-bold ${
+                        emiBalance < -0.1 ? 'text-destructive' : Math.abs(emiBalance) <= 0.1 ? 'text-success' : 'text-warning'
+                      }`}
+                    >
+                      {formatCurrency(emiBalance)}
+                    </div>
+                  </div>
                 </div>
-              )}
+                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className={`h-full transition-all ${Math.abs(emiBalance) <= 0.1 ? 'bg-success' : emiBalance < -0.1 ? 'bg-destructive' : 'bg-primary'}`}
+                    style={{ width: `${emiProgress}%` }}
+                  />
+                </div>
+                {emiBalance < -0.1 && (
+                  <p className="text-xs text-destructive font-medium">
+                    Installments exceed the amount by {formatCurrency(Math.abs(emiBalance))}
+                  </p>
+                )}
+                {emiBalance > 0.1 && installmentRows.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {formatCurrency(emiBalance)} still to be added as installments
+                  </p>
+                )}
+                {Math.abs(emiBalance) <= 0.1 && installmentRows.length > 0 && (
+                  <p className="text-xs text-success font-medium">Fully allocated</p>
+                )}
+              </div>
             </div>
           )}
         </div>
