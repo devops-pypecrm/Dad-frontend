@@ -18,7 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
-  getEMISchedule,
+  getEMISchedule, getPaymentSummary,
   convertToEMI,
   markInstallmentPaid,
   deleteInstallment,
@@ -54,6 +54,15 @@ export function EMISchedulePanel({ opportunityId, paymentStatus, opportunityAmou
     enabled: !!opportunityId,
   })
 
+  const { data: paymentSummary } = useQuery({
+    queryKey: ['payment-summary', opportunityId],
+    queryFn: () => getPaymentSummary(opportunityId),
+    enabled: !!opportunityId && !isLoading && !emiSchedule,
+  })
+  // What is still unpaid: deal amount minus down payment(s) already received
+  const paidSoFar = paymentSummary?.paidAmount ?? 0
+  const pendingAmount = paymentSummary ? Math.max(0, paymentSummary.remainingAmount) : (opportunityAmount || 0)
+
   const convertMutation = useMutation({
     mutationFn: () => convertToEMI(opportunityId, {
       installments: installmentRows
@@ -62,6 +71,8 @@ export function EMISchedulePanel({ opportunityId, paymentStatus, opportunityAmou
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['emi-schedule', opportunityId] })
+      queryClient.invalidateQueries({ queryKey: ['payment-summary', opportunityId] })
+      queryClient.invalidateQueries({ queryKey: ['timeline'] })
       queryClient.invalidateQueries({ queryKey: ['opportunities'] })
       toast.success("EMI schedule created successfully")
       setShowConvertDialog(false)
@@ -97,7 +108,10 @@ export function EMISchedulePanel({ opportunityId, paymentStatus, opportunityAmou
   })
 
   const addInstallmentRow = () => {
-    setInstallmentRows(prev => [...prev, { dueDate: "", amount: "" }])
+    // Pre-fill the new row with the balance not yet allocated
+    const allocated = installmentRows.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
+    const left = Math.round((pendingAmount - allocated) * 100) / 100
+    setInstallmentRows(prev => [...prev, { dueDate: "", amount: left > 0 ? String(left) : "" }])
   }
 
   const removeInstallmentRow = (index: number) => {
@@ -109,8 +123,8 @@ export function EMISchedulePanel({ opportunityId, paymentStatus, opportunityAmou
   }
 
   const autoSplitAmount = () => {
-    if (!opportunityAmount || installmentRows.length === 0) return
-    const perInstallment = (opportunityAmount / installmentRows.length).toFixed(2)
+    if (!pendingAmount || installmentRows.length === 0) return
+    const perInstallment = (pendingAmount / installmentRows.length).toFixed(2)
     setInstallmentRows(prev => prev.map(row => ({ ...row, amount: perInstallment })))
   }
 
@@ -132,9 +146,18 @@ export function EMISchedulePanel({ opportunityId, paymentStatus, opportunityAmou
         <CardContent className="py-6 text-center">
           <CreditCard className="w-8 h-8 mx-auto mb-3 text-blue-500 opacity-60" />
           <p className="text-sm text-muted-foreground mb-3">
-            This opportunity has a partial payment. Convert the remaining amount to EMI installments.
+            {paidSoFar > 0
+              ? <>Down payment of <span className="font-medium text-green-600">{formatCurrency(paidSoFar)}</span> received. Pending balance: <span className="font-medium text-orange-600">{formatCurrency(pendingAmount)}</span>. Convert the pending balance to EMI installments.</>
+              : <>Convert the pending amount to EMI installments.</>}
           </p>
-          <Button onClick={() => setShowConvertDialog(true)} variant="outline" className="gap-2">
+          <Button
+            onClick={() => {
+              setInstallmentRows([{ dueDate: "", amount: pendingAmount > 0 ? String(Math.round(pendingAmount * 100) / 100) : "" }])
+              setShowConvertDialog(true)
+            }}
+            variant="outline"
+            className="gap-2"
+          >
             <Plus className="w-4 h-4" />
             Convert to EMI
           </Button>
@@ -150,6 +173,8 @@ export function EMISchedulePanel({ opportunityId, paymentStatus, opportunityAmou
             onSubmit={() => convertMutation.mutate()}
             isPending={convertMutation.isPending}
             opportunityAmount={opportunityAmount}
+            paidAmount={paidSoFar}
+            pendingAmount={pendingAmount}
             formatCurrency={formatCurrency}
           />
         </CardContent>
@@ -284,15 +309,20 @@ interface ConvertDialogProps {
   onSubmit: () => void
   isPending: boolean
   opportunityAmount?: number
+  paidAmount: number
+  pendingAmount: number
   formatCurrency: (amount: number) => string
 }
 
 function ConvertDialog({
   open, onOpenChange, installmentRows, onAddRow, onRemoveRow,
-  onUpdateRow, onAutoSplit, onSubmit, isPending, opportunityAmount, formatCurrency
+  onUpdateRow, onAutoSplit, onSubmit, isPending, opportunityAmount, paidAmount, pendingAmount, formatCurrency
 }: ConvertDialogProps) {
   const totalEMI = installmentRows.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
-  const isValid = installmentRows.length > 0 && installmentRows.every(r => r.dueDate && r.amount && parseFloat(r.amount) > 0)
+  const balance = Math.round((pendingAmount - totalEMI) * 100) / 100
+  const progress = pendingAmount > 0 ? Math.min(100, Math.max(0, (totalEMI / pendingAmount) * 100)) : 0
+  const matches = Math.abs(balance) <= 0.01
+  const isValid = installmentRows.length > 0 && installmentRows.every(r => r.dueDate && r.amount && parseFloat(r.amount) > 0) && matches
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -300,17 +330,44 @@ function ConvertDialog({
         <DialogHeader>
           <DialogTitle>Convert to EMI</DialogTitle>
           <DialogDescription>
-            Set up installment schedule for the remaining balance.
-            {opportunityAmount && (
-              <span className="block mt-1 font-medium text-foreground">
-                Opportunity Amount: {formatCurrency(opportunityAmount)}
-              </span>
-            )}
-            <span className="block mt-1 text-xs text-muted-foreground">
-              Note: The total of all installments must equal the remaining amount after partial payments.
-            </span>
+            Set up the installment schedule for the pending balance. The installments must add up to the pending amount.
           </DialogDescription>
         </DialogHeader>
+
+        <div className="rounded-lg border bg-muted/40 p-3 space-y-2">
+          <div className="grid grid-cols-4 gap-2 text-center">
+            <div>
+              <div className="text-[10px] uppercase text-muted-foreground">Deal</div>
+              <div className="text-sm font-semibold">{formatCurrency(opportunityAmount || 0)}</div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase text-muted-foreground">Paid</div>
+              <div className="text-sm font-semibold text-green-600">{formatCurrency(paidAmount)}</div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase text-muted-foreground">Added ({installmentRows.filter(r => parseFloat(r.amount) > 0).length})</div>
+              <div className="text-sm font-semibold">{formatCurrency(totalEMI)}</div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase text-muted-foreground">Remaining</div>
+              <div className={`text-sm font-bold ${balance < -0.01 ? 'text-destructive' : matches ? 'text-green-600' : 'text-orange-600'}`}>
+                {formatCurrency(balance)}
+              </div>
+            </div>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+            <div
+              className={`h-full transition-all ${matches ? 'bg-green-500' : balance < -0.01 ? 'bg-destructive' : 'bg-primary'}`}
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Pending to convert: <span className="font-medium text-foreground">{formatCurrency(pendingAmount)}</span>
+            {balance < -0.01 && <span className="text-destructive font-medium"> · over by {formatCurrency(Math.abs(balance))}</span>}
+            {balance > 0.01 && totalEMI > 0 && <span> · {formatCurrency(balance)} left to add</span>}
+            {matches && totalEMI > 0 && <span className="text-green-600 font-medium"> · fully allocated</span>}
+          </p>
+        </div>
 
         <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
           {installmentRows.map((row, index) => (
@@ -350,7 +407,7 @@ function ConvertDialog({
             <Button type="button" variant="outline" size="sm" onClick={onAddRow} className="gap-1">
               <Plus className="w-3 h-3" /> Add Installment
             </Button>
-            {opportunityAmount && installmentRows.length > 0 && (
+            {pendingAmount > 0 && installmentRows.length > 0 && (
               <Button type="button" variant="ghost" size="sm" onClick={onAutoSplit} className="text-xs">
                 Auto-split equally
               </Button>

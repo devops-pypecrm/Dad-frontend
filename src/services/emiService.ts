@@ -59,3 +59,19 @@ export const deleteInstallment = async (installmentId: string) => {
     const response = await api.delete(`/emi/installments/${installmentId}`);
     return response.data;
 };
+
+export interface PaymentSummary {
+    totalAmount: number;
+    paidAmount: number;
+    remainingAmount: number;
+    paymentStatus: string;
+}
+
+export const getPaymentSummary = async (opportunityId: string): Promise<PaymentSummary | null> => {
+    try {
+        const response = await api.get(`/opportunities/${opportunityId}/payment-summary`);
+        return response.data?.summary || null;
+    } catch {
+        return null;
+    }
+};
