@@ -237,14 +237,14 @@ export default function OrganisationSettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Duplicate Lead Handling</CardTitle>
+            <CardTitle>Re-enquiry Handling</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border/50 gap-4">
               <div className="space-y-0.5">
-                <Label className="text-sm font-bold">Create a new lead for repeat enquiries</Label>
+                <Label className="text-sm font-bold">Reopen as New on repeat enquiry</Label>
                 <p className="text-xs text-muted-foreground">
-                  When on, the same phone number or email enquiring again (any source: manual, import, forms, Meta, Google, WhatsApp, API) is created as a separate new lead instead of being treated as a re-enquiry. Existing leads are not changed. Off by default.
+                  When on, the same phone number or email enquiring again (any source: manual, import, forms, Meta, Google, WhatsApp, API) does not create a second lead. The existing lead gets the Re-enquiry tag, its status is reset to New (even if it was already worked, won or lost), and it stays with its current owner, who is notified. When off, the lead keeps its progress and is only tagged as a re-enquiry. Off by default.
                 </p>
               </div>
               <Switch

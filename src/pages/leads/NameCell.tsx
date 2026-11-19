@@ -39,12 +39,12 @@ export const NameCell = ({ lead }: { lead: Lead }) => {
       <span className="font-medium text-foreground group-hover:text-[hsl(var(--chart-5))] group-hover:underline truncate">
         {fullName}
       </span>
-      {lead.isReEnquiry && lead.originalLeadId && (
+      {(lead.isReEnquiry || (lead.reEnquiryCount ?? 0) > 0) && (
         <span
           className="shrink-0 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-tight text-orange-700"
-          title="Repeat enquiry from the same number/email as an earlier lead"
+          title="This lead has enquired again"
         >
-          Re-enquiry
+          Re-enquiry{(lead.reEnquiryCount ?? 0) > 1 ? ` (${lead.reEnquiryCount})` : ''}
         </span>
       )}
     </div>
