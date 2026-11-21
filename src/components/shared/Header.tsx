@@ -9,7 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-// import { GlobalSearch } from "./GlobalSearch" // disabled with the header search; see the comment in the JSX below
+import { GlobalSearch } from "./GlobalSearch"
 import { NotificationPopover } from "./NotificationPopover"
 import { QuickAddLeadDialog } from "./QuickAddLeadDialog"
 import { cn, getAssetUrl } from "@/lib/utils"
@@ -70,11 +70,10 @@ export function Header({ className }: { className?: string }) {
     <header className={cn("sticky top-0 z-30 flex h-16 items-center gap-2 sm:gap-4 bg-transparent px-2 sm:px-4", className)}>
 
       <div className="flex-1 min-w-0">
-        {/* Global Search - temporarily disabled. To restore: uncomment this block and the GlobalSearch import above.
+        {/* Search Bar - Hidden on mobile, visible on medium screens and up */}
         <div className="max-w-[240px] sm:max-w-md hidden md:block">
           <GlobalSearch />
         </div>
-        */}
       </div>
 
       <div className="flex items-center gap-1 sm:gap-2">
