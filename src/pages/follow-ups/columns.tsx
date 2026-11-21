@@ -22,6 +22,34 @@ import { LogCallDialog } from "@/components/LogCallDialog"
 import { UpdateFollowUpDialog } from "@/components/UpdateFollowUpDialog"
 import { createInteraction } from "@/services/interactionService"
 import { useState } from "react"
+import { Checkbox } from "@/components/ui/checkbox"
+
+// Admin-only checkbox column for bulk actions (prepended by the page)
+export const selectColumn: ColumnDef<FollowUpTask> = {
+  id: "select",
+  size: 40,
+  header: ({ table }) => (
+    <Checkbox
+      checked={
+        table.getIsAllPageRowsSelected() ||
+        (table.getIsSomePageRowsSelected() && "indeterminate")
+      }
+      onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+      onClick={(e) => e.stopPropagation()}
+      aria-label="Select all"
+    />
+  ),
+  cell: ({ row }) => (
+    <Checkbox
+      checked={row.getIsSelected()}
+      onCheckedChange={(value) => row.toggleSelected(!!value)}
+      onClick={(e) => e.stopPropagation()}
+      aria-label="Select row"
+    />
+  ),
+  enableSorting: false,
+  enableHiding: false,
+}
 
 export const columns: ColumnDef<FollowUpTask>[] = [
   {

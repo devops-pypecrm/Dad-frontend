@@ -1,11 +1,15 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import type { RowSelectionState } from "@tanstack/react-table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { DataTable } from "@/components/ui/data-table";
-import { columns } from "./columns";
+import { columns, selectColumn } from "./columns";
 import { FollowUpMobileCard } from "./FollowUpMobileCard";
-import { getFollowUps } from "@/services/followUpService";
+import { getFollowUps, bulkUpdateFollowUpStatus } from "@/services/followUpService";
+import { getUserInfo, isAdmin } from "@/lib/utils";
 import { getBranches } from "@/services/settingsService";
 import { getUsers } from "@/services/userService";
 import { Calendar, Clock, X, Filter, Search } from "lucide-react";
@@ -28,6 +32,12 @@ export default function FollowUpsPage() {
   const statusFilter = searchParams.get("status") || "all";
   const branchFilter = searchParams.get("branch") || "all";
   const userFilter = searchParams.get("user") || "all";
+
+  // Bulk actions are admin-only
+  const canBulk = isAdmin(getUserInfo());
+  const queryClient = useQueryClient();
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [bulkStatus, setBulkStatus] = useState<string>("completed");
   const priorityFilter = searchParams.get("priority") || "all";
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -317,6 +327,38 @@ export default function FollowUpsPage() {
     });
     return result;
   }, [followUps, filterParam, today, sortBy, statusFilter, priorityFilter]);
+
+  // Only keep selections that are still in the visible (filtered) list
+  const selectedIds = useMemo(() => {
+    const visible = new Set(filteredFollowUps.map((t: any) => t.id));
+    return Object.keys(rowSelection).filter((id) => rowSelection[id] && visible.has(id));
+  }, [rowSelection, filteredFollowUps]);
+  const allSelected = filteredFollowUps.length > 0 && selectedIds.length === filteredFollowUps.length;
+
+  const bulkMutation = useMutation({
+    mutationFn: ({ ids, status }: { ids: string[]; status: string }) =>
+      bulkUpdateFollowUpStatus(ids, status as any),
+    onSuccess: (res) => {
+      toast.success(`${res.updated} follow-up${res.updated === 1 ? "" : "s"} updated`);
+      setRowSelection({});
+      queryClient.invalidateQueries({ queryKey: ["follow-ups"] });
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.message || "Bulk update failed"),
+  });
+
+  const handleSelectAll = (checked: boolean) => {
+    setRowSelection(
+      checked ? Object.fromEntries(filteredFollowUps.map((t: any) => [t.id, true])) : {},
+    );
+  };
+
+  const runBulk = (status: string) => {
+    if (selectedIds.length === 0) return;
+    const label = status.replace("_", " ");
+    if (!window.confirm(`Mark ${selectedIds.length} follow-up(s) as ${label}?`)) return;
+    bulkMutation.mutate({ ids: selectedIds, status });
+  };
+
 
   if (isError) {
     return (
@@ -676,8 +718,62 @@ export default function FollowUpsPage() {
         </div>
       ) : (
         <div className="rounded-[14px] border border-border/70 bg-card overflow-hidden shadow-xs pb-20 sm:pb-0">
+          {canBulk && filteredFollowUps.length > 0 && (
+            <div className="flex flex-wrap items-center gap-3 border-b border-border/70 bg-muted/40 px-4 py-2.5">
+              <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
+                <Checkbox
+                  checked={allSelected || (selectedIds.length > 0 && "indeterminate")}
+                  onCheckedChange={(v) => handleSelectAll(!!v)}
+                  aria-label="Select all follow-ups"
+                />
+                {selectedIds.length === 0
+                  ? `Select all (${filteredFollowUps.length})`
+                  : allSelected
+                    ? `All ${filteredFollowUps.length} selected`
+                    : `${selectedIds.length} selected · Select all ${filteredFollowUps.length}`}
+              </label>
+
+              {selectedIds.length > 0 && (
+                <div className="ml-auto flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    className="h-8 bg-success hover:bg-success/90"
+                    disabled={bulkMutation.isPending}
+                    onClick={() => runBulk("completed")}
+                  >
+                    Mark {selectedIds.length} completed
+                  </Button>
+                  <Select value={bulkStatus} onValueChange={setBulkStatus}>
+                    <SelectTrigger className="h-8 w-[150px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="not_started">Not started</SelectItem>
+                      <SelectItem value="in_progress">In progress</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="deferred">Deferred</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8"
+                    disabled={bulkMutation.isPending}
+                    onClick={() => runBulk(bulkStatus)}
+                  >
+                    Apply status
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-8" onClick={() => setRowSelection({})}>
+                    Clear
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
           <DataTable
-            columns={columns}
+            columns={canBulk ? [selectColumn, ...columns] : columns}
+            rowSelection={canBulk ? rowSelection : undefined}
+            onRowSelectionChangeState={canBulk ? setRowSelection : undefined}
             data={filteredFollowUps}
             initialPageSize={100}
             mobileCardRender={(task) => (

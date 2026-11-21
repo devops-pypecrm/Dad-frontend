@@ -65,3 +65,8 @@ export const suggestNextStep = async (leadId: string): Promise<AiNextStepSuggest
     const response = await api.post(`/leads/${leadId}/suggest-next-step`);
     return response.data;
 };
+
+export const bulkUpdateFollowUpStatus = async (ids: string[], status: FollowUpTask['status']) => {
+    const response = await api.put('/follow-ups/bulk-status', { ids, status });
+    return response.data as { updated: number; skipped: number };
+};
