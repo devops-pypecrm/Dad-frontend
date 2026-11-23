@@ -1,0 +1,64 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { CheckCircle2, FileText, Send, History, Plug, Unplug } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { happileeApi } from '@/services/happileeService';
+import { apiErrorMessage } from '@/lib/apiError';
+import { HappileePage, useHappileeStatus } from '@/components/happilee/shared';
+import { isOrgAdmin } from '@/lib/utils';
+
+export default function HappileeOverview() {
+  const { data, isLoading } = useHappileeStatus();
+  const qc = useQueryClient();
+  const admin = isOrgAdmin(JSON.parse(localStorage.getItem('userInfo') || 'null'));
+  const [key, setKey] = useState('');
+  const [label, setLabel] = useState('');
+  const refresh = () => qc.invalidateQueries({ queryKey: ['happilee'] });
+  const connect = useMutation({ mutationFn: () => happileeApi.connect(key.trim(), label.trim() || undefined), onSuccess: () => { toast.success('Happilee connected'); setKey(''); refresh(); }, onError: e => toast.error(apiErrorMessage(e, 'Could not connect')) });
+  const disconnect = useMutation({ mutationFn: happileeApi.disconnect, onSuccess: () => { toast.success('Disconnected'); refresh(); }, onError: e => toast.error(apiErrorMessage(e, 'Could not disconnect')) });
+
+  return (
+    <HappileePage title="Happilee" subtitle="Send approved WhatsApp templates and broadcasts through your Happilee account">
+      <section className="rounded-xl border bg-card p-5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {data?.connected ? <CheckCircle2 className="h-6 w-6 text-green-600" /> : <Plug className="h-6 w-6 text-muted-foreground" />}
+            <div>
+              <p className="font-medium">{isLoading ? 'Checking…' : data?.connected ? 'Connected' : 'Not connected'}</p>
+              {data?.connected && <p className="text-sm text-muted-foreground">{data.label ? `${data.label} · ` : ''}API key ending …{data.keyHint}{data.connectedAt ? ` · since ${new Date(data.connectedAt).toLocaleDateString()}` : ''}</p>}
+            </div>
+          </div>
+          {data?.connected && admin && <Button variant="outline" size="sm" disabled={disconnect.isPending} onClick={() => window.confirm('Disconnect Happilee? Sending will stop until you reconnect.') && disconnect.mutate()}><Unplug className="mr-1.5 h-4 w-4" />Disconnect</Button>}
+        </div>
+
+        {!data?.connected && (admin ? (
+          <form className="mt-5 max-w-md space-y-3" onSubmit={e => { e.preventDefault(); connect.mutate(); }}>
+            <div className="space-y-1.5"><Label>Happilee API key</Label><Input type="password" value={key} onChange={e => setKey(e.target.value)} placeholder="Paste the x-api-key from your Happilee account" /></div>
+            <div className="space-y-1.5"><Label>Label (optional)</Label><Input value={label} onChange={e => setLabel(e.target.value)} placeholder="e.g. Main number" /></div>
+            <Button type="submit" disabled={!key.trim() || connect.isPending}>{connect.isPending ? 'Checking key…' : 'Connect Happilee'}</Button>
+            <p className="text-xs text-muted-foreground">The key is checked with Happilee and stored encrypted. It is never shown again.</p>
+          </form>
+        ) : <p className="mt-4 text-sm text-muted-foreground">Ask an organisation admin to connect the Happilee API key.</p>)}
+      </section>
+
+      {data?.connected && (
+        <>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[['Messages sent', data.stats.sent], ['Failed', data.stats.failed], ['Last activity', data.stats.lastActivity ? new Date(data.stats.lastActivity).toLocaleString() : '—']].map(([l, v]) => (
+              <div key={String(l)} className="rounded-xl border bg-card p-5"><p className="text-sm text-muted-foreground">{l}</p><p className="mt-1 text-2xl font-semibold">{v}</p></div>
+            ))}
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[['/happilee/templates', FileText, 'Templates', 'Browse your approved templates'], ['/happilee/send', Send, 'Send & Broadcast', 'Message one lead, many leads, sync contacts and tags'], ['/happilee/messages', History, 'Message Log', 'See what was sent and its delivery status']].map(([to, Icon, t, d]: any) => (
+              <Link key={to} to={to} className="rounded-xl border bg-card p-5 transition hover:border-primary"><Icon className="mb-2 h-5 w-5 text-primary" /><p className="font-medium">{t}</p><p className="text-sm text-muted-foreground">{d}</p></Link>
+            ))}
+          </div>
+        </>
+      )}
+    </HappileePage>
+  );
+}

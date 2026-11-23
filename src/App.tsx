@@ -92,6 +92,11 @@ const WhatsAppAutomationsPage = lazy(() => import('./pages/whatsapp/automations'
 const WhatsAppChatbotPage = lazy(() => import('./pages/whatsapp/chatbot'));
 const WhatsAppFlowEditorPage = lazy(() => import('./pages/whatsapp/chatbot/[id]'));
 const WhatsAppSettingsPage = lazy(() => import('./pages/whatsapp/settings'));
+import { HappileeFeatureRoute } from './components/happilee/HappileeFeatureRoute';
+const HappileeOverview = lazy(() => import('./pages/happilee/overview'));
+const HappileeTemplates = lazy(() => import('./pages/happilee/templates'));
+const HappileeSend = lazy(() => import('./pages/happilee/send'));
+const HappileeMessages = lazy(() => import('./pages/happilee/messages'));
 import { InstagramFeatureRoute } from './components/instagram/InstagramFeatureRoute';
 const InstagramSharedInbox = lazy(() => import('./pages/instagram/inbox'));
 const InstagramChatbotList = lazy(() => import('./pages/instagram/chatbots'));
@@ -411,6 +416,13 @@ function AppContent() {
        <Route path="/marketing/whatsapp/flows" element={<Navigate to="/whatsapp/chatbot" replace />} />
        <Route path="/marketing/whatsapp/flows/:id" element={<LegacyFlowRedirect />} />
        {/* <Route path="/communications" element={<CommunicationsPage />} /> */}
+       <Route element={<HappileeFeatureRoute />}>
+         <Route path="/happilee" element={<Navigate to="/happilee/overview" replace />} />
+         <Route path="/happilee/overview" element={<HappileeOverview />} />
+         <Route path="/happilee/templates" element={<HappileeTemplates />} />
+         <Route path="/happilee/send" element={<HappileeSend />} />
+         <Route path="/happilee/messages" element={<HappileeMessages />} />
+       </Route>
        <Route element={<InstagramFeatureRoute />}>
          <Route path="/instagram" element={<Navigate to="/instagram/inbox" replace />} />
          <Route path="/instagram/inbox" element={<InstagramSharedInbox />} />

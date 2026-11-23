@@ -58,6 +58,8 @@ import {
   Instagram as InstagramIcon,
   UserPlus as UserPlusIcon,
   History,
+  Send,
+  Plug,
   Receipt,
   BellRing,
   BarChart3,
@@ -132,6 +134,15 @@ const menuGroups = [
       { title: "Comments", href: "/instagram/comments", icon: MessageSquare, role: "admin" },
       { title: "Publishing", href: "/instagram/publishing", icon: CalendarClock, role: "admin" },
       { title: "DM Setup", href: "/instagram/dm-setup", icon: Wrench, role: "admin" },
+    ]
+  },
+  {
+    title: "Happilee",
+    items: [
+      { title: "Overview", href: "/happilee/overview", icon: Plug },
+      { title: "Templates", href: "/happilee/templates", icon: FileText },
+      { title: "Send & Broadcast", href: "/happilee/send", icon: Send },
+      { title: "Message Log", href: "/happilee/messages", icon: History },
     ]
   },
   {
@@ -318,7 +329,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
   const orgEnabledFeatures: string[] = Array.isArray(user?.organisation?.enabledFeatures) ? user.organisation.enabledFeatures : [];
 
-  const filteredGroups = userIsSuperAdmin ? [] : menuGroups.filter(g => (g.title !== 'WhatsApp' || whatsAppEnabled) && (g.title !== 'Instagram' || instagramEnabled) && (g.title !== 'AI' || aiEnabled)).map(group => ({
+  const filteredGroups = userIsSuperAdmin ? [] : menuGroups.filter(g => (g.title !== 'WhatsApp' || whatsAppEnabled) && (g.title !== 'Instagram' || instagramEnabled) && (g.title !== 'Happilee' || orgEnabledFeatures.includes('happilee')) && (g.title !== 'AI' || aiEnabled)).map(group => ({
     ...group,
     items: group.items.filter(item => {
       if (item.title === 'Settings') return canAccessSettings(user);
