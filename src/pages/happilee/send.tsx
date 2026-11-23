@@ -93,13 +93,13 @@ function Contacts() {
   const tag = useMutation({ mutationFn: () => happileeApi.updateTags(phone, add.trim() || undefined, remove.trim() || undefined), onSuccess: () => toast.success('Tags updated'), onError: e => toast.error(apiErrorMessage(e, 'Could not update tags')) });
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="space-y-3 rounded-xl border p-5">
+      <section className="space-y-3 rounded-[var(--card-radius,14px)] border bg-card p-5 shadow-[var(--card-shadow,none)]">
         <h3 className="font-medium">Sync leads to Happilee contacts</h3>
         <LeadPicker picked={leads} onChange={setLeads} />
         <div className="space-y-1.5"><Label>Tags to apply (comma separated, optional)</Label><Input value={tags} onChange={e => setTags(e.target.value)} placeholder="lead, enquiry" /></div>
         <Button disabled={!leads.length || sync.isPending} onClick={() => sync.mutate()}><Users className="mr-1.5 h-4 w-4" />{sync.isPending ? 'Syncing…' : `Sync ${leads.length || ''} contact(s)`}</Button>
       </section>
-      <section className="space-y-3 rounded-xl border p-5">
+      <section className="space-y-3 rounded-[var(--card-radius,14px)] border bg-card p-5 shadow-[var(--card-shadow,none)]">
         <h3 className="font-medium">Update a contact's tags</h3>
         <div className="space-y-1.5"><Label>Phone (with country code)</Label><Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="919876543210" /></div>
         <div className="grid grid-cols-2 gap-3">

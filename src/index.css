@@ -1108,3 +1108,54 @@ html.dark [class~="text-black"]:not([class*="dark:text-"]) { color: hsl(var(--fo
 html.dark [class~="text-gray-700"]:not([class*="dark:text-"]) { color: hsl(var(--foreground) / 0.82); }
 html.dark [class~="text-gray-500"]:not([class*="dark:text-"]) { color: hsl(var(--muted-foreground)); }
 html.dark [class~="border-gray-200"]:not([class*="dark:border-"]) { border-color: hsl(var(--border)); }
+
+/* ==========================================================================
+   Happilee theme: switched on (body.happilee-theme) while any /happilee/* page is open.
+   Violet accent on a soft lavender canvas, roomy 14px rounded cards with a gentle shadow.
+   Dialogs and dropdowns inherit it via <body>.
+   ========================================================================== */
+body.happilee-theme {
+  --background: 255 40% 98%;
+  --foreground: 252 30% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 252 30% 14%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 252 30% 14%;
+  --primary: 258 90% 58%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 255 60% 95%;
+  --secondary-foreground: 252 30% 14%;
+  --muted: 255 45% 95%;
+  --muted-foreground: 252 12% 42%;
+  --accent: 255 70% 96%;
+  --accent-foreground: 258 70% 35%;
+  --border: 255 30% 90%;
+  --input: 255 30% 88%;
+  --ring: 258 90% 58%;
+  --radius: 0.75rem;
+  --chart-5: 258 90% 58%;
+  --btn-radius: 10px;
+  --card-radius: 14px;
+  --card-shadow: 0 1px 2px rgba(76, 29, 149, 0.06), 0 6px 18px rgba(76, 29, 149, 0.05);
+  --page-bg: #faf8ff;
+}
+.dark body.happilee-theme {
+  --background: 252 30% 8%;
+  --foreground: 255 30% 96%;
+  --card: 252 26% 12%;
+  --card-foreground: 255 30% 96%;
+  --popover: 252 26% 12%;
+  --popover-foreground: 255 30% 96%;
+  --secondary: 252 20% 18%;
+  --secondary-foreground: 255 30% 96%;
+  --muted: 252 20% 18%;
+  --muted-foreground: 255 15% 68%;
+  --accent: 252 25% 20%;
+  --accent-foreground: 255 80% 85%;
+  --border: 252 20% 22%;
+  --input: 252 20% 24%;
+  --primary: 258 90% 66%;
+  --chart-5: 258 90% 66%;
+  --card-shadow: none;
+  --page-bg: #0f0b1a;
+}

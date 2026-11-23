@@ -15,7 +15,7 @@ export default function HappileeMessages() {
   return (
     <HappileePage title="Message Log" subtitle="Everything sent from this module. Use refresh to pull the latest delivery status from Happilee.">
       <ConnectionGate>
-        <div className="overflow-x-auto rounded-xl border bg-card">
+        <div className="overflow-x-auto rounded-[var(--card-radius,14px)] border bg-card shadow-[var(--card-shadow,none)]">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground"><tr><th className="p-3">When</th><th className="p-3">To</th><th className="p-3">Template</th><th className="p-3">Status</th><th className="p-3" /></tr></thead>
             <tbody>

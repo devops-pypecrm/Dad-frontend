@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Plug, Search, X } from 'lucide-react';
+import { MessageCircleHeart, Plug, Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
@@ -9,15 +9,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { happileeApi, type HappileeTemplate, type Param } from '@/services/happileeService';
 import { getLeads } from '@/services/leadService';
 
+export const H_CARD = 'rounded-[var(--card-radius,14px)] border border-border bg-card shadow-[var(--card-shadow,none)]';
+export const H_GRADIENT = 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 55%, #2563eb 100%)';
+
 export function HappileePage({ title, subtitle, actions, children }: { title: string; subtitle: string; actions?: ReactNode; children: ReactNode }) {
   return (
-    <div className="space-y-5 p-4 sm:p-6 animate-in fade-in duration-300">
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-          <p className="text-sm text-muted-foreground">{subtitle}</p>
+    <div className="min-h-full space-y-6 bg-background p-4 sm:p-6 animate-in fade-in duration-300">
+      <div className="relative overflow-hidden rounded-[var(--card-radius,14px)] p-5 text-white sm:p-6" style={{ background: H_GRADIENT }}>
+        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
+        <div className="pointer-events-none absolute -bottom-12 right-24 h-32 w-32 rounded-full bg-white/10" />
+        <div className="relative flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/20 backdrop-blur"><MessageCircleHeart className="h-6 w-6" /></span>
+            <div>
+              <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
+              <p className="text-sm text-white/80">{subtitle}</p>
+            </div>
+          </div>
+          {actions}
         </div>
-        {actions}
       </div>
       {children}
     </div>
@@ -34,7 +44,7 @@ export function ConnectionGate({ children }: { children: ReactNode }) {
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
   if (!data?.connected) {
     return (
-      <div className="rounded-xl border border-dashed p-10 text-center">
+      <div className="rounded-[var(--card-radius,14px)] border border-dashed border-primary/40 bg-card p-10 text-center">
         <Plug className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
         <p className="font-medium">Happilee is not connected</p>
         <p className="mt-1 text-sm text-muted-foreground">An admin needs to add the Happilee API key first.</p>
@@ -47,7 +57,7 @@ export function ConnectionGate({ children }: { children: ReactNode }) {
 
 export const statusBadge = (s?: string) => {
   const v = (s || '').toLowerCase();
-  const cls = v === 'approved' || v === 'delivered' || v === 'read' || v === 'sent' ? 'bg-green-100 text-green-700' : v === 'failed' || v === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700';
+  const cls = v === 'approved' || v === 'delivered' || v === 'read' || v === 'sent' ? 'bg-emerald-100 text-emerald-700' : v === 'failed' || v === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700';
   return <Badge variant="secondary" className={cls}>{s || 'unknown'}</Badge>;
 };
 
@@ -86,7 +96,7 @@ export function ParamFields({ template, values, onChange }: { template?: Happile
           <Input value={values[n] || ''} onChange={e => onChange({ ...values, [n]: e.target.value })} placeholder={`Value for ${n}`} />
         </div>
       ))}
-      <div className="whitespace-pre-wrap rounded-lg bg-green-50 p-3 text-sm text-green-950">{fillPreview(template, values) || 'No preview available'}</div>
+      <div className="whitespace-pre-wrap rounded-lg bg-accent p-3 text-sm text-accent-foreground">{fillPreview(template, values) || 'No preview available'}</div>
       {(template.header_url || (template.template_type || '').toLowerCase().includes('media')) && <p className="text-xs text-amber-600">This template has a media header. Header media is not filled in from here.</p>}
     </div>
   );

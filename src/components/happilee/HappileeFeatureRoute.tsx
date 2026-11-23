@@ -2,10 +2,12 @@ import { Link, Outlet } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFeatureEnabled } from '@/hooks/useWhatsAppEnabled';
+import { useBodyClass } from '@/hooks/useBodyClass';
 
 /** Wraps every /happilee/* route: organisations without the feature see an explanation instead. */
 export function HappileeFeatureRoute() {
   const enabled = useFeatureEnabled('happilee');
+  useBodyClass('happilee-theme');
   if (enabled) return <Outlet />;
   return (
     <div className="mx-auto mt-10 max-w-lg rounded-xl border bg-card p-10 text-center">

@@ -17,10 +17,10 @@ export default function HappileeTemplates() {
         {isLoading ? <p className="text-sm text-muted-foreground">Loading…</p> : !data?.length ? <p className="text-sm text-muted-foreground">No templates found.</p> : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {data.map(t => (
-              <div key={t.template_id} className="flex flex-col gap-3 rounded-xl border bg-card p-4">
+              <div key={t.template_id} className="flex flex-col gap-3 rounded-[var(--card-radius,14px)] border bg-card shadow-[var(--card-shadow,none)] p-4">
                 <div className="flex items-start justify-between gap-2"><p className="break-all font-medium">{t.template_name}</p>{statusBadge(t.status)}</div>
                 <p className="text-xs text-muted-foreground">{[t.category, t.language, t.template_type].filter(Boolean).join(' · ')}</p>
-                <div className="flex-1 whitespace-pre-wrap rounded-lg bg-green-50 p-3 text-sm text-green-950">{[t.header, t.body, t.footer].filter(Boolean).join('\n') || '—'}</div>
+                <div className="flex-1 whitespace-pre-wrap rounded-lg bg-accent p-3 text-sm text-accent-foreground">{[t.header, t.body, t.footer].filter(Boolean).join('\n') || '—'}</div>
                 {!!t.body_params?.length && <p className="text-xs text-muted-foreground">Variables: {t.body_params.join(', ')}</p>}
               </div>
             ))}
