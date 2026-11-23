@@ -230,6 +230,34 @@ function AuthListener() {
 }
 
 
+// The public website (landing, features, pricing, blog, legal, login...) is always light, whatever the
+// visitor's system or saved app theme is. The signed-in app keeps its own theme switcher.
+const PUBLIC_LIGHT_PATHS = /^\/(?:$|(?:login|sso-login|sso-callback|enquire|forgot-password|reset-password|privacy|privacy-policy|terms|blog|help|features|pricing|partners|download|data-deletion|pages)(?:\/|$))/;
+function LightOnPublicPages() {
+ const { pathname } = useLocation();
+ const isPublic = PUBLIC_LIGHT_PATHS.test(pathname);
+ useEffect(() => {
+  if (!isPublic) return;
+  const root = document.documentElement;
+  const hadDark = root.classList.contains('dark');
+  const force = () => {
+   if (root.classList.contains('dark')) root.classList.remove('dark');
+   if (!root.classList.contains('light')) root.classList.add('light');
+   root.style.colorScheme = 'light';
+  };
+  force();
+  const mo = new MutationObserver(force); // next-themes re-adds 'dark' when the system theme changes
+  mo.observe(root, { attributes: true, attributeFilter: ['class', 'style'] });
+  return () => {
+   mo.disconnect();
+   root.classList.remove('light');
+   if (hadDark) root.classList.add('dark');
+   root.style.colorScheme = hadDark ? 'dark' : 'light';
+  };
+ }, [isPublic]);
+ return null;
+}
+
 function AppContent() {
  const [isAuthInitialized, setIsAuthInitialized] = useState(false);
 
@@ -372,6 +400,7 @@ function AppContent() {
    <Router>
     <AuthListener />
     <ScrollToTop />
+    <LightOnPublicPages />
     <Suspense fallback={<PageLoader text="Loading..." />}>
      <Routes>
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
