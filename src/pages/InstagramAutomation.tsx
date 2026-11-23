@@ -77,7 +77,6 @@ function Simulator() {
         ) : <p className="text-sm text-gray-500">No keyword matched, so no DM would be sent.</p>}
         <p className="text-[11px] text-gray-500">This is a preview to help you plan. It does not send anything.</p>
       </div>
-      <Footer />
     </div>
   );
 }
