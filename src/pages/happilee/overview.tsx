@@ -8,7 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { happileeApi } from '@/services/happileeService';
 import { apiErrorMessage } from '@/lib/apiError';
-import { HappileePage, useHappileeStatus } from '@/components/happilee/shared';
+import { HappileePage, useHappileeStatus, H_CARD } from '@/components/happilee/shared';
+import { IgAutomationPhone, IG_GRADIENT, HAPPILEE_IG_KEYFRAMES } from '@/components/happilee/IgAutomationPreview';
+import { ArrowRight } from 'lucide-react';
 import { isOrgAdmin } from '@/lib/utils';
 
 export default function HappileeOverview() {
@@ -55,6 +57,20 @@ export default function HappileeOverview() {
           </form>
         ) : <p className="mt-4 text-sm text-muted-foreground">Ask an organisation admin to connect the Happilee API key.</p>)}
       </section>
+
+      <Link to="/happilee/instagram" className={`${H_CARD} group relative block overflow-hidden p-5 transition hover:border-primary`}>
+        <style>{HAPPILEE_IG_KEYFRAMES}</style>
+        <div className="absolute inset-x-0 top-0 h-1" style={{ background: IG_GRADIENT }} />
+        <div className="flex flex-col items-center gap-6 sm:flex-row">
+          <div className="flex-1 space-y-2">
+            <span className="inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white" style={{ background: IG_GRADIENT }}>Instagram automation</span>
+            <h3 className="text-lg font-semibold">Turn Instagram comments into DMs automatically</h3>
+            <p className="text-sm text-muted-foreground">Keyword comment-to-DM, story replies, follow-ups and analytics. See how it works and try a live simulator.</p>
+            <span className="inline-flex items-center gap-1 text-sm font-medium text-primary">Explore Instagram automation <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" /></span>
+          </div>
+          <IgAutomationPhone compact />
+        </div>
+      </Link>
 
       {data?.connected && (
         <>
