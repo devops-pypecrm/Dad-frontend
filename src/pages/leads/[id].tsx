@@ -1,4 +1,4 @@
-import { useWhatsAppEnabled } from '@/hooks/useWhatsAppEnabled'
+import { useWhatsAppEnabled, useFeatureEnabled } from '@/hooks/useWhatsAppEnabled'
 import { useNavigate, useParams, Link } from "react-router-dom"
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query"
 import { api } from "@/services/api"
@@ -164,6 +164,7 @@ export default function LeadDetailPage() {
   })
 
   const whatsAppEnabled = useWhatsAppEnabled()
+  const happileeEnabled = useFeatureEnabled('happilee')
   const { data: whatsappMessages, isLoading: wsLoading } = useQuery({
     queryKey: ['whatsapp-messages', id],
     queryFn: async () => (await api.get(`/whatsapp/lead/${id}`)).data,
@@ -548,6 +549,12 @@ export default function LeadDetailPage() {
               <UserPlus className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Assign</span>
             </Button>
+            {happileeEnabled && (
+              <Button variant="outline" size="sm" onClick={() => navigate(`/happilee/send?leadId=${lead.id}`)} className="h-9 px-2 sm:px-3 text-xs rounded-[10px]">
+                <MessageSquare className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Happilee</span>
+              </Button>
+            )}
             <Button variant="outline" size="sm" onClick={() => setEmailDialogOpen(true)} className="h-9 px-2 sm:px-3 text-xs rounded-[10px]">
               <Mail className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Email</span>

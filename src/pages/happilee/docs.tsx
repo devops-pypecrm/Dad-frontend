@@ -125,6 +125,50 @@ const SECTIONS: Section[] = [
     ),
   },
   {
+    id: 'personalise', title: 'Personalising messages with lead details',
+    body: (
+      <div className="space-y-3">
+        <p>Type a placeholder into any template variable and the CRM replaces it with the lead's own details when sending:</p>
+        <div className="flex flex-wrap gap-1.5">{['[name]', '[first_name]', '[last_name]', '[phone]', '[email]', '[company]'].map(t => <Code key={t}>{t}</Code>)}</div>
+        <List items={[
+          <>When you pick a template, variables whose names look like <Code>name</Code>, <Code>phone</Code>, <Code>email</Code> or <Code>company</Code> are pre-filled for you.</>,
+          <>The preview shows the real lead (or a sample person if no lead is chosen).</>,
+          <>In a <b>broadcast</b>, placeholders make each person receive their own message. These are sent one by one in the background (up to 300 at a time) and appear in the Message Log. Without placeholders, one fast broadcast of up to 1000 is sent.</>,
+        ]} />
+      </div>
+    ),
+  },
+  {
+    id: 'media', title: 'Media headers (image, video, document)',
+    body: (
+      <div className="space-y-3">
+        <p>If a template has an image, video or document header, a <b>Header media</b> field appears on the Send and Broadcast tabs. Paste a public URL, or click <b>Upload</b> to send the file to Happilee and use the link it returns (up to 16 MB). Images show a small preview.</p>
+        <Note>Use the same type of file the template was approved with, for example an image for an image header.</Note>
+      </div>
+    ),
+  },
+  {
+    id: 'from-lead', title: 'Sending from a lead',
+    body: <p>On any lead's page, the <b>Happilee</b> button (next to Email) opens Send with that lead already chosen, so you only pick a template. It appears only when Happilee is enabled for your organisation.</p>,
+  },
+  {
+    id: 'in-happilee', title: 'What is managed in Happilee, not the CRM',
+    body: (
+      <div className="space-y-3">
+        <p>Happilee only lets other software do a limited set of things through its API. Everything below has to be done in Happilee's own dashboard:</p>
+        <List items={[
+          <><b>Live inbox and customer replies:</b> reading and answering incoming WhatsApp chats, assignment and chat tags.</>,
+          <><b>Creating, editing and submitting templates</b> for WhatsApp approval.</>,
+          <><b>Chatbots, flows and auto-replies</b> built in Happilee.</>,
+          <><b>Broadcast reports</b> (per-recipient delivered/read), campaigns analytics and contact lists or segments.</>,
+          <><b>Billing, phone number and team settings.</b></>,
+          <><b>Instagram automation</b>, which is a separate Happilee product.</>,
+        ]} />
+        <p>Everything else, namely sending templates, broadcasts, media headers, personalisation, contacts, tags, delivery status and the message log, can be done from the CRM.</p>
+      </div>
+    ),
+  },
+  {
     id: 'permissions', title: 'Who can do what',
     body: (
       <div className="overflow-x-auto">
@@ -157,7 +201,7 @@ const SECTIONS: Section[] = [
     id: 'limits', title: 'Current limits',
     body: (
       <List items={[
-        <>Templates with a <b>media header</b> or dynamic button links are not filled in from the CRM; only body variables are.</>,
+        <>Dynamic button links are not filled in from the CRM; body variables and the media header are.</>,
         <>Replies from customers do not appear here. Read and answer them in Happilee.</>,
         <>Broadcast results are shown as queued; per-recipient delivery is not available.</>,
         <>Templates are read-only in the CRM.</>,

@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { MessageCircleHeart, Plug, Search, X } from 'lucide-react';
+import { ImagePlus, MessageCircleHeart, Plug, Search, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
@@ -64,10 +65,42 @@ export const statusBadge = (s?: string) => {
 /** Variable names a template expects, from the template's own body_params (sorted as Happilee returns them). */
 export const bodyParamNames = (t?: HappileeTemplate) => t?.body_params || [];
 
-export function fillPreview(t: HappileeTemplate | undefined, values: Record<string, string>) {
+export const TOKENS = ['name', 'first_name', 'last_name', 'phone', 'email', 'company'] as const;
+export interface TokenLead { name?: string; firstName?: string; lastName?: string; phone?: string; email?: string; company?: string }
+const SAMPLE: TokenLead = { firstName: 'Meera', lastName: 'Nair', phone: '9876543210', email: 'meera@example.com', company: 'Acme' };
+/** Same rules as the server: fills [first_name] etc. from the lead (or a sample person). */
+export function fillTokens(text: string, lead?: TokenLead) {
+  const l = lead && (lead.firstName || lead.name) ? lead : SAMPLE;
+  return text.replace(/\[(name|first_name|last_name|phone|email|company)\]/gi, (_m, k: string) => {
+    switch (k.toLowerCase()) {
+      case 'first_name': return l.firstName || '';
+      case 'last_name': return l.lastName || '';
+      case 'phone': return l.phone || '';
+      case 'email': return l.email || '';
+      case 'company': return l.company || '';
+      default: return l.name || [l.firstName, l.lastName].filter(Boolean).join(' ');
+    }
+  }).replace(/\s{2,}/g, ' ').trim();
+}
+/** Pre-fill variables whose names look like a lead field, so the common case needs no typing. */
+export function suggestValues(t?: HappileeTemplate): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const n of bodyParamNames(t)) {
+    const k = n.toLowerCase();
+    if (/first/.test(k)) out[n] = '[first_name]';
+    else if (/last|surname/.test(k)) out[n] = '[last_name]';
+    else if (/name/.test(k) || k === '1') out[n] = '[name]';
+    else if (/phone|mobile/.test(k)) out[n] = '[phone]';
+    else if (/mail/.test(k)) out[n] = '[email]';
+    else if (/company|org|business/.test(k)) out[n] = '[company]';
+  }
+  return out;
+}
+
+export function fillPreview(t: HappileeTemplate | undefined, values: Record<string, string>, lead?: TokenLead) {
   if (!t) return '';
   let body = t.body || '';
-  for (const n of bodyParamNames(t)) body = body.split(`{{${n}}}`).join(values[n] || `{{${n}}}`);
+  for (const n of bodyParamNames(t)) body = body.split(`{{${n}}}`).join(values[n] ? fillTokens(values[n], lead) : `{{${n}}}`);
   return [t.header, body, t.footer].filter(Boolean).join('\n');
 }
 
@@ -84,7 +117,31 @@ export function TemplateSelect({ templates, value, onChange }: { templates: Happ
   );
 }
 
-export function ParamFields({ template, values, onChange }: { template?: HappileeTemplate; values: Record<string, string>; onChange: (v: Record<string, string>) => void }) {
+export const hasMediaHeader = (t?: HappileeTemplate) => !!t && (!!t.header_url || /image|video|document|media/i.test(t.template_type || ''));
+
+export function MediaHeaderField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [busy, setBusy] = useState(false);
+  const pick = async (f?: File) => {
+    if (!f) return;
+    setBusy(true);
+    try { onChange(await happileeApi.upload(f)); toast.success('File uploaded'); } catch (e: any) { toast.error(e?.response?.data?.message || 'Upload failed'); } finally { setBusy(false); }
+  };
+  return (
+    <div className="space-y-1.5">
+      <Label>Header media (image, video or document)</Label>
+      <div className="flex gap-2">
+        <Input value={value} onChange={e => onChange(e.target.value)} placeholder="Paste a public URL, or upload a file" />
+        <label className="inline-flex shrink-0 cursor-pointer">
+          <input type="file" className="hidden" accept="image/*,video/*,.pdf,.doc,.docx" onChange={e => { pick(e.target.files?.[0]); e.target.value = ''; }} />
+          <span className="inline-flex h-10 items-center gap-1.5 rounded-md border px-3 text-sm hover:bg-accent"><ImagePlus className="h-4 w-4" />{busy ? 'Uploading…' : 'Upload'}</span>
+        </label>
+      </div>
+      {value && /\.(png|jpe?g|webp|gif)(\?|$)/i.test(value) && <img src={value} alt="Header preview" className="mt-1 max-h-28 rounded-lg border" />}
+    </div>
+  );
+}
+
+export function ParamFields({ template, values, onChange, lead }: { template?: HappileeTemplate; values: Record<string, string>; onChange: (v: Record<string, string>) => void; lead?: TokenLead }) {
   const names = bodyParamNames(template);
   if (!template) return null;
   return (
@@ -96,8 +153,14 @@ export function ParamFields({ template, values, onChange }: { template?: Happile
           <Input value={values[n] || ''} onChange={e => onChange({ ...values, [n]: e.target.value })} placeholder={`Value for ${n}`} />
         </div>
       ))}
-      <div className="whitespace-pre-wrap rounded-lg bg-accent p-3 text-sm text-accent-foreground">{fillPreview(template, values) || 'No preview available'}</div>
-      {(template.header_url || (template.template_type || '').toLowerCase().includes('media')) && <p className="text-xs text-amber-600">This template has a media header. Header media is not filled in from here.</p>}
+      {names.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+          Fill from the lead:
+          {TOKENS.map(t => <span key={t} className="rounded-full bg-accent px-2 py-0.5 font-mono text-accent-foreground">[{t}]</span>)}
+          <span>Type these into any value; each person gets their own details.</span>
+        </div>
+      )}
+      <div className="whitespace-pre-wrap rounded-lg bg-accent p-3 text-sm text-accent-foreground">{fillPreview(template, values, lead) || 'No preview available'}</div>
     </div>
   );
 }
@@ -108,7 +171,7 @@ export function useTemplates() {
   return useQuery({ queryKey: ['happilee', 'templates', ''], queryFn: () => happileeApi.templates(), staleTime: 60_000 });
 }
 
-export interface PickedLead { id: string; name: string; phone: string }
+export interface PickedLead { id: string; name: string; phone: string; firstName?: string; lastName?: string; email?: string; company?: string }
 
 export function LeadPicker({ picked, onChange, single }: { picked: PickedLead[]; onChange: (l: PickedLead[]) => void; single?: boolean }) {
   const [q, setQ] = useState('');
@@ -117,7 +180,7 @@ export function LeadPicker({ picked, onChange, single }: { picked: PickedLead[];
     queryFn: () => getLeads({ search: q.trim(), limit: 8 } as any),
   });
   const results: any[] = (data?.leads || []).filter((l: any) => !picked.some(p => p.id === l.id));
-  const add = (l: any) => { const p = { id: l.id, name: [l.firstName, l.lastName].filter(Boolean).join(' '), phone: l.phone }; onChange(single ? [p] : [...picked, p]); setQ(''); };
+  const add = (l: any) => { const p = { id: l.id, name: [l.firstName, l.lastName].filter(Boolean).join(' '), phone: l.phone, firstName: l.firstName, lastName: l.lastName, email: l.email, company: l.company }; onChange(single ? [p] : [...picked, p]); setQ(''); };
   return (
     <div className="space-y-2">
       <div className="relative">

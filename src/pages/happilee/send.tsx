@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Send, Megaphone, Users } from 'lucide-react';
@@ -10,14 +11,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { happileeApi } from '@/services/happileeService';
 import { apiErrorMessage } from '@/lib/apiError';
 import { isOrgAdmin } from '@/lib/utils';
-import { ConnectionGate, HappileePage, LeadPicker, ParamFields, TemplateSelect, toParams, useTemplates, type PickedLead } from '@/components/happilee/shared';
+import { getLeadById } from '@/services/leadService';
+import { ConnectionGate, HappileePage, LeadPicker, MediaHeaderField, ParamFields, TemplateSelect, hasMediaHeader, suggestValues, toParams, useTemplates, type PickedLead } from '@/components/happilee/shared';
 
 function useTemplateState() {
   const { data: templates = [] } = useTemplates();
   const [templateId, setTemplateId] = useState('');
   const [values, setValues] = useState<Record<string, string>>({});
   const template = useMemo(() => templates.find(t => String(t.template_id) === templateId), [templates, templateId]);
-  return { templates, templateId, setTemplateId: (id: string) => { setTemplateId(id); setValues({}); }, values, setValues, template };
+  return { templates, templateId, setTemplateId: (id: string) => { setTemplateId(id); setValues(suggestValues(templates.find(x => String(x.template_id) === id))); }, values, setValues, template };
 }
 
 function SingleSend() {
@@ -25,8 +27,15 @@ function SingleSend() {
   const t = useTemplateState();
   const [lead, setLead] = useState<PickedLead[]>([]);
   const [phone, setPhone] = useState('');
+  const [media, setMedia] = useState('');
+  const [params] = useSearchParams();
+  const presetId = params.get('leadId');
+  useEffect(() => {
+    if (!presetId) return;
+    getLeadById(presetId).then((l: any) => setLead([{ id: l.id, name: [l.firstName, l.lastName].filter(Boolean).join(' '), phone: l.phone, firstName: l.firstName, lastName: l.lastName, email: l.email, company: l.company }])).catch(() => toast.error('Could not load that lead'));
+  }, [presetId]);
   const send = useMutation({
-    mutationFn: () => happileeApi.sendTemplate({ leadId: lead[0]?.id, phone: lead[0] ? undefined : phone, templateId: t.templateId, templateName: t.template?.template_name, params: toParams(t.values) }),
+    mutationFn: () => happileeApi.sendTemplate({ leadId: lead[0]?.id, phone: lead[0] ? undefined : phone, templateId: t.templateId, templateName: t.template?.template_name, params: toParams(t.values), headerMediaUrl: media.trim() || undefined }),
     onSuccess: () => { toast.success('Message sent'); qc.invalidateQueries({ queryKey: ['happilee'] }); },
     onError: e => toast.error(apiErrorMessage(e, 'Could not send')),
   });
@@ -39,7 +48,8 @@ function SingleSend() {
         <TemplateSelect templates={t.templates} value={t.templateId} onChange={t.setTemplateId} />
       </div>
       <div className="space-y-4">
-        <ParamFields template={t.template} values={t.values} onChange={t.setValues} />
+        {hasMediaHeader(t.template) && <MediaHeaderField value={media} onChange={setMedia} />}
+        <ParamFields template={t.template} values={t.values} onChange={t.setValues} lead={lead[0]} />
         <Button disabled={!ready || send.isPending} onClick={() => send.mutate()}><Send className="mr-1.5 h-4 w-4" />{send.isPending ? 'Sending…' : 'Send template'}</Button>
       </div>
     </div>
@@ -51,11 +61,12 @@ function Broadcast() {
   const t = useTemplateState();
   const [leads, setLeads] = useState<PickedLead[]>([]);
   const [numbers, setNumbers] = useState('');
+  const [media, setMedia] = useState('');
   const parsed = useMemo(() => numbers.split('\n').map(l => l.trim()).filter(Boolean).map(l => { const [a, b] = l.split(',').map(s => s.trim()); return b ? { name: a, phone: b } : { name: '', phone: a }; }), [numbers]);
   const total = leads.length + parsed.length;
   const go = useMutation({
-    mutationFn: () => happileeApi.broadcast({ templateId: t.templateId, templateName: t.template?.template_name, leadIds: leads.map(l => l.id), numbers: parsed, bodyParams: t.values }),
-    onSuccess: r => { toast.success(`Broadcast queued for ${r.recipients} recipients`); setLeads([]); setNumbers(''); qc.invalidateQueries({ queryKey: ['happilee'] }); },
+    mutationFn: () => happileeApi.broadcast({ templateId: t.templateId, templateName: t.template?.template_name, leadIds: leads.map(l => l.id), numbers: parsed, bodyParams: t.values, headerMediaUrl: media.trim() || undefined }),
+    onSuccess: r => { toast.success(r.personalised ? `Sending ${r.recipients} personalised messages in the background. Check the Message Log.` : `Broadcast queued for ${r.recipients} recipients`); setLeads([]); setNumbers(''); qc.invalidateQueries({ queryKey: ['happilee'] }); },
     onError: e => toast.error(apiErrorMessage(e, 'Could not start the broadcast')),
   });
   return (
@@ -69,8 +80,9 @@ function Broadcast() {
         </div>
       </div>
       <div className="space-y-4">
+        {hasMediaHeader(t.template) && <MediaHeaderField value={media} onChange={setMedia} />}
         <ParamFields template={t.template} values={t.values} onChange={t.setValues} />
-        <p className="text-xs text-muted-foreground">The same variable values go to every recipient. Up to 1000 recipients per broadcast.</p>
+        <p className="text-xs text-muted-foreground">Plain values go to every recipient in one broadcast (up to 1000). If you use placeholders like [first_name], each person gets their own message, sent one by one in the background (up to 300).</p>
         <Button disabled={!t.templateId || total === 0 || go.isPending} onClick={() => window.confirm(`Send "${t.template?.template_name}" to ${total} recipient(s)?`) && go.mutate()}>
           <Megaphone className="mr-1.5 h-4 w-4" />{go.isPending ? 'Starting…' : `Broadcast to ${total}`}
         </Button>
