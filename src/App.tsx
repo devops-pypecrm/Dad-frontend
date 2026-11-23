@@ -96,6 +96,7 @@ import { HappileeFeatureRoute } from './components/happilee/HappileeFeatureRoute
 const HappileeOverview = lazy(() => import('./pages/happilee/overview'));
 const HappileeTemplates = lazy(() => import('./pages/happilee/templates'));
 const HappileeSend = lazy(() => import('./pages/happilee/send'));
+const HappileeDocs = lazy(() => import('./pages/happilee/docs'));
 const HappileeMessages = lazy(() => import('./pages/happilee/messages'));
 import { InstagramFeatureRoute } from './components/instagram/InstagramFeatureRoute';
 const InstagramSharedInbox = lazy(() => import('./pages/instagram/inbox'));
@@ -422,6 +423,7 @@ function AppContent() {
          <Route path="/happilee/templates" element={<HappileeTemplates />} />
          <Route path="/happilee/send" element={<HappileeSend />} />
          <Route path="/happilee/messages" element={<HappileeMessages />} />
+         <Route path="/happilee/docs" element={<HappileeDocs />} />
        </Route>
        <Route element={<InstagramFeatureRoute />}>
          <Route path="/instagram" element={<Navigate to="/instagram/inbox" replace />} />
