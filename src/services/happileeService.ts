@@ -15,7 +15,16 @@ export interface HappileeLog {
 }
 export interface Param { name: string; value: string }
 
+export interface WebhookInfo {
+  baseUrl: string;
+  types: { key: string; label: string; url: string; createLead: boolean }[];
+  events: { id: string; type: string; payload: any; outcome: string; leadId: string | null; createdAt: string }[];
+}
+
 export const happileeApi = {
+  webhook: () => api.get<WebhookInfo>('/happilee/webhook').then(r => r.data),
+  saveWebhookSettings: (createOn: string[]) => api.put('/happilee/webhook/settings', { createOn }).then(r => r.data),
+  rotateWebhook: () => api.post('/happilee/webhook/rotate').then(r => r.data),
   status: () => api.get<HappileeStatus>('/happilee/status').then(r => r.data),
   connect: (apiKey: string, label?: string) => api.post('/happilee/connect', { apiKey, label }).then(r => r.data),
   disconnect: () => api.delete('/happilee/connect').then(r => r.data),

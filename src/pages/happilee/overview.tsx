@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { happileeApi } from '@/services/happileeService';
 import { apiErrorMessage } from '@/lib/apiError';
 import { HappileePage, useHappileeStatus } from '@/components/happilee/shared';
+import { WebhookPanel } from '@/components/happilee/WebhookPanel';
 import { isOrgAdmin } from '@/lib/utils';
 
 export default function HappileeOverview() {
@@ -70,6 +71,7 @@ export default function HappileeOverview() {
           </div>
         </>
       )}
+      {admin && <WebhookPanel />}
     </HappileePage>
   );
 }

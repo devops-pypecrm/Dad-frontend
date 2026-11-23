@@ -125,6 +125,25 @@ const SECTIONS: Section[] = [
     ),
   },
   {
+    id: 'webhooks', title: 'Getting leads from Happilee (webhooks)',
+    body: (
+      <div className="space-y-3">
+        <p>Happilee can notify the CRM when something happens, so new contacts appear as leads without anyone copying them over. Admins set this up on the <Link className="text-primary underline" to="/happilee/overview">Overview</Link> page, in the "Receive leads from Happilee" panel.</p>
+        <Steps items={[
+          <>In Happilee, open <b>Webhooks</b> and add one. Each has a <b>Name</b>, a <b>Type</b> and a <b>URL</b>.</>,
+          <>In the CRM panel, copy the URL shown for that type and paste it into Happilee. Pick the same type there. Repeat for every type you want.</>,
+          <>Tick the types that should <b>create a lead</b> and click Save. By default: New Contact, New Contact (Manual), FB Lead Created and Ad Referral Captured. New Message and the others are recorded only, unless you tick them.</>,
+          <>Create a test contact in Happilee. Within seconds it shows under <b>Recent events</b>, and the lead appears in the CRM with source WhatsApp (or Meta Ads for FB lead and ad referral events).</>,
+        ]} />
+        <List items={[
+          <>If the same number already exists, the CRM's normal duplicate and re-enquiry rules apply, so no second lead is created. The event shows as "duplicate".</>,
+          <>Each event row can be opened to show exactly what Happilee sent. If a lead was not created ("no_phone"), this shows what was missing.</>,
+          <>The URLs contain a secret. Anyone with it can send leads to your CRM. Use <b>New URLs</b> to replace them if one leaks, then update Happilee.</>,
+        ]} />
+      </div>
+    ),
+  },
+  {
     id: 'personalise', title: 'Personalising messages with lead details',
     body: (
       <div className="space-y-3">
@@ -157,7 +176,7 @@ const SECTIONS: Section[] = [
       <div className="space-y-3">
         <p>Happilee only lets other software do a limited set of things through its API. Everything below has to be done in Happilee's own dashboard:</p>
         <List items={[
-          <><b>Live inbox and customer replies:</b> reading and answering incoming WhatsApp chats, assignment and chat tags.</>,
+          <><b>Live inbox and customer replies:</b> reading and answering incoming WhatsApp chats, assignment and chat tags. The CRM is told about new contacts through webhooks, but chat messages are not shown here.</>,
           <><b>Creating, editing and submitting templates</b> for WhatsApp approval.</>,
           <><b>Chatbots, flows and auto-replies</b> built in Happilee.</>,
           <><b>Broadcast reports</b> (per-recipient delivered/read), campaigns analytics and contact lists or segments.</>,
