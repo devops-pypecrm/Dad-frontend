@@ -20,6 +20,7 @@ export default function Footer() {
             <h4 className="font-bold text-gray-900 dark:text-white mb-4">Product</h4>
             <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
               <li><Link to="/features" className="hover:text-brand-600">Features</Link></li>
+              <li><Link to="/instagram-automation" className="hover:text-brand-600">Instagram Automation</Link></li>
               <li><Link to="/pricing" className="hover:text-brand-600">Pricing</Link></li>
               <li><Link to="/partners" className="hover:text-brand-600">Partner Program</Link></li>
               <li><Link to="/login" className="hover:text-brand-600">Login</Link></li>

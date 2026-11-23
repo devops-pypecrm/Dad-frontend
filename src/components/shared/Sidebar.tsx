@@ -143,7 +143,6 @@ const menuGroups = [
       { title: "Templates", href: "/happilee/templates", icon: FileText },
       { title: "Send & Broadcast", href: "/happilee/send", icon: Send },
       { title: "Message Log", href: "/happilee/messages", icon: History },
-      { title: "Instagram Automation", href: "/happilee/instagram", icon: InstagramIcon },
       { title: "Docs", href: "/happilee/docs", icon: BookOpen },
     ]
   },

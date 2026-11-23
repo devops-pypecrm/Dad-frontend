@@ -3,6 +3,7 @@ import Hero from "@/components/landing/Hero";
 import FeatureSpotlight from "@/components/landing/FeatureSpotlight";
 import GetStartedBanner from "@/components/landing/GetStartedBanner";
 import FeatureSection from "@/components/landing/FeatureSection";
+import InstagramAutomationTeaser from "@/components/landing/InstagramAutomationTeaser";
 import IntegrationSection from "@/components/landing/IntegrationSection";
 import Testimonials from "@/components/landing/Testimonials";
 import PricingTable from "@/components/landing/PricingTable";
@@ -59,6 +60,7 @@ export default function LandingPage() {
           <Reveal><FeatureSpotlight /></Reveal>
           <Reveal><GetStartedBanner /></Reveal>
           <Reveal><FeatureSection /></Reveal>
+          <Reveal><InstagramAutomationTeaser /></Reveal>
           <Reveal><IntegrationSection /></Reveal>
           <Reveal><Testimonials /></Reveal>
           <Reveal><PricingTable /></Reveal>

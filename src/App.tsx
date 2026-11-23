@@ -96,7 +96,7 @@ import { HappileeFeatureRoute } from './components/happilee/HappileeFeatureRoute
 const HappileeOverview = lazy(() => import('./pages/happilee/overview'));
 const HappileeTemplates = lazy(() => import('./pages/happilee/templates'));
 const HappileeSend = lazy(() => import('./pages/happilee/send'));
-const HappileeInstagram = lazy(() => import('./pages/happilee/instagram'));
+const InstagramAutomationPage = lazy(() => import('./pages/InstagramAutomation'));
 const HappileeDocs = lazy(() => import('./pages/happilee/docs'));
 const HappileeMessages = lazy(() => import('./pages/happilee/messages'));
 import { InstagramFeatureRoute } from './components/instagram/InstagramFeatureRoute';
@@ -232,7 +232,7 @@ function AuthListener() {
 
 // The public website (landing, features, pricing, blog, legal, login...) is always light, whatever the
 // visitor's system or saved app theme is. The signed-in app keeps its own theme switcher.
-const PUBLIC_LIGHT_PATHS = /^\/(?:$|(?:login|sso-login|sso-callback|enquire|forgot-password|reset-password|privacy|privacy-policy|terms|blog|help|features|pricing|partners|download|data-deletion|pages)(?:\/|$))/;
+const PUBLIC_LIGHT_PATHS = /^\/(?:$|(?:login|sso-login|sso-callback|enquire|forgot-password|reset-password|privacy|privacy-policy|terms|blog|help|features|instagram-automation|pricing|partners|download|data-deletion|pages)(?:\/|$))/;
 function LightOnPublicPages() {
  const { pathname } = useLocation();
  const isPublic = PUBLIC_LIGHT_PATHS.test(pathname);
@@ -453,7 +453,6 @@ function AppContent() {
          <Route path="/happilee/templates" element={<HappileeTemplates />} />
          <Route path="/happilee/send" element={<HappileeSend />} />
          <Route path="/happilee/messages" element={<HappileeMessages />} />
-         <Route path="/happilee/instagram" element={<HappileeInstagram />} />
          <Route path="/happilee/docs" element={<HappileeDocs />} />
        </Route>
        <Route element={<InstagramFeatureRoute />}>
@@ -574,6 +573,7 @@ function AppContent() {
       <Route path="/help" element={<LegacyHelpRedirect />} />
       <Route path="/help/:slug" element={<LegacyHelpRedirect />} />
       <Route path="/features" element={<Features />} />
+      <Route path="/instagram-automation" element={<InstagramAutomationPage />} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/partners" element={<Partners />} />
       <Route path="/academy" element={<AcademyPage />} />
