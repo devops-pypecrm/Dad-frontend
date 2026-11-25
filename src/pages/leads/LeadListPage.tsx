@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { type RowSelectionState } from "@tanstack/react-table"
 import { useMemo, useState, type ReactNode } from "react"
 import { useSearchParams } from "react-router-dom"
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGr
 import { Button } from "@/components/ui/button"
 import { columns } from "./columns"
 import { LeadTableRow } from "./LeadTableRow"
+import { LeadBulkActions } from "./LeadBulkActions"
 import { type Lead } from "@/services/leadService"
 import { getBranches } from "@/services/settingsService"
 import { getUsers } from "@/services/userService"
@@ -66,6 +67,7 @@ const FETCH_CAP = 2000
 // Dashboard (which carry branch/date range) land pre-filtered here too.
 export function LeadListPage({ title, description, icon, queryKey, queryFn, emptyMessage, showStageFilter, headerActions }: LeadListPageProps) {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
   const { statuses } = useLeadStatuses()
 
@@ -362,6 +364,13 @@ export function LeadListPage({ title, description, icon, queryKey, queryFn, empt
           CustomRowComponent={LeadTableRow as any}
         />
       )}
+
+      <LeadBulkActions
+        selectedIds={Object.keys(rowSelection)}
+        onClearSelection={() => setRowSelection({})}
+        onRefresh={() => queryClient.invalidateQueries({ queryKey: [queryKey] })}
+        onExport={handleExcelDownload}
+      />
     </div>
   )
 }
