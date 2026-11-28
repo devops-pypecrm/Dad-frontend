@@ -9,6 +9,7 @@ import {
   DollarSign,
   ChevronRight,
   LineChart,
+  TrendingUp,
 } from "lucide-react";
 import { isAdmin, isManager } from "@/lib/utils";
 
@@ -59,6 +60,7 @@ export default function ReportsPage() {
           <ReportCard to="/reports/audit-logs" icon={FileText} title="Audit Logs" description="System activity and user actions." accent="primary" />
         )}
         <ReportCard to="/reports/user-total" icon={Trophy} title="User Total Report" description="Individual performance, efficiency metrics, and PDF exports." accent="amber" />
+        <ReportCard to="/reports/source-roi" icon={TrendingUp} title="Source & ROI Report" description="Leads, conversions, ad spend and profit by source, campaign and user." accent="emerald" />
         <ReportCard to="/reports/daily" icon={BarChart3} title="Daily Report" description="Today's exact call and conversion metrics at a glance." accent="emerald" />
       </div>
     </div>
