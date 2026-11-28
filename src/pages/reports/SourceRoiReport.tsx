@@ -149,7 +149,7 @@ export default function SourceRoiReportPage() {
     };
 
     return (
-        <div className="space-y-5 pb-10">
+        <div className="min-h-screen p-4 sm:p-8 space-y-6 animate-in fade-in duration-300">
             {/* Header */}
             <div className="flex flex-wrap items-center gap-3">
                 <Button variant="ghost" size="icon" onClick={() => navigate('/reports')}><ArrowLeft className="h-5 w-5" /></Button>
